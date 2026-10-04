@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+  <title>Đăng ký | Clinic Booking</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <link rel="stylesheet" href="overall.css">
+</head>
+
+<body>
+
+<div class="auth-page">
+  <div class="auth-wrap">
+    <aside class="auth-side">
+      <a href="index.html" class="brand">
+        <div class="logo">
+          <i class="fa-solid fa-heart-pulse"></i>
+        </div>
+        <div>
+          <h1>Clinic Booking</h1>
+          <p>Đặt lịch khám trực tuyến</p>
+        </div>
+
+      </a>
+      <h2>Đăng ký tài khoản</h2>
+      <p>
+        Tạo tài khoản để tìm kiếm bác sĩ,
+        đặt lịch khám và quản lý lịch sử khám bệnh.
+      </p>
+      <div class="card specialty-card">
+        <div class="specialty-icon">
+          <i class="fa-solid fa-shield-heart"></i>
+        </div>
+        <h3>Thông tin an toàn</h3>
+        <p>
+          Thông tin tài khoản được quản lý và bảo vệ
+          trong hệ thống.
+        </p>
+      </div>
+      <div class="card specialty-card">
+        <div class="specialty-icon">
+          <i class="fa-solid fa-calendar-check"></i>
+        </div>
+        <h3>Đặt lịch thuận tiện</h3>
+        <p>
+          Chủ động lựa chọn bác sĩ và thời gian khám.
+        </p>
+      </div>
+    </aside>
+    <main class="card auth-card">
+      <h2>Tạo tài khoản</h2>
+      <p class="auth-sub">
+        Đăng ký tài khoản bệnh nhân để bắt đầu sử dụng hệ thống.
+      </p>
+      <div
+        class="alert alert-error"
+        id="errorMessage">
+      </div>
+      <div
+        class="alert alert-success"
+        id="successMessage">
+      </div>
+
+      <form
+        class="auth-form"
+        id="registerForm"
+        novalidate
+      >
+        <div class="form-group">
+
+          <label for="fullName">
+            Họ và tên
+          </label>
+
+          <input
+            class="form-control"
+            id="fullName"
+            type="text"
+            placeholder="Nguyễn Văn A"
+            autocomplete="name"
+            required
+          >
+        </div>
+        <div class="form-group">
+
+          <label for="phone">
+            Số điện thoại
+          </label>
+
+          <input
+            class="form-control"
+            id="phone"
+            type="tel"
+            placeholder="0901234567"
+            autocomplete="tel"
+          >
+
+        </div>
+        <div class="form-group">
+
+          <label for="email">
+            Email
+          </label>
+
+          <input
+            class="form-control"
+            id="email"
+            type="email"
+            placeholder="name@example.com"
+            autocomplete="email"
+            required
+          >
+        </div>
+        <div class="form-group password-field">
+          <label for="password">
+            Mật khẩu
+          </label>
+          <input
+            class="form-control"
+            id="password"
+            type="password"
+            placeholder="••••••••"
+            autocomplete="new-password"
+            required
+          >
+          <button
+            type="button"
+            class="password-toggle"
+            id="togglePassword"
+          >
+            <i class="fa-solid fa-eye"></i>
+          </button>
+        </div>
+        <div class="form-group password-field">
+          <label for="confirmPassword">
+            Nhập lại mật khẩu
+          </label>
+          <input
+            class="form-control"
+            id="confirmPassword"
+            type="password"
+            placeholder="••••••••"
+            autocomplete="new-password"
+            required
+          >
+          <button
+            type="button"
+            class="password-toggle"
+            id="toggleConfirm"
+          >
+            <i class="fa-solid fa-eye"></i>
+          </button>
+        </div>
+        <label
+          style="
+            display:flex;
+            gap:8px;
+            align-items:flex-start;
+            font-size:13px;
+            color:var(--muted);
+            margin-bottom:15px;
+          "
+        >
+          <input
+            type="checkbox"
+            id="agree"
+            style="margin-top:3px;"
+          >
+          <span>
+            Tôi đồng ý với
+            <a href="#">Điều khoản</a>
+            và
+            <a href="#">Chính sách bảo mật</a>.
+          </span>
+        </label>
+        <button
+          class="btn btn-primary"
+          type="submit"
+          id="registerButton"
+        >
+          Tạo tài khoản
+        </button>
+        <div class="auth-footer">
+          Đã có tài khoản?
+          <a href="login.html">
+            Đăng nhập
+          </a>
+        </div>
+      </form>
+    </main>
+  </div>
+</div>
+<script src="js/api.js"></script>
+<script>
+
+const form =
+  document.getElementById("registerForm");
+const errorMessage =
+  document.getElementById("errorMessage");
+const successMessage =
+  document.getElementById("successMessage");
+const registerButton =
+  document.getElementById("registerButton");
+
+function showError(message){
+  errorMessage.textContent = message;
+  errorMessage.style.display =
+    "block";
+  successMessage.style.display =
+    "none";
+
+}
+
+function showSuccess(message){
+  successMessage.textContent =
+    message;
+  successMessage.style.display =
+    "block";
+  errorMessage.style.display =
+    "none";
+}
+
+function togglePassword(buttonId,inputId){
+  const button = document.getElementById(buttonId);
+  const input = document.getElementById(inputId);
+  button.addEventListener(
+    "click",
+    function(){
+      const hidden =
+        input.type === "password";
+
+      input.type =
+        hidden ? "text" : "password";
+
+      button.innerHTML =
+        hidden
+        ? '<i class="fa-solid fa-eye-slash"></i>'
+        : '<i class="fa-solid fa-eye"></i>';
+
+    }
+  );
+}
+
+togglePassword(
+  "togglePassword",
+  "password"
+);
+togglePassword(
+  "toggleConfirm",
+  "confirmPassword"
+);
+
+form.addEventListener(
+  "submit",
+  async function(event){
+    event.preventDefault();
+    errorMessage.style.display =
+      "none";
+    successMessage.style.display =
+      "none";
+
+    const fullName =
+      document.getElementById("fullName")
+      .value.trim();
+    const phone =
+      document.getElementById("phone")
+      .value.trim();
+    const email =
+      document.getElementById("email")
+      .value.trim();
+    const password =
+      document.getElementById("password")
+      .value;
+    const confirmPassword =
+      document.getElementById("confirmPassword")
+      .value;
+    const agree =
+      document.getElementById("agree")
+      .checked;
+    if(!fullName){
+      showError(
+        "Vui lòng nhập họ và tên."
+      );
+      return;
+    }
+    if(fullName.length < 2){
+      showError(
+        "Họ và tên phải có ít nhất 2 ký tự."
+      );
+      return;
+    }
+    if(phone){
+      const phoneRegex =
+        /^(0|\+84)[0-9]{9,10}$/;
+      const cleanPhone =
+        phone.replace(/\s+/g,"");
+      if(!phoneRegex.test(cleanPhone)){
+        showError(
+          "Số điện thoại không hợp lệ."
+        );
+        return;
+      }
+    }
+    if(!email){
+      showError(
+        "Vui lòng nhập email."
+      );
+      return;
+    }
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+      showError(
+        "Email không hợp lệ."
+      );
+      return;
+    }
+    if(password.length < 8){
+      showError(
+        "Mật khẩu phải có ít nhất 8 ký tự."
+      );
+      return;
+    }
+    if(!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)){
+      showError(
+        "Mật khẩu phải gồm chữ hoa, chữ thường và số."
+      );
+      return;
+    }
+    if(password !== confirmPassword){
+      showError(
+        "Mật khẩu nhập lại không khớp."
+      );
+      return;
+    }
+    if(!agree){
+      showError(
+        "Bạn phải đồng ý với Điều khoản và Chính sách."
+      );
+      return;
+    }
+    try{
+      registerButton.disabled =
+        true;
+      registerButton.textContent =
+        "Đang xử lý...";
+      const result =
+        await apiFetch(
+          "/api/register",
+          {
+            method:"POST",
+
+            body:JSON.stringify({
+
+              full_name:fullName,
+
+              email:email,
+
+              password:password,
+
+              phone:phone || null
+
+            })
+          }
+        );
+      showSuccess(
+        result.message ||
+        "Đăng ký thành công."
+      );
+      form.reset();
+      setTimeout(
+        function(){
+          window.location.href =
+            "login.html";
+        },
+        1500
+      );
+    }
+    catch(error){
+
+      console.error(error);
+      showError(
+        error.message ||
+        "Không thể kết nối đến máy chủ."
+      );
+    }
+    finally{
+      registerButton.disabled =
+        false;
+      registerButton.textContent =
+        "Tạo tài khoản";
+    }
+  }
+);
+</script>
+</body>
+</html>

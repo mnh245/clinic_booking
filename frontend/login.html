@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+  <title>Đăng nhập | Clinic Booking</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="overall.css">
+</head>
+<body>
+<div class="auth-page">
+  <div class="auth-wrap">
+    <aside class="auth-side">
+      <a href="home.html" class="brand">
+        <div class="logo">
+          <i class="fa-solid fa-heart-pulse"></i>
+        </div>
+        <div>
+          <h1>Clinic Booking</h1>
+          <p>Đặt lịch khám trực tuyến</p>
+        </div>
+      </a>
+      <h2>Chăm sóc sức khỏe dễ dàng hơn</h2>
+      <p>
+        Đăng nhập để tìm kiếm bác sĩ, xem lịch khám
+        và quản lý các cuộc hẹn của bạn.
+      </p>
+      <div class="bullets">
+        <div class="card specialty-card">
+          <div class="specialty-icon">
+            <i class="fa-solid fa-calendar-check"></i>
+          </div>
+          <h3>Đặt lịch nhanh chóng</h3>
+          <p>
+            Lựa chọn bác sĩ và thời gian khám phù hợp.
+          </p>
+        </div>
+
+        <div class="card specialty-card">
+          <div class="specialty-icon">
+            <i class="fa-solid fa-user-doctor"></i>
+          </div>
+          <h3>Tìm bác sĩ</h3>
+          <p>
+            Tìm kiếm bác sĩ theo chuyên khoa và kinh nghiệm.
+          </p>
+        </div>
+      </div>
+    </aside>
+    <main class="card auth-card">
+      <h2>Đăng nhập</h2>
+      <p class="auth-sub">
+        Nhập thông tin tài khoản để tiếp tục.
+      </p>
+      <div
+        class="alert alert-error"
+        id="errorMessage">
+      </div>
+
+      <form
+        class="auth-form"
+        id="loginForm"
+        novalidate>
+
+        <div class="form-group">
+          <label for="email">
+            Email
+          </label>
+          <input
+            class="form-control"
+            id="email"
+            type="email"
+            placeholder="name@example.com"
+            autocomplete="email"
+            required >
+        </div>
+        <div class="form-group password-field">
+          <label for="password">
+            Mật khẩu
+          </label>
+
+          <input
+            class="form-control"
+            id="password"
+            type="password"
+            placeholder="••••••••"
+            autocomplete="current-password"
+            required
+          >
+
+          <button
+            type="button"
+            class="password-toggle"
+            id="togglePassword"
+            aria-label="Ẩn hoặc hiện mật khẩu"
+          >
+            <i class="fa-solid fa-eye"></i>
+          </button>
+
+        </div>
+
+
+        <div
+          style="
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            margin-bottom:15px;
+            font-size:13px;
+          "
+        >
+
+          <label
+            style="
+              display:flex;
+              align-items:center;
+              gap:7px;
+              color:var(--muted);
+            "
+          >
+
+            <input
+              type="checkbox"
+              id="remember"
+            >
+
+            Ghi nhớ đăng nhập
+
+          </label>
+
+
+          <a href="#">
+            Quên mật khẩu?
+          </a>
+
+        </div>
+
+
+        <button
+          class="btn btn-primary"
+          type="submit"
+          id="loginButton"
+        >
+          Đăng nhập
+        </button>
+
+
+        <div class="auth-footer">
+
+          Chưa có tài khoản?
+
+          <a href="register.html">
+            Đăng ký ngay
+          </a>
+
+        </div>
+
+      </form>
+
+    </main>
+
+  </div>
+
+</div>
+
+
+<script src="js/api.js"></script>
+
+<script>
+
+const form = document.getElementById("loginForm");
+const errorMessage = document.getElementById("errorMessage");
+const emailInput = document.getElementById("email");
+const passwordInput = document.getElementById("password");
+const togglePassword = document.getElementById("togglePassword");
+const loginButton = document.getElementById("loginButton");
+
+
+function showError(message){
+
+  errorMessage.textContent = message;
+  errorMessage.style.display = "block";
+
+}
+
+function clearError(){
+  errorMessage.textContent = "";
+  errorMessage.style.display = "none";
+}
+
+togglePassword.addEventListener(
+  "click",
+  function(){
+
+    const hidden =
+      passwordInput.type === "password";
+
+    passwordInput.type =
+      hidden ? "text" : "password";
+
+    togglePassword.innerHTML =
+      hidden
+      ? '<i class="fa-solid fa-eye-slash"></i>'
+      : '<i class="fa-solid fa-eye"></i>';
+
+  }
+);
+form.addEventListener(
+  "submit",
+  async function(event){
+    event.preventDefault();
+    clearError();
+    const email =
+      emailInput.value.trim();
+    const password =
+      passwordInput.value;
+
+    if(!email){
+      showError("Vui lòng nhập email.");
+      emailInput.focus();
+
+      return;
+    }
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+      showError("Email không hợp lệ.");
+      emailInput.focus();
+      return;
+    }
+    if(!password){
+      showError("Vui lòng nhập mật khẩu.");
+      passwordInput.focus();
+      return;
+    }
+    try{
+
+      loginButton.disabled = true;
+
+      loginButton.textContent =
+        "Đang đăng nhập...";
+      const result =
+        await apiFetch(
+          "/api/login",
+          {
+            method:"POST",
+
+            body:JSON.stringify({
+              email:email,
+              password:password
+            })
+          }
+        );
+
+      const user = result.user;
+
+      localStorage.setItem(
+        "user",
+        JSON.stringify(user)
+      );
+
+      localStorage.setItem(
+        "role",
+        user.role
+      );
+
+      switch(user.role){
+        case "PATIENT":
+          window.location.href =
+            "index.html";
+          break;
+        case "DOCTOR":
+          window.location.href =
+            "doctor-dashboard.html";
+          break;
+        case "ADMIN":
+          window.location.href =
+            "admin-dashboard.html";
+          break;
+        default:
+          window.location.href =
+            "index.html";
+      }
+
+    }
+    catch(error){
+
+      console.error(error);
+
+      showError(
+        error.message ||
+        "Không thể kết nối đến máy chủ."
+      );
+
+    }
+    finally{
+
+      loginButton.disabled = false;
+
+      loginButton.textContent =
+        "Đăng nhập";
+
+    }
+
+  }
+);
+
+</script>
+
+</body>
+</html>
