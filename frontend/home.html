@@ -470,11 +470,14 @@
       <a href="#doctors">Bác sĩ</a>
       <a href="#how-it-works">Hướng dẫn</a>
     </nav>
-
-    <div class="header-actions">
-      <a href="login.html" class="btn btn-outline">Đăng nhập</a>
-      <a href="register.html" class="btn btn-primary">Đăng ký</a>
+<div class="header-actions" id="headerActions">
+    <a href="login.html" class="btn btn-outline" id="loginLink">Đăng nhập</a>
+    <a href="register.html" class="btn btn-primary" id="registerLink">Đăng ký</a>
+    <div id="userInfo" style="display:none;align-items:center;gap:10px;">
+        <span id="welcomeUser" style="font-size:14px;color:var(--text);font-weight:500;"></span>
+        <button type="button" class="btn btn-outline" id="logoutButton">Đăng xuất</button>
     </div>
+</div>
 
   </div>
 </header>
@@ -863,6 +866,32 @@ searchForm.addEventListener("submit", function(event){
   window.location.href =
     "doctors.html?" + params.toString();
 
+});
+document.addEventListener("DOMContentLoaded",function(){
+    const loginLink=document.getElementById("loginLink");
+    const registerLink=document.getElementById("registerLink");
+    const userInfo=document.getElementById("userInfo");
+    const welcomeUser=document.getElementById("welcomeUser");
+    const logoutButton=document.getElementById("logoutButton");
+    const userData=localStorage.getItem("user");
+    if(userData){
+        try{
+            const user=JSON.parse(userData);
+            loginLink.style.display="none";
+            registerLink.style.display="none";
+            userInfo.style.display="flex";
+            welcomeUser.textContent="Xin chào, "+(user.full_name||user.fullName||"bạn");
+        }catch(error){
+            console.error("Không thể đọc thông tin người dùng:",error);
+            localStorage.removeItem("user");
+            localStorage.removeItem("role");
+        }
+    }
+    logoutButton.addEventListener("click",function(){
+        localStorage.removeItem("user");
+        localStorage.removeItem("role");
+        window.location.href="login.html";
+    });
 });
 </script>
 </body>

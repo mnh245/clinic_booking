@@ -10,10 +10,9 @@
       "server": "localhost",
       "port": 3306,
       "driver": "MariaDB",
-      "name": "clinic_booking",
+      "name": "clinnic_booking",
       "database": "clinic_booking",
-      "username": "root",
-      "askForPassword": true
+      "username": "root"
     }
   ]
 }
