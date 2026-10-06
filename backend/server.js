@@ -6,15 +6,31 @@ const {testConnection}=require("./config/db");
 const authRoutes=require("./routes/auth.routes");
 
 const app=express();
+
+const doctorRoutes = require("./routes/doctor.routes");
+const appointmentRoutes = require("./routes/appointment.routes");
+const scheduleRoutes = require("./routes/schedule.routes");
 const PORT=process.env.PORT||3000;
 
 const frontendPath=path.join(__dirname,"..","frontend");
 
 app.use(express.json());
+
+app.use("/api", authRoutes);
+
+app.use("/api/doctors", doctorRoutes);
 app.use(express.urlencoded({extended:true}));
 
 app.use("/api",authRoutes);
+app.use(
+    "/api",
+    scheduleRoutes
+);
 
+app.use(
+    "/api",
+    appointmentRoutes
+);
 app.use(express.static(frontendPath));
 
 app.get("/",(req,res)=>{
