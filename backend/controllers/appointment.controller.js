@@ -641,16 +641,362 @@ async function cancelAppointment(req, res) {
 
     }
 }
+// =====================================================
+// BÁC SĨ XÁC NHẬN LỊCH
+// POST /api/appointments/:id/confirm
+// =====================================================
+
+async function confirmAppointment(req, res) {
+    try {
+        const appointmentId = Number(req.params.id);
+
+        if (!appointmentId) {
+            return res.status(400).json({
+                success: false,
+                message: "ID lịch khám không hợp lệ."
+            });
+        }
+
+        const [rows] = await pool.query(
+            `
+            SELECT
+                id,
+                doctor_id,
+                status
+            FROM appointments
+            WHERE id = ?
+            LIMIT 1
+            `,
+            [appointmentId]
+        );
+
+        if (rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Không tìm thấy lịch khám."
+            });
+        }
+
+        const appointment = rows[0];
+
+        if (appointment.status !== "PENDING") {
+            return res.status(400).json({
+                success: false,
+                message:
+                    "Chỉ lịch khám đang ở trạng thái PENDING mới có thể xác nhận."
+            });
+        }
+
+        await pool.query(
+            `
+            UPDATE appointments
+            SET
+                status = 'CONFIRMED',
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+            `,
+            [appointmentId]
+        );
+
+        return res.json({
+            success: true,
+            message: "Xác nhận lịch khám thành công."
+        });
+
+    } catch (error) {
+        console.error("CONFIRM APPOINTMENT ERROR:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Lỗi máy chủ khi xác nhận lịch khám."
+        });
+    }
+}
+
+// =====================================================
+// GHI NHẬN BỆNH NHÂN ĐẾN KHÁM
+// POST /api/appointments/:id/arrival
+// =====================================================
+
+async function recordArrival(req, res) {
+    try {
+        const appointmentId = Number(req.params.id);
+
+        if (!appointmentId) {
+            return res.status(400).json({
+                success: false,
+                message: "ID lịch khám không hợp lệ."
+            });
+        }
+
+        const [rows] = await pool.query(
+            `
+            SELECT
+                id,
+                appointment_time,
+                status
+            FROM appointments
+            WHERE id = ?
+            LIMIT 1
+            `,
+            [appointmentId]
+        );
+
+        if (rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Không tìm thấy lịch khám."
+            });
+        }
+
+        const appointment = rows[0];
+
+        if (appointment.status !== "CONFIRMED") {
+            return res.status(400).json({
+                success: false,
+                message:
+                    "Chỉ lịch khám đã được xác nhận mới có thể ghi nhận đến khám."
+            });
+        }
+
+        if (appointment.actual_arrival_time) {
+            return res.status(400).json({
+                success: false,
+                message: "Bệnh nhân đã được ghi nhận đến khám."
+            });
+        }
+
+        const now = new Date();
+
+        const currentHour = now.getHours();
+        const currentMinute = now.getMinutes();
+
+        const [appointmentHour, appointmentMinute] =
+            appointment.appointment_time
+                .split(":")
+                .map(Number);
+
+        const currentTotalMinutes =
+            currentHour * 60 + currentMinute;
+
+        const appointmentTotalMinutes =
+            appointmentHour * 60 + appointmentMinute;
+
+        const lateMinutes = Math.max(
+            0,
+            currentTotalMinutes - appointmentTotalMinutes
+        );
+
+        const actualArrivalTime =
+            `${String(currentHour).padStart(2, "0")}:` +
+            `${String(currentMinute).padStart(2, "0")}:00`;
+
+        await pool.query(
+            `
+            UPDATE appointments
+            SET
+                actual_arrival_time = ?,
+                late_minutes = ?,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+            `,
+            [
+                actualArrivalTime,
+                lateMinutes,
+                appointmentId
+            ]
+        );
+
+        return res.json({
+            success: true,
+            message:
+                lateMinutes > 0
+                    ? `Bệnh nhân đã đến muộn ${lateMinutes} phút.`
+                    : "Bệnh nhân đã đến đúng giờ.",
+            data: {
+                actual_arrival_time: actualArrivalTime,
+                late_minutes: lateMinutes
+            }
+        });
+
+    } catch (error) {
+        console.error("RECORD ARRIVAL ERROR:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Lỗi máy chủ khi ghi nhận bệnh nhân đến."
+        });
+    }
+}
+
+// =====================================================
+// ĐÁNH DẤU KHÔNG ĐẾN
+// POST /api/appointments/:id/no-show
+// =====================================================
+
+async function markNoShow(req, res) {
+    try {
+        const appointmentId = Number(req.params.id);
+
+        if (!appointmentId) {
+            return res.status(400).json({
+                success: false,
+                message: "ID lịch khám không hợp lệ."
+            });
+        }
+
+        const [rows] = await pool.query(
+            `
+            SELECT
+                id,
+                status,
+                actual_arrival_time
+            FROM appointments
+            WHERE id = ?
+            LIMIT 1
+            `,
+            [appointmentId]
+        );
+
+        if (rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Không tìm thấy lịch khám."
+            });
+        }
+
+        const appointment = rows[0];
+
+        if (appointment.status !== "CONFIRMED") {
+            return res.status(400).json({
+                success: false,
+                message:
+                    "Chỉ lịch khám CONFIRMED mới có thể đánh dấu không đến."
+            });
+        }
+
+        if (appointment.actual_arrival_time) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    "Bệnh nhân đã đến khám nên không thể đánh dấu NO_SHOW."
+            });
+        }
+
+        await pool.query(
+            `
+            UPDATE appointments
+            SET
+                status = 'NO_SHOW',
+                note = COALESCE(note, 'Bệnh nhân không đến khám'),
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+            `,
+            [appointmentId]
+        );
+
+        return res.json({
+            success: true,
+            message: "Đã đánh dấu bệnh nhân không đến khám."
+        });
+
+    } catch (error) {
+        console.error("NO SHOW ERROR:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Lỗi máy chủ khi xử lý NO_SHOW."
+        });
+    }
+}
+
+// =====================================================
+// HOÀN THÀNH KHÁM
+// POST /api/appointments/:id/complete
+// =====================================================
+
+async function completeAppointment(req, res) {
+    try {
+        const appointmentId = Number(req.params.id);
+
+        if (!appointmentId) {
+            return res.status(400).json({
+                success: false,
+                message: "ID lịch khám không hợp lệ."
+            });
+        }
+
+        const [rows] = await pool.query(
+            `
+            SELECT
+                id,
+                status,
+                actual_arrival_time
+            FROM appointments
+            WHERE id = ?
+            LIMIT 1
+            `,
+            [appointmentId]
+        );
+
+        if (rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Không tìm thấy lịch khám."
+            });
+        }
+
+        const appointment = rows[0];
+
+        if (appointment.status !== "CONFIRMED") {
+            return res.status(400).json({
+                success: false,
+                message:
+                    "Chỉ lịch khám CONFIRMED mới có thể hoàn thành."
+            });
+        }
+
+        if (!appointment.actual_arrival_time) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    "Chưa ghi nhận bệnh nhân đến khám."
+            });
+        }
+
+        await pool.query(
+            `
+            UPDATE appointments
+            SET
+                status = 'COMPLETED',
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+            `,
+            [appointmentId]
+        );
+
+        return res.json({
+            success: true,
+            message: "Cuộc hẹn đã được đánh dấu hoàn thành."
+        });
+
+    } catch (error) {
+        console.error("COMPLETE APPOINTMENT ERROR:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Lỗi máy chủ khi hoàn thành cuộc hẹn."
+        });
+    }
+}
+
 
 
 module.exports = {
 
-    getAvailableSlots,
-
-    createAppointment,
-
-    getPatientAppointments,
-
-    cancelAppointment
-
+    cancelAppointment,
+    confirmAppointment,
+    recordArrival,
+    markNoShow,
+    completeAppointment
 };

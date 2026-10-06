@@ -3,50 +3,46 @@ const express = require("express");
 const router = express.Router();
 
 const {
-    getAvailableSlots,
-    createAppointment,
-    getPatientAppointments,
-    cancelAppointment
+    cancelAppointment,
+    confirmAppointment,
+    recordArrival,
+    markNoShow,
+    completeAppointment
 } = require("../controllers/appointment.controller");
 
 
-/*
-    Lấy giờ khám còn trống
-*/
-
-router.get(
-    "/doctors/:doctorId/available-slots",
-    getAvailableSlots
-);
-
-
-/*
-    Đặt lịch
-*/
-
+// Hủy lịch
 router.post(
-    "/appointments",
-    createAppointment
-);
-
-
-/*
-    Lấy lịch của bệnh nhân
-*/
-
-router.get(
-    "/patients/:patientId/appointments",
-    getPatientAppointments
-);
-
-
-/*
-    Hủy lịch
-*/
-
-router.patch(
-    "/appointments/:id/cancel",
+    "/:id/cancel",
     cancelAppointment
+);
+
+
+// Xác nhận lịch
+router.post(
+    "/:id/confirm",
+    confirmAppointment
+);
+
+
+// Ghi nhận bệnh nhân đến
+router.post(
+    "/:id/arrival",
+    recordArrival
+);
+
+
+// Đánh dấu không đến
+router.post(
+    "/:id/no-show",
+    markNoShow
+);
+
+
+// Hoàn thành khám
+router.post(
+    "/:id/complete",
+    completeAppointment
 );
 
 

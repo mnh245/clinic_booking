@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Đặt lịch khám</title>
+
+    <link rel="stylesheet" href="overall.css">
+</head>
+
+<body>
+
+<div class="page">
+
+    <!-- HEADER -->
+    <header class="topbar">
+
+        <div class="brand">
+            <div class="brand-logo">
+                🏥
+            </div>
+
+            <div>
+                <h1>Clinic Booking</h1>
+                <p>Đặt lịch khám bệnh</p>
+            </div>
+        </div>
+
+        <nav class="nav">
+
+            <a href="home.html">
+                Trang chủ
+            </a>
+
+            <a href="appointments.html">
+                Lịch khám của tôi
+            </a>
+
+        </nav>
+
+    </header>
+
+
+    <!-- MAIN -->
+    <main class="container">
+
+        <div class="page-title">
+
+            <h2>Đặt lịch khám</h2>
+
+            <p>
+                Chọn bác sĩ, ngày khám và giờ khám phù hợp.
+            </p>
+
+        </div>
+
+
+        <!-- MESSAGE -->
+
+        <div id="errorMessage" class="error"></div>
+
+        <div id="successMessage" class="ok"></div>
+
+
+        <!-- BOOKING CARD -->
+
+        <section class="booking-card">
+
+            <!-- BƯỚC 1 -->
+
+            <div class="booking-section">
+
+                <h3>1. Chọn bác sĩ</h3>
+
+                <div class="field">
+
+                    <label for="doctorSelect">
+                        Bác sĩ
+                    </label>
+
+                    <select id="doctorSelect">
+
+                        <option value="">
+                            -- Chọn bác sĩ --
+                        </option>
+
+                    </select>
+
+                </div>
+
+            </div>
+
+
+            <!-- THÔNG TIN BÁC SĨ -->
+
+            <div
+                id="doctorInfo"
+                class="doctor-info"
+                style="display:none;"
+            >
+
+                <div>
+
+                    <h3 id="doctorName">
+                        Bác sĩ
+                    </h3>
+
+                    <p id="doctorSpecialty">
+                        Chuyên khoa
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- BƯỚC 2 -->
+
+            <div class="booking-section">
+
+                <h3>2. Chọn ngày khám</h3>
+
+                <div class="field">
+
+                    <label for="appointmentDate">
+                        Ngày khám
+                    </label>
+
+                    <input
+                        type="date"
+                        id="appointmentDate"
+                    >
+
+                </div>
+
+            </div>
+
+
+            <!-- BƯỚC 3 -->
+
+            <div class="booking-section">
+
+                <h3>3. Chọn giờ khám</h3>
+
+                <div
+                    id="slotLoading"
+                    class="loading"
+                    style="display:none;"
+                >
+                    Đang tải giờ khám...
+                </div>
+
+                <div
+                    id="slotEmpty"
+                    class="empty"
+                    style="display:none;"
+                >
+                    Không có giờ khám trống trong ngày này.
+                </div>
+
+                <div
+                    id="slotContainer"
+                    class="slot-grid"
+                ></div>
+
+            </div>
+
+
+            <!-- BƯỚC 4 -->
+
+            <div class="booking-section">
+
+                <h3>4. Thông tin khám</h3>
+
+                <div class="field">
+
+                    <label for="reason">
+                        Lý do khám
+                    </label>
+
+                    <textarea
+                        id="reason"
+                        rows="4"
+                        placeholder="Nhập triệu chứng hoặc lý do muốn khám..."
+                    ></textarea>
+
+                </div>
+
+            </div>
+
+
+            <!-- SUMMARY -->
+
+            <div class="booking-summary">
+
+                <h3>Thông tin lịch khám</h3>
+
+                <div class="summary-row">
+
+                    <span>Bác sĩ</span>
+
+                    <strong id="summaryDoctor">
+                        Chưa chọn
+                    </strong>
+
+                </div>
+
+                <div class="summary-row">
+
+                    <span>Ngày</span>
+
+                    <strong id="summaryDate">
+                        Chưa chọn
+                    </strong>
+
+                </div>
+
+                <div class="summary-row">
+
+                    <span>Giờ</span>
+
+                    <strong id="summaryTime">
+                        Chưa chọn
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <!-- BUTTON -->
+
+            <button
+                id="bookingButton"
+                class="btn"
+                type="button"
+            >
+                Đặt lịch khám
+            </button>
+
+        </section>
+
+    </main>
+
+</div>
+
+
+<script src="js/api.js"></script>
+
+<script>
+
+const doctorSelect =
+    document.getElementById("doctorSelect");
+
+const appointmentDate =
+    document.getElementById("appointmentDate");
+
+const slotContainer =
+    document.getElementById("slotContainer");
+
+const slotLoading =
+    document.getElementById("slotLoading");
+
+const slotEmpty =
+    document.getElementById("slotEmpty");
+
+const bookingButton =
+    document.getElementById("bookingButton");
+
+const reason =
+    document.getElementById("reason");
+
+const errorMessage =
+    document.getElementById("errorMessage");
+
+const successMessage =
+    document.getElementById("successMessage");
+
+const doctorInfo =
+    document.getElementById("doctorInfo");
+
+const doctorName =
+    document.getElementById("doctorName");
+
+const doctorSpecialty =
+    document.getElementById("doctorSpecialty");
+
+const summaryDoctor =
+    document.getElementById("summaryDoctor");
+
+const summaryDate =
+    document.getElementById("summaryDate");
+
+const summaryTime =
+    document.getElementById("summaryTime");
+
+
+let selectedSlot = null;
+
+let doctors = [];
+
+
+/* ==========================================
+   HIỂN THỊ THÔNG BÁO
+========================================== */
+
+function showError(message) {
+
+    errorMessage.textContent = message;
+
+    errorMessage.style.display = "block";
+
+    successMessage.style.display = "none";
+}
+
+
+function showSuccess(message) {
+
+    successMessage.textContent = message;
+
+    successMessage.style.display = "block";
+
+    errorMessage.style.display = "none";
+}
+
+
+function clearMessage() {
+
+    errorMessage.style.display = "none";
+
+    successMessage.style.display = "none";
+}
+
+
+/* ==========================================
+   KIỂM TRA ĐĂNG NHẬP
+========================================== */
+
+const user =
+    JSON.parse(localStorage.getItem("user") || "null");
+
+
+if (!user) {
+
+    window.location.href = "login.html";
+
+}
+
+
+/* ==========================================
+   LẤY DANH SÁCH BÁC SĨ
+========================================== */
+
+async function loadDoctors() {
+
+    try {
+
+        const result =
+            await apiFetch("/api/doctors");
+
+        doctors = result.data || [];
+
+        doctorSelect.innerHTML = `
+            <option value="">
+                -- Chọn bác sĩ --
+            </option>
+        `;
+
+        doctors.forEach(doctor => {
+
+            const option =
+                document.createElement("option");
+
+            option.value = doctor.id;
+
+            option.textContent =
+                `${doctor.full_name} - ${doctor.specialty_name}`;
+
+            doctorSelect.appendChild(option);
+
+        });
+
+    } catch (error) {
+
+        console.error(error);
+
+        showError(
+            error.message ||
+            "Không thể tải danh sách bác sĩ."
+        );
+
+    }
+
+}
+
+
+/* ==========================================
+   CHỌN BÁC SĨ
+========================================== */
+
+doctorSelect.addEventListener(
+    "change",
+    () => {
+
+        const doctorId =
+            Number(doctorSelect.value);
+
+        selectedSlot = null;
+
+        slotContainer.innerHTML = "";
+
+        summaryTime.textContent =
+            "Chưa chọn";
+
+
+        if (!doctorId) {
+
+            doctorInfo.style.display =
+                "none";
+
+            summaryDoctor.textContent =
+                "Chưa chọn";
+
+            return;
+
+        }
+
+
+        const doctor =
+            doctors.find(
+                item =>
+                    Number(item.id) === doctorId
+            );
+
+
+        if (!doctor) {
+
+            return;
+
+        }
+
+
+        doctorInfo.style.display =
+            "block";
+
+        doctorName.textContent =
+            doctor.full_name;
+
+        doctorSpecialty.textContent =
+            doctor.specialty_name ||
+            "Chưa cập nhật chuyên khoa";
+
+
+        summaryDoctor.textContent =
+            doctor.full_name;
+
+
+        /*
+            Khi chọn bác sĩ thì nếu đã có ngày
+            sẽ tải lại giờ khám.
+        */
+
+        if (appointmentDate.value) {
+
+            loadAvailableSlots();
+
+        }
+
+    }
+);
+
+
+/* ==========================================
+   CHỌN NGÀY
+========================================== */
+
+appointmentDate.addEventListener(
+    "change",
+    () => {
+
+        selectedSlot = null;
+
+        summaryTime.textContent =
+            "Chưa chọn";
+
+        loadAvailableSlots();
+
+    }
+);
+
+
+/* ==========================================
+   LẤY GIỜ KHÁM
+========================================== */
+
+async function loadAvailableSlots() {
+
+    clearMessage();
+
+    slotContainer.innerHTML = "";
+
+    slotEmpty.style.display =
+        "none";
+
+
+    const doctorId =
+        Number(doctorSelect.value);
+
+    const date =
+        appointmentDate.value;
+
+
+    if (!doctorId || !date) {
+
+        return;
+
+    }
+
+
+    summaryDate.textContent =
+        date;
+
+
+    slotLoading.style.display =
+        "block";
+
+
+    try {
+
+        const result =
+            await apiFetch(
+                `/api/doctors/${doctorId}/available-slots?date=${date}`
+            );
+
+
+        const slots =
+            result.data || [];
+
+
+        slotLoading.style.display =
+            "none";
+
+
+        const availableSlots =
+            slots.filter(
+                slot => slot.available
+            );
+
+
+        if (availableSlots.length === 0) {
+
+            slotEmpty.style.display =
+                "block";
+
+            return;
+
+        }
+
+
+        availableSlots.forEach(
+            slot => {
+
+                const button =
+                    document.createElement("button");
+
+                button.type =
+                    "button";
+
+                button.className =
+                    "slot";
+
+                button.textContent =
+                    formatTime(slot.time);
+
+
+                button.addEventListener(
+                    "click",
+                    () => {
+
+                        document
+                            .querySelectorAll(".slot")
+                            .forEach(
+                                item =>
+                                    item.classList.remove(
+                                        "selected"
+                                    )
+                            );
+
+
+                        button.classList.add(
+                            "selected"
+                        );
+
+
+                        selectedSlot =
+                            slot;
+
+
+                        summaryTime.textContent =
+                            formatTime(slot.time);
+
+                    }
+                );
+
+
+                slotContainer.appendChild(
+                    button
+                );
+
+            }
+        );
+
+
+    } catch (error) {
+
+        slotLoading.style.display =
+            "none";
+
+        console.error(error);
+
+        showError(
+            error.message ||
+            "Không thể tải giờ khám."
+        );
+
+    }
+
+}
+
+
+/* ==========================================
+   FORMAT GIỜ
+========================================== */
+
+function formatTime(time) {
+
+    if (!time) {
+
+        return "";
+
+    }
+
+
+    return time.substring(0, 5);
+
+}
+
+
+/* ==========================================
+   ĐẶT LỊCH
+========================================== */
+
+bookingButton.addEventListener(
+    "click",
+    async () => {
+
+        clearMessage();
+
+
+        if (!user || !user.id) {
+
+            window.location.href =
+                "login.html";
+
+            return;
+
+        }
+
+
+        const doctorId =
+            Number(doctorSelect.value);
+
+
+        const date =
+            appointmentDate.value;
+
+
+        const reasonValue =
+            reason.value.trim();
+
+
+        if (!doctorId) {
+
+            showError(
+                "Vui lòng chọn bác sĩ."
+            );
+
+            return;
+
+        }
+
+
+        if (!date) {
+
+            showError(
+                "Vui lòng chọn ngày khám."
+            );
+
+            return;
+
+        }
+
+
+        if (!selectedSlot) {
+
+            showError(
+                "Vui lòng chọn giờ khám."
+            );
+
+            return;
+
+        }
+
+
+        bookingButton.disabled =
+            true;
+
+        bookingButton.textContent =
+            "Đang đặt lịch...";
+
+
+        try {
+
+            const result =
+                await apiFetch(
+                    "/api/appointments",
+                    {
+                        method: "POST",
+
+                        body: JSON.stringify({
+
+                            patient_id:
+                                user.id,
+
+                            doctor_id:
+                                doctorId,
+
+                            schedule_id:
+                                selectedSlot.schedule_id,
+
+                            appointment_time:
+                                selectedSlot.time,
+
+                            reason:
+                                reasonValue || null
+
+                        })
+
+                    }
+                );
+
+
+            showSuccess(
+                result.message ||
+                "Đặt lịch khám thành công."
+            );
+
+
+            /*
+                Chuyển sang lịch khám
+                sau khi đặt thành công.
+            */
+
+            setTimeout(
+                () => {
+
+                    window.location.href =
+                        "appointments.html";
+
+                },
+                1200
+            );
+
+
+        } catch (error) {
+
+            console.error(
+                "BOOKING ERROR:",
+                error
+            );
+
+
+            showError(
+                error.message ||
+                "Không thể đặt lịch khám."
+            );
+
+
+        } finally {
+
+            bookingButton.disabled =
+                false;
+
+            bookingButton.textContent =
+                "Đặt lịch khám";
+
+        }
+
+    }
+);
+
+
+/* ==========================================
+   NGÀY TỐI THIỂU
+========================================== */
+
+const today =
+    new Date()
+        .toISOString()
+        .split("T")[0];
+
+
+appointmentDate.min =
+    today;
+
+
+/* ==========================================
+   KHỞI ĐỘNG
+========================================== */
+
+loadDoctors();
+
+</script>
+
+</body>
+</html>

@@ -570,32 +570,20 @@
         </span>
       </div>
 
-      <a href="doctors.html?keyword=Nguy%E1%BB%85n%20Minh%20Anh" class="doctor-mini">
-        <div class="doctor-avatar"><i class="fa-solid fa-user-doctor"></i></div>
-        <div class="doctor-info">
-          <strong>BS. Nguyễn Minh Anh</strong>
-          <span>Nội khoa • 10 năm kinh nghiệm</span>
-        </div>
-        <i class="fa-solid fa-chevron-right"></i>
-      </a>
+    <div id="featuredDoctors">
+  <div class="doctor-mini">
+    <div class="doctor-avatar">
+      <i class="fa-solid fa-spinner fa-spin"></i>
+    </div>
 
-      <a href="doctors.html?keyword=Tr%E1%BA%A7n%20Ho%C3%A0ng%20Nam" class="doctor-mini">
-        <div class="doctor-avatar"><i class="fa-solid fa-user-doctor"></i></div>
-        <div class="doctor-info">
-          <strong>BS. Trần Hoàng Nam</strong>
-          <span>Tim mạch • 8 năm kinh nghiệm</span>
-        </div>
-        <i class="fa-solid fa-chevron-right"></i>
-      </a>
+    <div class="doctor-info">
+      <strong>Đang tải...</strong>
+      <span>Đang lấy dữ liệu bác sĩ</span>
+    </div>
 
-      <a href="doctors.html?keyword=L%C3%AA%20Thu%20H%C3%A0" class="doctor-mini">
-        <div class="doctor-avatar"><i class="fa-solid fa-user-doctor"></i></div>
-        <div class="doctor-info">
-          <strong>BS. Lê Thu Hà</strong>
-          <span>Nhi khoa • 7 năm kinh nghiệm</span>
-        </div>
-        <i class="fa-solid fa-chevron-right"></i>
-      </a>
+    <i class="fa-solid fa-chevron-right"></i>
+  </div>
+</div>
 
     </aside>
 
@@ -619,37 +607,15 @@
       </a>
     </div>
 
-    <div class="specialty-grid">
-
-      <a href="doctors.html?specialty=tim" class="card specialty-card">
-        <div class="specialty-icon"><i class="fa-solid fa-heart-pulse"></i></div>
-        <h3>Tim mạch</h3>
-        <p>Khám và điều trị các bệnh lý liên quan đến tim mạch.</p>
-        <span class="specialty-more">Xem bác sĩ <i class="fa-solid fa-arrow-right"></i></span>
-      </a>
-
-      <a href="doctors.html?specialty=nhi" class="card specialty-card">
-        <div class="specialty-icon"><i class="fa-solid fa-child"></i></div>
-        <h3>Nhi khoa</h3>
-        <p>Chăm sóc sức khỏe và điều trị bệnh cho trẻ em.</p>
-        <span class="specialty-more">Xem bác sĩ <i class="fa-solid fa-arrow-right"></i></span>
-      </a>
-
-      <a href="doctors.html?specialty=than-kinh" class="card specialty-card">
-        <div class="specialty-icon"><i class="fa-solid fa-brain"></i></div>
-        <h3>Thần kinh</h3>
-        <p>Khám và tư vấn các vấn đề liên quan đến hệ thần kinh.</p>
-        <span class="specialty-more">Xem bác sĩ <i class="fa-solid fa-arrow-right"></i></span>
-      </a>
-
-      <a href="doctors.html?specialty=da-lieu" class="card specialty-card">
-        <div class="specialty-icon"><i class="fa-solid fa-hand-dots"></i></div>
-        <h3>Da liễu</h3>
-        <p>Khám và điều trị các bệnh lý về da.</p>
-        <span class="specialty-more">Xem bác sĩ <i class="fa-solid fa-arrow-right"></i></span>
-      </a>
-
+  <div class="specialty-grid" id="specialtyGrid">
+  <div class="card specialty-card">
+    <div class="specialty-icon">
+      <i class="fa-solid fa-spinner fa-spin"></i>
     </div>
+    <h3>Đang tải...</h3>
+    <p>Đang lấy dữ liệu chuyên khoa.</p>
+  </div>
+</div>
 
   </div>
 
@@ -672,63 +638,43 @@
       </a>
     </div>
 
-    <div class="doctor-grid">
+<div class="doctor-grid" id="doctorGrid">
+  <article class="card doctor-card">
+    <div class="doctor-cover"></div>
 
-      <article class="card doctor-card">
-        <div class="doctor-cover"></div>
-        <div class="doctor-body">
-          <div class="doctor-avatar"><i class="fa-solid fa-user-doctor"></i></div>
-          <h3>BS. Nguyễn Minh Anh</h3>
-          <div class="doctor-specialty">Nội khoa</div>
-          <div class="doctor-info">
-            Bác sĩ có nhiều năm kinh nghiệm trong khám,
-            chẩn đoán và điều trị bệnh nội khoa.
-          </div>
-          <span class="chip"><i class="fa-regular fa-clock"></i> 10 năm kinh nghiệm</span>
-          <div class="doctor-card-footer">
-            <span class="rating"><i class="fa-solid fa-star"></i><span>4.9</span></span>
-            <a href="doctors.html?keyword=Nguy%E1%BB%85n%20Minh%20Anh" class="btn btn-primary">Đặt lịch</a>
-          </div>
-        </div>
-      </article>
+    <div class="doctor-body">
+      <div class="doctor-avatar">
+        <i class="fa-solid fa-spinner fa-spin"></i>
+      </div>
 
-      <article class="card doctor-card">
-        <div class="doctor-cover"></div>
-        <div class="doctor-body">
-          <div class="doctor-avatar"><i class="fa-solid fa-user-doctor"></i></div>
-          <h3>BS. Trần Hoàng Nam</h3>
-          <div class="doctor-specialty">Tim mạch</div>
-          <div class="doctor-info">
-            Chuyên khám và điều trị các bệnh lý
-            về tim mạch và huyết áp.
-          </div>
-          <span class="chip"><i class="fa-regular fa-clock"></i> 8 năm kinh nghiệm</span>
-          <div class="doctor-card-footer">
-            <span class="rating"><i class="fa-solid fa-star"></i><span>4.8</span></span>
-            <a href="doctors.html?keyword=Tr%E1%BA%A7n%20Ho%C3%A0ng%20Nam" class="btn btn-primary">Đặt lịch</a>
-          </div>
-        </div>
-      </article>
+      <h3>Đang tải bác sĩ...</h3>
 
-      <article class="card doctor-card">
-        <div class="doctor-cover"></div>
-        <div class="doctor-body">
-          <div class="doctor-avatar"><i class="fa-solid fa-user-doctor"></i></div>
-          <h3>BS. Lê Thu Hà</h3>
-          <div class="doctor-specialty">Nhi khoa</div>
-          <div class="doctor-info">
-            Chuyên chăm sóc sức khỏe và điều trị
-            bệnh lý cho trẻ em.
-          </div>
-          <span class="chip"><i class="fa-regular fa-clock"></i> 7 năm kinh nghiệm</span>
-          <div class="doctor-card-footer">
-            <span class="rating"><i class="fa-solid fa-star"></i><span>4.9</span></span>
-            <a href="doctors.html?keyword=L%C3%AA%20Thu%20H%C3%A0" class="btn btn-primary">Đặt lịch</a>
-          </div>
-        </div>
-      </article>
+      <div class="doctor-specialty">
+        Đang tải dữ liệu
+      </div>
 
+      <div class="doctor-info">
+        Vui lòng chờ trong giây lát.
+      </div>
+
+      <span class="chip">
+        <i class="fa-regular fa-clock"></i>
+        Đang tải
+      </span>
+
+      <div class="doctor-card-footer">
+        <span class="rating">
+          <i class="fa-solid fa-star"></i>
+          <span>--</span>
+        </span>
+
+        <a href="#" class="btn btn-primary">
+          Xem bác sĩ
+        </a>
+      </div>
     </div>
+  </article>
+</div>
 
   </div>
 
@@ -839,59 +785,847 @@
 
 <script src="js/api.js"></script>
 
+
+
 <script>
+document.addEventListener("DOMContentLoaded", async function () {
 
-const searchForm = document.getElementById("searchForm");
+    const searchForm = document.getElementById("searchForm");
 
-searchForm.addEventListener("submit", function(event){
+    const specialtySelect =
+        document.getElementById("specialtySelect");
 
-  event.preventDefault();
+    const specialtyGrid =
+        document.getElementById("specialtyGrid");
 
-  const keyword =
-    document.getElementById("searchKeyword").value.trim();
+    const doctorGrid =
+        document.getElementById("doctorGrid");
 
-  const specialty =
-    document.getElementById("specialtySelect").value;
+    const featuredDoctors =
+        document.getElementById("featuredDoctors");
 
-  const params = new URLSearchParams();
 
-  if(keyword){
-    params.set("keyword", keyword);
-  }
+    /*
+    =====================================================
+    1. XỬ LÝ ĐĂNG NHẬP / ĐĂNG XUẤT
+    =====================================================
+    */
 
-  if(specialty){
-    params.set("specialty", specialty);
-  }
+    const loginLink =
+        document.getElementById("loginLink");
 
-  window.location.href =
-    "doctors.html?" + params.toString();
+    const registerLink =
+        document.getElementById("registerLink");
 
-});
-document.addEventListener("DOMContentLoaded",function(){
-    const loginLink=document.getElementById("loginLink");
-    const registerLink=document.getElementById("registerLink");
-    const userInfo=document.getElementById("userInfo");
-    const welcomeUser=document.getElementById("welcomeUser");
-    const logoutButton=document.getElementById("logoutButton");
-    const userData=localStorage.getItem("user");
-    if(userData){
-        try{
-            const user=JSON.parse(userData);
-            loginLink.style.display="none";
-            registerLink.style.display="none";
-            userInfo.style.display="flex";
-            welcomeUser.textContent="Xin chào, "+(user.full_name||user.fullName||"bạn");
-        }catch(error){
-            console.error("Không thể đọc thông tin người dùng:",error);
+    const userInfo =
+        document.getElementById("userInfo");
+
+    const welcomeUser =
+        document.getElementById("welcomeUser");
+
+    const logoutButton =
+        document.getElementById("logoutButton");
+
+
+    const userData =
+        localStorage.getItem("user");
+
+
+    if (userData) {
+
+        try {
+
+            const user =
+                JSON.parse(userData);
+
+            loginLink.style.display = "none";
+
+            registerLink.style.display = "none";
+
+            userInfo.style.display = "flex";
+
+            welcomeUser.textContent =
+                "Xin chào, " +
+                (
+                    user.full_name ||
+                    user.fullName ||
+                    "bạn"
+                );
+
+        } catch (error) {
+
+            console.error(
+                "Không thể đọc thông tin người dùng:",
+                error
+            );
+
             localStorage.removeItem("user");
             localStorage.removeItem("role");
+            localStorage.removeItem("vaiTro");
         }
     }
-    logoutButton.addEventListener("click",function(){
-        localStorage.removeItem("user");
-        localStorage.removeItem("role");
-        window.location.href="login.html";
-    });
+
+
+    if (logoutButton) {
+
+        logoutButton.addEventListener(
+            "click",
+            function () {
+
+                localStorage.removeItem("user");
+                localStorage.removeItem("role");
+                localStorage.removeItem("vaiTro");
+
+                window.location.href =
+                    "login.html";
+            }
+        );
+    }
+
+
+    /*
+    =====================================================
+    2. HÀM LẤY TÊN CHUYÊN KHOA DẠNG URL
+    =====================================================
+    */
+
+    function createSpecialtySlug(name) {
+
+        return name
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toLowerCase()
+            .replace(/đ/g, "d")
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/^-+|-+$/g, "");
+    }
+
+
+    /*
+    =====================================================
+    3. ICON CHO CHUYÊN KHOA
+    =====================================================
+    */
+
+    function getSpecialtyIcon(name) {
+
+        const value =
+            name.toLowerCase();
+
+        if (
+            value.includes("tim")
+        ) {
+            return "fa-heart-pulse";
+        }
+
+        if (
+            value.includes("nhi")
+        ) {
+            return "fa-child";
+        }
+
+        if (
+            value.includes("thần kinh")
+        ) {
+            return "fa-brain";
+        }
+
+        if (
+            value.includes("da liễu")
+        ) {
+            return "fa-hand-dots";
+        }
+
+        if (
+            value.includes("tai")
+            || value.includes("mũi")
+            || value.includes("họng")
+        ) {
+            return "fa-ear-listen";
+        }
+
+        if (
+            value.includes("ngoại")
+        ) {
+            return "fa-scissors";
+        }
+
+        if (
+            value.includes("nội")
+        ) {
+            return "fa-stethoscope";
+        }
+
+        if (
+            value.includes("răng")
+        ) {
+            return "fa-tooth";
+        }
+
+        return "fa-stethoscope";
+    }
+
+
+    /*
+    =====================================================
+    4. FORMAT KINH NGHIỆM
+    =====================================================
+    */
+
+    function formatExperience(years) {
+
+        if (
+            years === null ||
+            years === undefined
+        ) {
+            return "Chưa cập nhật kinh nghiệm";
+        }
+
+        const value =
+            Number(years);
+
+        if (value === 0) {
+            return "Dưới 1 năm kinh nghiệm";
+        }
+
+        return value + " năm kinh nghiệm";
+    }
+
+
+    /*
+    =====================================================
+    5. TẠO THẺ CHUYÊN KHOA
+    =====================================================
+    */
+
+    function renderSpecialties(doctors) {
+
+        if (!specialtyGrid) {
+            return;
+        }
+
+
+        const specialtyMap =
+            new Map();
+
+
+        doctors.forEach(function (doctor) {
+
+            if (
+                !doctor.specialty_id ||
+                !doctor.specialty_name
+            ) {
+                return;
+            }
+
+
+            if (
+                !specialtyMap.has(
+                    doctor.specialty_id
+                )
+            ) {
+
+                specialtyMap.set(
+                    doctor.specialty_id,
+                    {
+                        id: doctor.specialty_id,
+                        name: doctor.specialty_name,
+                        count: 0
+                    }
+                );
+
+            }
+
+
+            specialtyMap.get(
+                doctor.specialty_id
+            ).count++;
+
+        });
+
+
+        const specialties =
+            Array.from(
+                specialtyMap.values()
+            );
+
+
+        if (!specialties.length) {
+
+            specialtyGrid.innerHTML = `
+                <div class="card specialty-card">
+                    <div class="specialty-icon">
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                    </div>
+
+                    <h3>Chưa có chuyên khoa</h3>
+
+                    <p>
+                        Hiện chưa có dữ liệu chuyên khoa
+                        trong cơ sở dữ liệu.
+                    </p>
+                </div>
+            `;
+
+            return;
+        }
+
+
+        specialtyGrid.innerHTML =
+            specialties
+                .slice(0, 4)
+                .map(function (specialty) {
+
+                    const slug =
+                        createSpecialtySlug(
+                            specialty.name
+                        );
+
+                    const icon =
+                        getSpecialtyIcon(
+                            specialty.name
+                        );
+
+                    return `
+                        <a
+                            href="doctors.html?specialty=${encodeURIComponent(slug)}"
+                            class="card specialty-card"
+                        >
+
+                            <div class="specialty-icon">
+                                <i class="fa-solid ${icon}"></i>
+                            </div>
+
+                            <h3>
+                                ${specialty.name}
+                            </h3>
+
+                            <p>
+                                ${specialty.count}
+                                bác sĩ đang hoạt động
+                                trong chuyên khoa này.
+                            </p>
+
+                            <span class="specialty-more">
+                                Xem bác sĩ
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </span>
+
+                        </a>
+                    `;
+
+                })
+                .join("");
+
+
+        /*
+        ============================================
+        Cập nhật dropdown tìm kiếm
+        ============================================
+        */
+
+        if (specialtySelect) {
+
+            specialtySelect.innerHTML = `
+                <option value="">
+                    Tất cả chuyên khoa
+                </option>
+            `;
+
+
+            specialties.forEach(
+                function (specialty) {
+
+                    const option =
+                        document.createElement("option");
+
+                    option.value =
+                        createSpecialtySlug(
+                            specialty.name
+                        );
+
+                    option.textContent =
+                        specialty.name;
+
+                    specialtySelect.appendChild(
+                        option
+                    );
+                }
+            );
+        }
+
+    }
+
+
+    /*
+    =====================================================
+    6. TẠO THẺ BÁC SĨ
+    =====================================================
+    */
+
+    function renderDoctors(doctors) {
+
+        if (!doctorGrid) {
+            return;
+        }
+
+
+        if (!doctors.length) {
+
+            doctorGrid.innerHTML = `
+                <div class="card specialty-card">
+                    <div class="specialty-icon">
+                        <i class="fa-solid fa-user-doctor"></i>
+                    </div>
+
+                    <h3>Chưa có bác sĩ</h3>
+
+                    <p>
+                        Hiện chưa có dữ liệu bác sĩ
+                        trong cơ sở dữ liệu.
+                    </p>
+                </div>
+            `;
+
+            return;
+        }
+
+
+        doctorGrid.innerHTML =
+            doctors
+                .slice(0, 6)
+                .map(function (doctor) {
+
+                    const keyword =
+                        encodeURIComponent(
+                            doctor.full_name || ""
+                        );
+
+
+                    const experience =
+                        formatExperience(
+                            doctor.experience_years
+                        );
+
+
+                    const introduction =
+                        doctor.introduction ||
+                        "Bác sĩ đang cập nhật thông tin giới thiệu.";
+
+
+                    return `
+                        <article class="card doctor-card">
+
+                            <div class="doctor-cover"></div>
+
+                            <div class="doctor-body">
+
+                                <div class="doctor-avatar">
+
+                                    ${
+                                        doctor.avatar
+                                        ?
+                                        `<img
+                                            src="${doctor.avatar}"
+                                            alt="BS. ${doctor.full_name}"
+                                            style="
+                                                width:100%;
+                                                height:100%;
+                                                object-fit:cover;
+                                                border-radius:inherit;
+                                            "
+                                        >`
+                                        :
+                                        `<i class="fa-solid fa-user-doctor"></i>`
+                                    }
+
+                                </div>
+
+
+                                <h3>
+                                    BS. ${doctor.full_name}
+                                </h3>
+
+
+                                <div class="doctor-specialty">
+                                    ${doctor.specialty_name || "Chưa cập nhật chuyên khoa"}
+                                </div>
+
+
+                                <div class="doctor-info">
+                                    ${introduction}
+                                </div>
+
+
+                                <span class="chip">
+
+                                    <i class="fa-regular fa-clock"></i>
+
+                                    ${experience}
+
+                                </span>
+
+
+                                <div class="doctor-card-footer">
+
+                                    <span class="rating">
+
+                                        <i class="fa-solid fa-star"></i>
+
+                                        <span>
+                                            ${doctor.rating
+                                                ? Number(doctor.rating).toFixed(1)
+                                                : "Chưa có đánh giá"}
+                                        </span>
+
+                                    </span>
+
+
+                                    <a
+                                        href="doctors.html?keyword=${keyword}"
+                                        class="btn btn-primary"
+                                    >
+                                        Đặt lịch
+                                    </a>
+
+                                </div>
+
+                            </div>
+
+                        </article>
+                    `;
+
+                })
+                .join("");
+
+    }
+
+
+    /*
+    =====================================================
+    7. BÁC SĨ NỔI BẬT
+    =====================================================
+    */
+
+    function renderFeaturedDoctors(doctors) {
+
+        if (!featuredDoctors) {
+            return;
+        }
+
+
+        if (!doctors.length) {
+
+            featuredDoctors.innerHTML = `
+                <div class="doctor-mini">
+
+                    <div class="doctor-avatar">
+                        <i class="fa-solid fa-user-doctor"></i>
+                    </div>
+
+                    <div class="doctor-info">
+
+                        <strong>
+                            Chưa có bác sĩ
+                        </strong>
+
+                        <span>
+                            Cơ sở dữ liệu chưa có bác sĩ
+                        </span>
+
+                    </div>
+
+                </div>
+            `;
+
+            return;
+        }
+
+
+        featuredDoctors.innerHTML =
+            doctors
+                .slice(0, 3)
+                .map(function (doctor) {
+
+                    const keyword =
+                        encodeURIComponent(
+                            doctor.full_name || ""
+                        );
+
+
+                    return `
+                        <a
+                            href="doctors.html?keyword=${keyword}"
+                            class="doctor-mini"
+                        >
+
+                            <div class="doctor-avatar">
+
+                                ${
+                                    doctor.avatar
+                                    ?
+                                    `<img
+                                        src="${doctor.avatar}"
+                                        alt="BS. ${doctor.full_name}"
+                                        style="
+                                            width:100%;
+                                            height:100%;
+                                            object-fit:cover;
+                                            border-radius:inherit;
+                                        "
+                                    >`
+                                    :
+                                    `<i class="fa-solid fa-user-doctor"></i>`
+                                }
+
+                            </div>
+
+
+                            <div class="doctor-info">
+
+                                <strong>
+                                    BS. ${doctor.full_name}
+                                </strong>
+
+                                <span>
+                                    ${
+                                        doctor.specialty_name ||
+                                        "Chưa cập nhật chuyên khoa"
+                                    }
+
+                                    •
+                                    ${formatExperience(
+                                        doctor.experience_years
+                                    )}
+                                </span>
+
+                            </div>
+
+
+                            <i class="fa-solid fa-chevron-right"></i>
+
+                        </a>
+                    `;
+
+                })
+                .join("");
+
+    }
+
+
+    /*
+    =====================================================
+    8. LẤY DỮ LIỆU BÁC SĨ TỪ DATABASE
+    =====================================================
+    */
+
+    async function loadDoctors() {
+
+        try {
+
+            if (doctorGrid) {
+
+                doctorGrid.innerHTML = `
+                    <div class="card specialty-card">
+                        <div class="specialty-icon">
+                            <i class="fa-solid fa-spinner fa-spin"></i>
+                        </div>
+
+                        <h3>Đang tải dữ liệu...</h3>
+
+                        <p>
+                            Đang lấy danh sách bác sĩ
+                            từ cơ sở dữ liệu.
+                        </p>
+                    </div>
+                `;
+            }
+
+
+            const result =
+                await apiFetch("/api/doctors");
+
+
+            console.log(
+                "Dữ liệu bác sĩ từ API:",
+                result
+            );
+
+
+            /*
+            API của chúng ta trả:
+            {
+                success: true,
+                data: [...]
+            }
+
+            Nhưng đoạn này cũng hỗ trợ trường hợp
+            API trả trực tiếp mảng.
+            */
+
+            const doctors =
+                Array.isArray(result)
+                    ? result
+                    : Array.isArray(result.data)
+                        ? result.data
+                        : [];
+
+
+            console.log(
+                "Danh sách bác sĩ:",
+                doctors
+            );
+
+
+            renderSpecialties(doctors);
+
+            renderDoctors(doctors);
+
+            renderFeaturedDoctors(doctors);
+
+
+        } catch (error) {
+
+            console.error(
+                "Không thể tải dữ liệu bác sĩ:",
+                error
+            );
+
+
+            if (doctorGrid) {
+
+                doctorGrid.innerHTML = `
+                    <div class="card specialty-card">
+
+                        <div class="specialty-icon">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        </div>
+
+                        <h3>
+                            Không thể tải dữ liệu
+                        </h3>
+
+                        <p>
+                            Không thể kết nối đến API
+                            lấy danh sách bác sĩ.
+                            Vui lòng kiểm tra máy chủ.
+                        </p>
+
+                    </div>
+                `;
+
+            }
+
+
+            if (featuredDoctors) {
+
+                featuredDoctors.innerHTML = `
+                    <div class="doctor-mini">
+
+                        <div class="doctor-avatar">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        </div>
+
+                        <div class="doctor-info">
+
+                            <strong>
+                                Không thể tải dữ liệu
+                            </strong>
+
+                            <span>
+                                Máy chủ không phản hồi
+                            </span>
+
+                        </div>
+
+                    </div>
+                `;
+
+            }
+
+        }
+
+    }
+
+
+    /*
+    =====================================================
+    9. TÌM KIẾM
+    =====================================================
+    */
+
+    if (searchForm) {
+
+        searchForm.addEventListener(
+            "submit",
+            function (event) {
+
+                event.preventDefault();
+
+
+                const keyword =
+                    document
+                        .getElementById("searchKeyword")
+                        .value
+                        .trim();
+
+
+                const specialty =
+                    document
+                        .getElementById("specialtySelect")
+                        .value;
+
+
+                const params =
+                    new URLSearchParams();
+
+
+                if (keyword) {
+
+                    params.set(
+                        "keyword",
+                        keyword
+                    );
+
+                }
+
+
+                if (specialty) {
+
+                    params.set(
+                        "specialty",
+                        specialty
+                    );
+
+                }
+
+
+                const query =
+                    params.toString();
+
+
+                window.location.href =
+                    "doctors.html" +
+                    (
+                        query
+                            ? "?" + query
+                            : ""
+                    );
+
+            }
+        );
+
+    }
+
+
+    /*
+    =====================================================
+    10. BẮT ĐẦU TẢI DỮ LIỆU
+    =====================================================
+    */
+
+    await loadDoctors();
+
 });
 </script>
 </body>
