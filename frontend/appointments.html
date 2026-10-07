@@ -1,361 +1,222 @@
 <!DOCTYPE html>
 <html lang="vi">
-
 <head>
-
     <meta charset="UTF-8">
-
     <meta
         name="viewport"
         content="width=device-width, initial-scale=1.0"
     >
-
     <title>Lịch khám của tôi</title>
-
     <link
         rel="stylesheet"
         href="overall.css"
     >
-
 </head>
-
-
 <body>
-
 <div class="page">
-
     <!-- HEADER -->
-
     <header class="topbar">
-
         <div class="brand">
-
             <div class="brand-logo">
                 🏥
             </div>
-
             <div>
-
                 <h1>Clinic Booking</h1>
-
                 <p>Lịch khám của tôi</p>
-
             </div>
-
         </div>
-
-
         <nav class="nav">
-
             <a href="home.html">
                 Trang chủ
             </a>
-
             <a href="booking.html">
                 Đặt lịch khám
             </a>
-
         </nav>
-
     </header>
-
-
     <!-- MAIN -->
-
     <main class="container">
-
         <div class="page-title">
-
             <h2>Lịch khám của tôi</h2>
-
             <p>
                 Theo dõi các lịch khám đã đặt.
             </p>
-
         </div>
-
-
         <div
             id="errorMessage"
             class="error"
         ></div>
-
-
         <div
             id="successMessage"
             class="ok"
         ></div>
-
-
         <div
             id="loading"
             class="loading"
         >
             Đang tải lịch khám...
         </div>
-
-
         <div
             id="empty"
             class="empty"
             style="display:none;"
         >
-
             <h3>
                 Chưa có lịch khám
             </h3>
-
             <p>
                 Bạn chưa đặt lịch khám nào.
             </p>
-
             <a
                 href="booking.html"
                 class="btn"
             >
                 Đặt lịch khám
             </a>
-
         </div>
-
-
         <div
             id="appointmentList"
             class="appointment-list"
         ></div>
-
     </main>
-
 </div>
-
-
 <script src="js/api.js"></script>
-
-
 <script>
-
 const user =
     JSON.parse(
         localStorage.getItem("user") || "null"
     );
-
-
 const loading =
     document.getElementById("loading");
-
 const empty =
     document.getElementById("empty");
-
 const appointmentList =
     document.getElementById(
         "appointmentList"
     );
-
 const errorMessage =
     document.getElementById(
         "errorMessage"
     );
-
 const successMessage =
     document.getElementById(
         "successMessage"
     );
-
-
 /* ==========================================
    KIỂM TRA ĐĂNG NHẬP
 ========================================== */
-
 if (!user || !user.id) {
-
     window.location.href =
         "login.html";
-
 }
-
-
 /* ==========================================
    HIỂN THỊ THÔNG BÁO
 ========================================== */
-
 function showError(message) {
-
     errorMessage.textContent =
         message;
-
     errorMessage.style.display =
         "block";
-
 }
-
-
 function showSuccess(message) {
-
     successMessage.textContent =
         message;
-
     successMessage.style.display =
         "block";
-
 }
-
-
 /* ==========================================
    HIỂN THỊ TRẠNG THÁI
 ========================================== */
-
 function getStatusText(status) {
-
     const statuses = {
-
         PENDING:
             "Chờ xác nhận",
-
         CONFIRMED:
             "Đã xác nhận",
-
         COMPLETED:
             "Đã hoàn thành",
-
         CANCELLED:
             "Đã hủy",
-
         NO_SHOW:
             "Không đến"
-
     };
-
-
     return statuses[status]
         || status;
-
 }
-
-
 /* ==========================================
    FORMAT NGÀY
 ========================================== */
-
 function formatDate(date) {
-
     if (!date) {
-
         return "";
-
     }
-
-
     const d =
         new Date(date);
-
-
     return d.toLocaleDateString(
         "vi-VN"
     );
-
 }
-
-
 /* ==========================================
    FORMAT GIỜ
 ========================================== */
-
 function formatTime(time) {
-
     if (!time) {
-
         return "";
-
     }
-
-
     return time.substring(
         0,
         5
     );
-
 }
-
-
 /* ==========================================
    LOAD LỊCH KHÁM
 ========================================== */
-
 async function loadAppointments() {
-
     try {
-
         const result =
             await apiFetch(
                 `/api/patients/${user.id}/appointments`
             );
-
-
         const appointments =
             result.data || [];
-
-
         loading.style.display =
             "none";
-
-
         if (appointments.length === 0) {
-
             empty.style.display =
                 "block";
-
             return;
-
         }
-
-
         appointmentList.innerHTML =
             "";
-
-
         appointments.forEach(
             appointment => {
-
                 const card =
                     document.createElement(
                         "div"
                     );
-
-
                 card.className =
                     "appointment-card";
-
-
                 const canCancel =
                     appointment.status ===
                         "PENDING"
                     ||
                     appointment.status ===
                         "CONFIRMED";
-
-
                 card.innerHTML = `
-
                     <div class="appointment-header">
-
                         <div>
-
                             <h3>
                                 ${escapeHtml(
                                     appointment.doctor_name
                                 )}
                             </h3>
-
                             <p>
                                 ${escapeHtml(
                                     appointment.specialty_name
                                     || "Chưa cập nhật"
                                 )}
                             </p>
-
                         </div>
-
-
                         <span
                             class="status status-${appointment.status}"
                         >
@@ -363,126 +224,80 @@ async function loadAppointments() {
                                 appointment.status
                             )}
                         </span>
-
                     </div>
-
-
                     <div class="appointment-info">
-
                         <div>
-
                             <span>Ngày khám</span>
-
                             <strong>
                                 ${formatDate(
                                     appointment.schedule_date
                                 )}
                             </strong>
-
                         </div>
-
-
                         <div>
-
                             <span>Giờ khám</span>
-
                             <strong>
                                 ${formatTime(
                                     appointment.appointment_time
                                 )}
                             </strong>
-
                         </div>
-
-
                         <div>
-
                             <span>Lý do khám</span>
-
                             <strong>
                                 ${escapeHtml(
                                     appointment.reason
                                     || "Không có"
                                 )}
                             </strong>
-
                         </div>
-
                     </div>
-
-
                     ${
                         canCancel
                         ?
                         `
                         <div class="appointment-actions">
-
                             <button
                                 class="btn btn-danger"
                                 onclick="cancelAppointment(${appointment.id})"
                             >
                                 Hủy lịch
                             </button>
-
                         </div>
                         `
                         :
                         ""
                     }
-
                 `;
-
-
                 appointmentList.appendChild(
                     card
                 );
-
             }
         );
-
-
     } catch (error) {
-
         loading.style.display =
             "none";
-
-
         console.error(error);
-
-
         showError(
             error.message ||
             "Không thể tải lịch khám."
         );
-
     }
-
 }
-
-
 /* ==========================================
    HỦY LỊCH
 ========================================== */
-
 async function cancelAppointment(
     appointmentId
 ) {
-
     const confirmed =
         confirm(
             "Bạn có chắc chắn muốn hủy lịch khám này?"
         );
-
-
     if (!confirmed) {
-
         return;
-
     }
-
-
     try {
-
         const result =
             await apiFetch(
                 `/api/appointments/${appointmentId}/cancel`,
@@ -490,41 +305,26 @@ async function cancelAppointment(
                     method: "PATCH"
                 }
             );
-
-
         showSuccess(
             result.message ||
             "Hủy lịch khám thành công."
         );
-
-
         await loadAppointments();
-
-
     } catch (error) {
-
         console.error(
             "CANCEL ERROR:",
             error
         );
-
-
         showError(
             error.message ||
             "Không thể hủy lịch khám."
         );
-
     }
-
 }
-
-
 /* ==========================================
    ESCAPE HTML
 ========================================== */
-
 function escapeHtml(value) {
-
     return String(value || "")
         .replace(
             /&/g,
@@ -546,18 +346,11 @@ function escapeHtml(value) {
             /'/g,
             "&#039;"
         );
-
 }
-
-
 /* ==========================================
    KHỞI ĐỘNG
 ========================================== */
-
 loadAppointments();
-
 </script>
-
 </body>
-
 </html>

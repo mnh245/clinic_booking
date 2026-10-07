@@ -3,21 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
-
   <title>Đăng ký | Clinic Booking</title>
-
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
   <link rel="stylesheet" href="overall.css">
 </head>
-
 <body>
-
 <div class="auth-page">
   <div class="auth-wrap">
     <aside class="auth-side">
@@ -29,7 +22,6 @@
           <h1>Clinic Booking</h1>
           <p>Đặt lịch khám trực tuyến</p>
         </div>
-
       </a>
       <h2>Đăng ký tài khoản</h2>
       <p>
@@ -69,18 +61,15 @@
         class="alert alert-success"
         id="successMessage">
       </div>
-
       <form
         class="auth-form"
         id="registerForm"
         novalidate
       >
         <div class="form-group">
-
           <label for="fullName">
             Họ và tên
           </label>
-
           <input
             class="form-control"
             id="fullName"
@@ -91,11 +80,9 @@
           >
         </div>
         <div class="form-group">
-
           <label for="phone">
             Số điện thoại
           </label>
-
           <input
             class="form-control"
             id="phone"
@@ -103,14 +90,11 @@
             placeholder="0901234567"
             autocomplete="tel"
           >
-
         </div>
         <div class="form-group">
-
           <label for="email">
             Email
           </label>
-
           <input
             class="form-control"
             id="email"
@@ -200,25 +184,21 @@
   </div>
 </div>
 <script src="js/api.js"></script>
-
 <script>
 const form=document.getElementById("registerForm");
 const errorMessage=document.getElementById("errorMessage");
 const successMessage=document.getElementById("successMessage");
 const registerButton=document.getElementById("registerButton");
-
 function showError(message){
     errorMessage.textContent=message;
     errorMessage.style.display="block";
     successMessage.style.display="none";
 }
-
 function showSuccess(message){
     successMessage.textContent=message;
     successMessage.style.display="block";
     errorMessage.style.display="none";
 }
-
 function togglePassword(buttonId,inputId){
     const button=document.getElementById(buttonId);
     const input=document.getElementById(inputId);
@@ -230,48 +210,39 @@ function togglePassword(buttonId,inputId){
             :'<i class="fa-solid fa-eye"></i>';
     });
 }
-
 togglePassword("togglePassword","password");
 togglePassword("toggleConfirm","confirmPassword");
-
 form.addEventListener("submit",async function(event){
     event.preventDefault();
     showError("");
     errorMessage.style.display="none";
     successMessage.style.display="none";
-
     const fullName=document.getElementById("fullName").value.trim();
     const phone=document.getElementById("phone").value.trim();
     const email=document.getElementById("email").value.trim();
     const password=document.getElementById("password").value;
     const confirmPassword=document.getElementById("confirmPassword").value;
     const agree=document.getElementById("agree").checked;
-
     if(!fullName){
         showError("Vui lòng nhập họ và tên.");
         return;
     }
-
     if(!email){
         showError("Vui lòng nhập email.");
         return;
     }
-
     if(!password){
         showError("Vui lòng nhập mật khẩu.");
         return;
     }
-
     if(fullName.length<2){
         showError("Họ và tên phải có ít nhất 2 ký tự.");
         return;
     }
-
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
         showError("Email không hợp lệ.");
         return;
     }
-
     if(phone){
         const cleanPhone=phone.replace(/\s+/g,"");
         if(!/^(0|\+84)[0-9]{9,10}$/.test(cleanPhone)){
@@ -279,31 +250,25 @@ form.addEventListener("submit",async function(event){
             return;
         }
     }
-
     if(password.length<8){
         showError("Mật khẩu phải có ít nhất 8 ký tự.");
         return;
     }
-
     if(!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)){
         showError("Mật khẩu phải gồm chữ hoa, chữ thường và số.");
         return;
     }
-
     if(password!==confirmPassword){
         showError("Mật khẩu nhập lại không khớp.");
         return;
     }
-
     if(!agree){
         showError("Bạn phải đồng ý với Điều khoản và Chính sách.");
         return;
     }
-
     try{
         registerButton.disabled=true;
         registerButton.textContent="Đang xử lý...";
-
         const result=await apiFetch("/api/register",{
             method:"POST",
             body:JSON.stringify({
@@ -313,11 +278,8 @@ form.addEventListener("submit",async function(event){
                 phone:phone||null
             })
         });
-
         showSuccess(result.message||"Đăng ký thành công.");
-
         form.reset();
-
         setTimeout(()=>{
             window.location.href="login.html";
         },1500);
@@ -330,6 +292,5 @@ form.addEventListener("submit",async function(event){
     }
 });
 </script>
-
 </body>
 </html>

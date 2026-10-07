@@ -1,6 +1,5 @@
 const bcrypt=require("bcryptjs");
 const {pool}=require("../config/db");
-
 async function register(req,res){
     try{
         const {full_name,email,password,phone}=req.body;
@@ -73,7 +72,6 @@ async function register(req,res){
         });
     }
 }
-
 async function login(req,res){
     try{
         const {email,password}=req.body;
@@ -132,7 +130,6 @@ async function login(req,res){
         });
     }
 }
-
 module.exports={
     register,
     login

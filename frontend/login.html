@@ -3,9 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
-
   <title>Đăng nhập | Clinic Booking</title>
-
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -40,7 +38,6 @@
             Lựa chọn bác sĩ và thời gian khám phù hợp.
           </p>
         </div>
-
         <div class="card specialty-card">
           <div class="specialty-icon">
             <i class="fa-solid fa-user-doctor"></i>
@@ -61,12 +58,10 @@
         class="alert alert-error"
         id="errorMessage">
       </div>
-
       <form
         class="auth-form"
         id="loginForm"
         novalidate>
-
         <div class="form-group">
           <label for="email">
             Email
@@ -83,7 +78,6 @@
           <label for="password">
             Mật khẩu
           </label>
-
           <input
             class="form-control"
             id="password"
@@ -92,7 +86,6 @@
             autocomplete="current-password"
             required
           >
-
           <button
             type="button"
             class="password-toggle"
@@ -101,10 +94,7 @@
           >
             <i class="fa-solid fa-eye"></i>
           </button>
-
         </div>
-
-
         <div
           style="
             display:flex;
@@ -114,7 +104,6 @@
             font-size:13px;
           "
         >
-
           <label
             style="
               display:flex;
@@ -123,24 +112,16 @@
               color:var(--muted);
             "
           >
-
             <input
               type="checkbox"
               id="remember"
             >
-
             Ghi nhớ đăng nhập
-
           </label>
-
-
           <a href="#">
             Quên mật khẩu?
           </a>
-
         </div>
-
-
         <button
           class="btn btn-primary"
           type="submit"
@@ -148,48 +129,32 @@
         >
           Đăng nhập
         </button>
-
-
         <div class="auth-footer">
-
           Chưa có tài khoản?
-
           <a href="register.html">
             Đăng ký ngay
           </a>
-
         </div>
-
       </form>
-
     </main>
-
   </div>
-
 </div>
-
-
 <script src="js/api.js"></script>
-
 <script>
-
 const form=document.getElementById("loginForm");
 const errorMessage=document.getElementById("errorMessage");
 const emailInput=document.getElementById("email");
 const passwordInput=document.getElementById("password");
 const togglePassword=document.getElementById("togglePassword");
 const loginButton=document.getElementById("loginButton");
-
 function showError(message){
     errorMessage.textContent=message;
     errorMessage.style.display="block";
 }
-
 function clearError(){
     errorMessage.textContent="";
     errorMessage.style.display="none";
 }
-
 togglePassword.addEventListener("click",function(){
     const hidden=passwordInput.type==="password";
     passwordInput.type=hidden?"text":"password";
@@ -197,36 +162,29 @@ togglePassword.addEventListener("click",function(){
         ?'<i class="fa-solid fa-eye-slash"></i>'
         :'<i class="fa-solid fa-eye"></i>';
 });
-
 form.addEventListener("submit",async function(event){
     event.preventDefault();
     clearError();
-
     const email=emailInput.value.trim();
     const password=passwordInput.value;
-
     if(!email){
         showError("Vui lòng nhập email.");
         emailInput.focus();
         return;
     }
-
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
         showError("Email không hợp lệ.");
         emailInput.focus();
         return;
     }
-
     if(!password){
         showError("Vui lòng nhập mật khẩu.");
         passwordInput.focus();
         return;
     }
-
     try{
         loginButton.disabled=true;
         loginButton.textContent="Đang đăng nhập...";
-
         const result=await apiFetch("/api/login",{
             method:"POST",
             body:JSON.stringify({
@@ -234,12 +192,9 @@ form.addEventListener("submit",async function(event){
                 password:password
             })
         });
-
         const user=result.user;
-
         localStorage.setItem("user",JSON.stringify(user));
         localStorage.setItem("role",user.role);
-
         switch(user.role){
             case "PATIENT":
                 window.location.href="home.html";
@@ -262,6 +217,5 @@ form.addEventListener("submit",async function(event){
     }
 });
 </script>
-
 </body>
 </html>
