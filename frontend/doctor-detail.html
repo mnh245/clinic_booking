@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+    <title>Chi tiết bác sĩ | Clinic Booking</title>
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    >
+    <link rel="stylesheet" href="css/overall.css">
+    <link
+        rel="stylesheet"
+        href="css/doctor-pages.css"
+    >
+</head>
+<body>
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="home.html" class="brand" aria-label="Clinic Booking - Trang chủ">
+      <div class="logo">
+        <i class="fa-solid fa-stethoscope"></i>
+      </div>
+      <div>
+        <h1>Clinic Booking</h1>
+        <p>Đặt lịch khám trực tuyến</p>
+      </div>
+    </a>
+  <nav class="nav" aria-label="Điều hướng chính">
+        <a href="home.html">Trang chủ</a>
+        <a href="home.html#specialties">Chuyên khoa</a>
+        <a href="doctors.html" class="active">Bác sĩ</a>
+        <a href="home.html#how-it-works">Hướng dẫn</a>
+   </nav>
+    <div class="header-actions" id="headerActions">
+      <a href="login.html"
+         class="btn btn-outline"
+         id="loginLink">
+        Đăng nhập
+      </a>
+      <a href="register.html"
+         class="btn btn-primary"
+         id="registerLink">
+        Đăng ký
+      </a>
+      <div id="userInfo"
+           style="display:none;align-items:center;gap:10px;">
+        <span id="welcomeUser"
+              style="font-size:14px;color:var(--text);font-weight:500;">
+        </span>
+        <button type="button"
+                class="btn btn-outline"
+                id="logoutButton">
+          Đăng xuất
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
+<main>
+    <section class="doctor-detail-section">
+        <div class="container">
+            <a
+                href="doctors.html"
+                class="back-link"
+            >
+                <i class="fa-solid fa-arrow-left"></i>
+                Quay lại danh sách bác sĩ
+            </a>
+            <div
+                id="doctorDetail"
+                class="doctor-detail-card"
+            >
+                <div class="page-loading">
+                    <i class="fa-solid fa-spinner fa-spin"></i>
+                    <p>
+                        Đang tải thông tin bác sĩ...
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="doctor-schedule-preview">
+        <div class="container">
+            <div class="section-title">
+                <span>
+                    Lịch làm việc
+                </span>
+                <h2>
+                    Lịch khám của bác sĩ
+                </h2>
+            </div>
+            <div
+                id="doctorScheduleList"
+                class="schedule-preview-grid"
+            >
+                <div class="page-loading">
+                    Đang tải lịch...
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+<script src="js/api.js"></script>
+<script src="js/doctor-detail.js"></script>
+</body>
+</html>

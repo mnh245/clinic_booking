@@ -1,0 +1,862 @@
+/* =========================================================
+   ========================================================= */
+/* =========================================================
+   1. TRANG DANH SÁCH BÁC SĨ
+   ========================================================= */
+.doctor-page-header {
+    padding: 70px 0 45px;
+    background:
+        linear-gradient(
+            135deg,
+            #f0fdfa,
+            #ffffff
+        );
+    border-bottom: 1px solid var(--border);
+}
+.doctor-page-header .page-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--primary-deep);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+.doctor-page-header h1 {
+    margin: 14px 0 8px;
+    color: var(--ink);
+    font-size: clamp(32px, 5vw, 48px);
+    font-weight: 800;
+    letter-spacing: -.035em;
+}
+.doctor-page-header p {
+    max-width: 650px;
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.7;
+}
+/* =========================================================
+   TÌM KIẾM BÁC SĨ
+   ========================================================= */
+.doctor-search-section {
+    padding: 28px 0;
+    background: #ffffff;
+    border-bottom: 1px solid var(--border);
+}
+.doctor-filter {
+    display: grid;
+    grid-template-columns:
+        minmax(0, 1fr)
+        280px
+        auto;
+    gap: 12px;
+}
+.doctor-search-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 48px;
+    padding: 0 15px;
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+}
+.doctor-search-box i {
+    color: var(--primary);
+}
+.doctor-search-box input {
+    width: 100%;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    font: inherit;
+}
+.doctor-filter select {
+    min-height: 48px;
+    padding: 0 13px;
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    font: inherit;
+    cursor: pointer;
+    outline: none;
+}
+.doctor-filter select:focus {
+    border-color: var(--primary);
+    box-shadow:
+        0 0 0 4px rgba(14, 165, 164, .10);
+}
+/* =========================================================
+   DANH SÁCH BÁC SĨ
+   ========================================================= */
+.doctor-list-section {
+    padding: 50px 0 80px;
+}
+.doctor-page-grid {
+    display: grid;
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+    gap: 24px;
+}
+.doctor-page-card {
+    overflow: hidden;
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    box-shadow:
+        0 10px 30px rgba(15, 23, 42, .06);
+    transition:
+        transform .25s ease,
+        box-shadow .25s ease;
+}
+.doctor-page-card:hover {
+    transform: translateY(-5px);
+    box-shadow:
+        0 18px 40px rgba(15, 23, 42, .10);
+}
+/* Ảnh bác sĩ */
+.doctor-page-avatar {
+    height: 250px;
+    overflow: hidden;
+    background:
+        linear-gradient(
+            135deg,
+            #dff7f4,
+            #eff6ff
+        );
+}
+.doctor-page-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.doctor-avatar-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary);
+    font-size: 70px;
+}
+/* Nội dung */
+.doctor-page-content {
+    padding: 22px;
+}
+.doctor-page-specialty {
+    color: var(--primary-deep);
+    font-size: 12px;
+    font-weight: 800;
+}
+.doctor-page-content h2 {
+    margin: 7px 0 12px;
+    color: var(--ink);
+    font-size: 21px;
+}
+.doctor-page-content p {
+    min-height: 66px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.65;
+}
+.doctor-page-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    color: #64748b;
+    font-size: 12px;
+}
+.doctor-page-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+.doctor-page-meta i {
+    color: var(--primary);
+}
+/* Nút trong card bác sĩ */
+.doctor-page-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 18px;
+}
+.doctor-page-actions .btn {
+    flex: 1;
+}
+/* =========================================================
+   2. TRANG CHI TIẾT BÁC SĨ
+   ========================================================= */
+.doctor-detail-section {
+    padding: 40px 0 30px;
+}
+.doctor-detail-section .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 22px;
+    color: var(--primary-deep);
+    font-size: 13px;
+    font-weight: 700;
+}
+.doctor-detail-card {
+    padding: 32px;
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    box-shadow:
+        0 15px 40px rgba(15, 23, 42, .07);
+}
+.doctor-detail-top {
+    display: grid;
+    grid-template-columns:
+        260px minmax(0, 1fr);
+    gap: 35px;
+    align-items: center;
+}
+/* Ảnh */
+.doctor-detail-avatar {
+    height: 280px;
+    overflow: hidden;
+    border-radius: 20px;
+    background:
+        linear-gradient(
+            135deg,
+            #dff7f4,
+            #eff6ff
+        );
+}
+.doctor-detail-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.doctor-detail-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary);
+    font-size: 80px;
+}
+/* Thông tin */
+.doctor-detail-specialty {
+    color: var(--primary-deep);
+    font-size: 13px;
+    font-weight: 800;
+}
+.doctor-detail-main h1 {
+    margin: 8px 0 15px;
+    color: var(--ink);
+    font-size: 34px;
+}
+.doctor-detail-intro {
+    max-width: 700px;
+    color: var(--muted);
+    line-height: 1.75;
+}
+.doctor-detail-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 22px;
+}
+/* Thông tin chi tiết */
+.doctor-detail-information {
+    display: grid;
+    grid-template-columns:
+        repeat(4, minmax(0, 1fr));
+    gap: 15px;
+    margin-top: 30px;
+    padding-top: 28px;
+    border-top: 1px solid var(--border);
+}
+.detail-information-item {
+    padding: 17px;
+    background: #f8fafc;
+    border-radius: 14px;
+}
+.detail-information-item i {
+    color: var(--primary);
+    font-size: 18px;
+}
+.detail-information-item span {
+    display: block;
+    margin-top: 10px;
+    color: #64748b;
+    font-size: 11px;
+}
+.detail-information-item strong {
+    display: block;
+    margin-top: 4px;
+    color: var(--ink);
+    font-size: 13px;
+}
+/* =========================================================
+   LỊCH KHÁM CỦA BÁC SĨ - TRANG CHI TIẾT
+   ========================================================= */
+.doctor-schedule-preview {
+    padding: 35px 0 80px;
+}
+.doctor-schedule-preview .section-title span {
+    color: var(--primary-deep);
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+.doctor-schedule-preview .section-title h2 {
+    margin: 6px 0 25px;
+    color: var(--ink);
+}
+.schedule-preview-grid {
+    display: grid;
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+    gap: 15px;
+}
+.schedule-preview-card {
+    padding: 18px;
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+}
+.schedule-preview-card .schedule-date,
+.schedule-preview-card .schedule-time {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #475569;
+    font-size: 13px;
+}
+.schedule-preview-card .schedule-date {
+    font-weight: 800;
+}
+.schedule-preview-card .schedule-time {
+    margin-top: 10px;
+}
+.schedule-preview-card .schedule-date i,
+.schedule-preview-card .schedule-time i {
+    color: var(--primary);
+}
+/*
+   Chú ý:
+   .schedule-status được scope vào
+   .schedule-preview-card để không đụng
+   các trạng thái ở appointment / booking.
+*/
+.schedule-preview-card .schedule-status {
+    display: inline-flex;
+    margin-top: 13px;
+    padding: 5px 9px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+}
+.schedule-preview-card .schedule-status.available {
+    color: #047857;
+    background: #ecfdf5;
+}
+.schedule-preview-card .schedule-status.closed {
+    color: #b91c1c;
+    background: #fef2f2;
+}
+/* =========================================================
+   3. TRANG BÁC SĨ TẠO / QUẢN LÝ LỊCH
+   ========================================================= */
+.management-header {
+    padding: 70px 0 45px;
+    background:
+        linear-gradient(
+            135deg,
+            #f0fdfa,
+            #ffffff
+        );
+    border-bottom: 1px solid var(--border);
+}
+.management-header .page-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--primary-deep);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+.management-header h1 {
+    margin: 14px 0 8px;
+    color: var(--ink);
+    font-size: clamp(32px, 5vw, 48px);
+    font-weight: 800;
+    letter-spacing: -.035em;
+}
+.management-header p {
+    max-width: 650px;
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.7;
+}
+/* Khu vực quản lý */
+.management-section {
+    padding: 45px 0 80px;
+}
+.management-grid {
+    display: grid;
+    grid-template-columns:
+        minmax(320px, .8fr)
+        minmax(450px, 1.2fr);
+    gap: 24px;
+}
+.management-card {
+    padding: 25px;
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    box-shadow:
+        0 10px 30px rgba(15, 23, 42, .05);
+}
+/* Tiêu đề card */
+.management-card .card-heading span {
+    color: var(--primary-deep);
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+.management-card .card-heading h2 {
+    margin: 6px 0 22px;
+    color: var(--ink);
+    font-size: 22px;
+}
+/* =========================================================
+   FORM TẠO LỊCH
+   Không dùng .form-group toàn cục
+   ========================================================= */
+.management-card .schedule-form {
+    display: grid;
+    gap: 18px;
+}
+.management-card .schedule-form .form-group {
+    display: grid;
+    gap: 7px;
+}
+.management-card .schedule-form .form-group label {
+    color: var(--ink);
+    font-size: 13px;
+    font-weight: 700;
+}
+.management-card .schedule-form .form-group input,
+.management-card .schedule-form .form-group select {
+    width: 100%;
+    box-sizing: border-box;
+    height: 48px;
+    padding: 0 13px;
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font: inherit;
+    outline: none;
+    transition:
+        border-color .2s ease,
+        box-shadow .2s ease;
+}
+.management-card .schedule-form .form-group input:focus,
+.management-card .schedule-form .form-group select:focus {
+    border-color: var(--primary);
+    box-shadow:
+        0 0 0 4px rgba(14, 165, 164, .12);
+}
+/* Hai cột */
+.management-card .schedule-form .form-row {
+    display: grid;
+    grid-template-columns:
+        minmax(0, 1fr)
+        minmax(0, 1fr);
+    gap: 14px;
+}
+/* Nút form */
+.management-card .schedule-form .form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+/* Thông báo */
+.management-card .schedule-form .form-message {
+    display: none;
+    padding: 11px 13px;
+    border-radius: 10px;
+    font-size: 13px;
+}
+.management-card .schedule-form .form-message.success {
+    display: block;
+    color: #047857;
+    background: #ecfdf5;
+}
+.management-card .schedule-form .form-message.error {
+    display: block;
+    color: #b91c1c;
+    background: #fef2f2;
+}
+/* =========================================================
+   DANH SÁCH LỊCH CỦA BÁC SĨ
+   ========================================================= */
+.management-card .schedule-management-list {
+    display: grid;
+    gap: 12px;
+}
+.management-card .schedule-management-item {
+    display: grid;
+    grid-template-columns:
+        minmax(0, 1fr)
+        auto
+        auto;
+    gap: 15px;
+    align-items: center;
+    padding: 15px;
+    background: #fafdfd;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+}
+.management-card .schedule-management-date strong,
+.management-card .schedule-management-item > div > strong {
+    display: block;
+    color: var(--ink);
+    font-size: 13px;
+}
+.management-card .schedule-management-date span,
+.management-card .schedule-management-item > div > span {
+    display: block;
+    margin-top: 4px;
+    color: #64748b;
+    font-size: 12px;
+}
+/* Action của lịch */
+.management-card .schedule-management-actions {
+    display: flex;
+    gap: 7px;
+}
+/* Nút nhỏ */
+.management-card .btn-small {
+    padding: 7px 10px;
+    font-size: 11px;
+}
+/*
+   Quan trọng:
+   Không dùng .btn-danger toàn cục.
+*/
+.management-card .schedule-management-actions .btn-danger {
+    padding: 7px 10px;
+    background: #ffffff;
+    border: 1px solid #fecaca;
+    color: #dc2626;
+}
+.management-card .schedule-management-actions .btn-danger:hover {
+    background: #fef2f2;
+}
+/* =========================================================
+   4. TRANG ADMIN SẮP XẾP LỊCH BÁC SĨ
+   ========================================================= */
+.admin-schedule-page {
+    width: 100%;
+}
+/* Header */
+.admin-schedule-page .management-header {
+    padding: 70px 0 45px;
+    background:
+        linear-gradient(
+            135deg,
+            #f0fdfa,
+            #ffffff
+        );
+    border-bottom: 1px solid var(--border);
+}
+.admin-schedule-page .management-header h1 {
+    margin: 14px 0 8px;
+    color: var(--ink);
+    font-size: clamp(32px, 5vw, 48px);
+    font-weight: 800;
+}
+/* Khu vực */
+.admin-schedule-page .management-section {
+    padding: 45px 0 80px;
+}
+/* Layout */
+.admin-schedule-page .management-grid {
+    display: grid;
+    grid-template-columns:
+        minmax(280px, .7fr)
+        minmax(500px, 1.3fr);
+    gap: 24px;
+    align-items: start;
+}
+/* Card */
+.admin-schedule-page .management-card {
+    padding: 25px;
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    box-shadow:
+        0 10px 30px rgba(15, 23, 42, .05);
+}
+/* =========================================================
+   DANH SÁCH BÁC SĨ CHO ADMIN
+   ========================================================= */
+.admin-schedule-page .admin-doctor-list {
+    display: grid;
+    gap: 10px;
+}
+.admin-schedule-page .admin-doctor-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 13px;
+    text-align: left;
+    color: var(--text);
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    cursor: pointer;
+    transition:
+        background .2s ease,
+        border-color .2s ease,
+        transform .2s ease;
+}
+.admin-schedule-page .admin-doctor-item:hover {
+    transform: translateX(2px);
+    background: #f0faf9;
+    border-color: rgba(14, 165, 164, .35);
+}
+.admin-schedule-page .admin-doctor-item.active {
+    color: var(--primary-dark);
+    background: var(--primary-light);
+    border-color: rgba(14, 165, 164, .45);
+}
+/* Avatar bác sĩ */
+.admin-schedule-page .admin-doctor-avatar {
+    width: 48px;
+    height: 48px;
+    flex: 0 0 48px;
+    object-fit: cover;
+    border-radius: 50%;
+    background: var(--primary-light);
+    border: 2px solid rgba(14, 165, 164, .18);
+}
+.admin-schedule-page .admin-doctor-name {
+    margin: 0;
+    color: var(--ink);
+    font-size: 14px;
+    font-weight: 700;
+}
+.admin-schedule-page .admin-doctor-specialty {
+    margin-top: 3px;
+    color: var(--muted);
+    font-size: 12px;
+}
+/* =========================================================
+   KHU VỰC LỊCH ADMIN
+   ========================================================= */
+.admin-schedule-page .admin-schedule-content {
+    min-width: 0;
+}
+.admin-schedule-page .admin-schedule-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+.admin-schedule-page .admin-schedule-toolbar h2 {
+    margin: 0;
+    color: var(--ink);
+    font-size: 21px;
+}
+/* =========================================================
+   BẢNG LỊCH
+   ========================================================= */
+.admin-schedule-page .schedule-table-wrapper {
+    overflow-x: auto;
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 15px;
+    box-shadow:
+        0 7px 23px rgba(15, 23, 42, .05);
+}
+.admin-schedule-page .schedule-table {
+    width: 100%;
+    min-width: 720px;
+    border-collapse: collapse;
+}
+.admin-schedule-page .schedule-table th {
+    padding: 15px 16px;
+    text-align: left;
+    color: #476565;
+    background: #f3f9f9;
+    border-bottom: 1px solid #deebeb;
+    font-size: 13px;
+    font-weight: 700;
+}
+.admin-schedule-page .schedule-table td {
+    padding: 15px 16px;
+    color: #506b6b;
+    border-bottom: 1px solid #edf3f3;
+    font-size: 14px;
+}
+.admin-schedule-page .schedule-table tbody tr {
+    transition: background .2s ease;
+}
+.admin-schedule-page .schedule-table tbody tr:hover {
+    background: #f8fcfc;
+}
+.admin-schedule-page .schedule-table tbody tr:last-child td {
+    border-bottom: none;
+}
+/* =========================================================
+   STATUS CỦA ADMIN
+   Scope riêng, không ảnh hưởng appointment status
+   ========================================================= */
+.admin-schedule-page .schedule-table .schedule-status {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 650;
+}
+.admin-schedule-page .schedule-table .schedule-status.available {
+    color: #08766f;
+    background: #e9f8f6;
+}
+.admin-schedule-page .schedule-table .schedule-status.closed {
+    color: #9a4d12;
+    background: #fff4e8;
+}
+/* =========================================================
+   LOADING / EMPTY / ERROR
+   ========================================================= */
+.doctor-page-grid .page-loading,
+.doctor-page-grid .doctor-page-empty,
+.doctor-page-grid .doctor-page-error,
+.schedule-preview-grid .schedule-empty,
+.management-card .schedule-empty {
+    grid-column: 1 / -1;
+    padding: 55px 20px;
+    text-align: center;
+    color: #64748b;
+}
+.doctor-page-grid .page-loading i,
+.doctor-page-grid .doctor-page-empty i,
+.doctor-page-grid .doctor-page-error i,
+.schedule-preview-grid .schedule-empty i,
+.management-card .schedule-empty i {
+    display: block;
+    margin-bottom: 13px;
+    color: var(--primary);
+    font-size: 30px;
+}
+.doctor-page-grid .doctor-page-empty h3,
+.doctor-page-grid .doctor-page-error h3,
+.schedule-preview-grid .schedule-empty h3,
+.management-card .schedule-empty h3 {
+    margin: 0 0 7px;
+    color: var(--ink);
+}
+/* =========================================================
+   RESPONSIVE - DANH SÁCH BÁC SĨ
+   ========================================================= */
+@media (max-width: 1000px) {
+    .doctor-page-grid {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+    .doctor-detail-top {
+        grid-template-columns:
+            200px minmax(0, 1fr);
+    }
+    .doctor-detail-information {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+    .schedule-preview-grid {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+    .management-grid {
+        grid-template-columns: 1fr;
+    }
+    .admin-schedule-page .management-grid {
+        grid-template-columns: 1fr;
+    }
+}
+/* =========================================================
+   RESPONSIVE - TABLET
+   ========================================================= */
+@media (max-width: 700px) {
+    .doctor-filter {
+        grid-template-columns: 1fr;
+    }
+    .doctor-page-grid {
+        grid-template-columns: 1fr;
+    }
+    .doctor-detail-top {
+        grid-template-columns: 1fr;
+    }
+    .doctor-detail-avatar {
+        width: 100%;
+        max-width: 300px;
+    }
+    .doctor-detail-information {
+        grid-template-columns: 1fr;
+    }
+    .schedule-preview-grid {
+        grid-template-columns: 1fr;
+    }
+    .management-card .schedule-management-item {
+        grid-template-columns: 1fr;
+    }
+    .management-card .schedule-management-actions {
+        justify-content: flex-start;
+    }
+    .admin-schedule-page .admin-doctor-list {
+        grid-template-columns: 1fr;
+    }
+    .admin-schedule-page .admin-schedule-toolbar {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
+/* =========================================================
+   RESPONSIVE - MOBILE
+   ========================================================= */
+@media (max-width: 480px) {
+    .doctor-page-header,
+    .management-header {
+        padding: 50px 0 35px;
+    }
+    .doctor-detail-card,
+    .management-card {
+        padding: 18px;
+        border-radius: 16px;
+    }
+    .doctor-detail-main h1 {
+        font-size: 28px;
+    }
+    .management-card .schedule-form .form-row {
+        grid-template-columns: 1fr;
+    }
+    .doctor-page-actions {
+        flex-direction: column;
+    }
+    .doctor-page-actions .btn {
+        width: 100%;
+    }
+    .doctor-detail-actions {
+        flex-direction: column;
+    }
+    .doctor-detail-actions .btn {
+        width: 100%;
+    }
+    .admin-schedule-page .schedule-table-wrapper {
+        border-radius: 12px;
+    }
+}

@@ -1,37 +1,72 @@
 const express = require("express");
-const router = express.Router();
-const {
-    getDoctorSchedules,
-    getDoctorScheduleByDate,
-    createSchedule,
-    closeSchedule
-} = require("../controllers/schedule.controller");
+
+const router =
+    express.Router();
+
+
+const scheduleController =
+    require("../controllers/schedule.controller");
 /*
-    Lấy toàn bộ lịch của bác sĩ
+=====================================================
+BÁC SĨ XEM LỊCH CỦA MÌNH
+=====================================================
 */
+
 router.get(
-    "/doctors/:doctorId/schedules",
-    getDoctorSchedules
+    "/my",
+    scheduleController.getMySchedules
 );
 /*
-    Lấy lịch của bác sĩ theo ngày
+=====================================================
+ADMIN XEM TOÀN BỘ LỊCH
+=====================================================
 */
+
 router.get(
-    "/doctors/:doctorId/schedules/:date",
-    getDoctorScheduleByDate
+    "/admin",
+    scheduleController.getAllSchedules
 );
 /*
-    Tạo lịch làm việc
+=====================================================
+LẤY MỘT LỊCH
+=====================================================
 */
+
+router.get(
+    "/:id",
+    scheduleController.getScheduleById
+);
+/*
+=====================================================
+TẠO LỊCH
+DOCTOR hoặc ADMIN
+=====================================================
+*/
+
 router.post(
-    "/schedules",
-    createSchedule
+    "/",
+    scheduleController.createSchedule
 );
 /*
-    Đóng lịch
+=====================================================
+SỬA LỊCH
+=====================================================
 */
-router.patch(
-    "/schedules/:id/close",
-    closeSchedule
+
+router.put(
+    "/:id",
+    scheduleController.updateSchedule
 );
+/*
+=====================================================
+XÓA LỊCH
+=====================================================
+*/
+
+router.delete(
+    "/:id",
+    scheduleController.deleteSchedule
+);
+
+
 module.exports = router;

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+    <title>Quản lý lịch làm việc | Clinic Booking</title>
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    >
+    <link rel="stylesheet" href="css/overall.css">
+    <link
+        rel="stylesheet"
+        href="css/doctor-pages.css"
+    >
+</head>
+<body>
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="home.html" class="brand" aria-label="Clinic Booking - Trang chủ">
+      <div class="logo">
+        <i class="fa-solid fa-stethoscope"></i>
+      </div>
+      <div>
+        <h1>Clinic Booking</h1>
+        <p>Đặt lịch khám trực tuyến</p>
+      </div>
+    </a>
+  <nav class="nav" aria-label="Điều hướng chính">
+      <a href="home.html">Trang chủ</a>
+      <a href="home.html#specialties">Chuyên khoa</a>
+       <a href="doctors.html">Bác sĩ</a>
+      <a href="home.html#how-it-works">Hướng dẫn</a>
+   </nav>>
+    <div class="header-actions" id="headerActions">
+      <a href="login.html"
+         class="btn btn-outline"
+         id="loginLink">
+        Đăng nhập
+      </a>
+      <a href="register.html"
+         class="btn btn-primary"
+         id="registerLink">
+        Đăng ký
+      </a>
+      <div id="userInfo"
+           style="display:none;align-items:center;gap:10px;">
+        <span id="welcomeUser"
+              style="font-size:14px;color:var(--text);font-weight:500;">
+        </span>
+        <button type="button"
+                class="btn btn-outline"
+                id="logoutButton">
+          Đăng xuất
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
+<main>
+    <section class="management-header">
+        <div class="container">
+            <span class="page-label">
+                <i class="fa-solid fa-calendar-days"></i>
+                Bác sĩ
+            </span>
+            <h1>
+                Quản lý lịch làm việc
+            </h1>
+            <p>
+                Tạo và quản lý thời gian làm việc
+                của bạn tại phòng khám.
+            </p>
+        </div>
+    </section>
+    <section class="management-section">
+        <div class="container management-grid">
+            <!-- FORM -->
+            <div class="management-card">
+                <div class="card-heading">
+                    <div>
+                        <span>
+                            Lịch làm việc
+                        </span>
+                        <h2 id="scheduleFormTitle">
+                            Tạo lịch mới
+                        </h2>
+                    </div>
+                </div>
+                <form
+                    id="doctorScheduleForm"
+                    class="schedule-form"
+                >
+                    <input
+                        type="hidden"
+                        id="scheduleId"
+                    >
+                    <div class="form-group">
+                        <label for="scheduleDate">
+                            Ngày làm việc
+                        </label>
+                        <input
+                            type="date"
+                            id="scheduleDate"
+                            required
+                        >
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="startTime">
+                                Bắt đầu
+                            </label>
+                            <input
+                                type="time"
+                                id="startTime"
+                                required
+                            >
+                        </div>
+                        <div class="form-group">
+                            <label for="endTime">
+                                Kết thúc
+                            </label>
+                            <input
+                                type="time"
+                                id="endTime"
+                                required
+                            >
+                        </div>
+                    </div>
+                    <div
+                        id="scheduleMessage"
+                        class="form-message"
+                    ></div>
+                    <div class="form-actions">
+                        <button
+                            type="submit"
+                            class="btn btn-primary"
+                            id="saveScheduleButton"
+                        >
+                            <i class="fa-solid fa-plus"></i>
+                            Tạo lịch
+                        </button>
+                        <button
+                            type="button"
+                            class="btn btn-outline"
+                            id="cancelEditButton"
+                            style="display:none"
+                        >
+                            Hủy sửa
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <!-- LIST -->
+            <div class="management-card">
+                <div class="card-heading">
+                    <div>
+                        <span>
+                            Lịch của tôi
+                        </span>
+                        <h2>
+                            Lịch làm việc
+                        </h2>
+                    </div>
+                </div>
+                <div
+                    id="myScheduleList"
+                    class="schedule-management-list"
+                >
+                    <div class="page-loading">
+                        Đang tải lịch...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+<script src="js/api.js"></script>
+<script src="js/doctor-schedule.js"></script>
+</body>
+</html>

@@ -1,95 +1,282 @@
 const db = require("../config/db");
 /*
-    ============================================
-    LẤY LỊCH LÀM VIỆC CỦA MỘT BÁC SĨ
-    GET /api/doctors/:doctorId/schedules
-    ============================================
+=====================================================
+LẤY USER ĐANG ĐĂNG NHẬP
+=====================================================
 */
-async function getDoctorSchedules(req, res) {
-    try {
-        const { doctorId } = req.params;
-        const [rows] = await db.pool.query(
+
+function getCurrentUser(req) {
+    if (req.session && req.session.user) {
+        return req.session.user;
+    }
+    if (req.user) {
+        return req.user;
+    }
+    return null;
+}
+/*
+=====================================================
+KIỂM TRA QUYỀN
+=====================================================
+*/
+
+function isAdmin(user) {
+    return user &&
+        String(user.role).toUpperCase() === "ADMIN";
+}
+
+
+function isDoctor(user) {
+    return user &&
+        String(user.role).toUpperCase() === "DOCTOR";
+}
+/*
+=====================================================
+LẤY ID DOCTOR TỪ USER
+=====================================================
+*/
+
+async function getDoctorIdFromUser(
+    user
+) {
+    const [rows] =
+        await db.pool.query(
             `
-            SELECT
-                s.id,
-                s.doctor_id,
-                u.full_name AS doctor_name,
-                s.schedule_date,
-                s.start_time,
-                s.end_time,
-                s.status
-            FROM schedules s
-            JOIN doctors d
-                ON s.doctor_id = d.id
-            JOIN users u
-                ON d.user_id = u.id
-            WHERE s.doctor_id = ?
-            ORDER BY s.schedule_date ASC, s.start_time ASC
+            SELECT id
+            FROM doctors
+            WHERE user_id = ?
+            LIMIT 1
             `,
-            [doctorId]
+            [user.id]
         );
-        res.json({
+    if (!rows.length) {
+        return null;
+    }
+    return rows[0].id;
+}
+/*
+=====================================================
+LẤY LỊCH CỦA BÁC SĨ ĐANG ĐĂNG NHẬP
+
+GET /api/schedules/my
+=====================================================
+*/
+
+async function getMySchedules(
+    req,
+    res
+) {
+    try {
+        const user =
+            getCurrentUser(req);
+        if (!user || !isDoctor(user)) {
+            return res.status(403).json({
+                success: false,
+                message:
+                    "Bạn không có quyền truy cập."
+            });
+        }
+        const doctorId =
+            await getDoctorIdFromUser(
+                user
+            );
+        if (!doctorId) {
+            return res.status(404).json({
+                success: false,
+                message:
+                    "Không tìm thấy hồ sơ bác sĩ."
+            });
+        }
+        const [rows] =
+            await db.pool.query(
+                `
+                SELECT
+                    id,
+                    doctor_id,
+                    schedule_date,
+                    start_time,
+                    end_time,
+                    status,
+                    created_at
+                FROM schedules
+                WHERE doctor_id = ?
+                ORDER BY
+                    schedule_date ASC,
+                    start_time ASC
+                `,
+                [doctorId]
+            );
+        return res.json({
             success: true,
             data: rows
         });
-    } catch (error) {
-        console.error("GET SCHEDULE ERROR:", error);
-        res.status(500).json({
+    }
+    catch (error) {
+        console.error(
+            "GET MY SCHEDULES ERROR:",
+            error
+        );
+        return res.status(500).json({
             success: false,
-            message: "Không thể lấy lịch làm việc của bác sĩ."
+            message:
+                "Không thể lấy lịch làm việc."
         });
     }
 }
 /*
-    ============================================
-    LẤY LỊCH CỦA BÁC SĨ THEO NGÀY
-    GET /api/doctors/:doctorId/schedules/:date
-    ============================================
+=====================================================
+LẤY TẤT CẢ LỊCH CHO ADMIN
+
+GET /api/schedules/admin
+=====================================================
 */
-async function getDoctorScheduleByDate(req, res) {
+
+async function getAllSchedules(
+    req,
+    res
+) {
     try {
-        const { doctorId, date } = req.params;
-        const [rows] = await db.pool.query(
-            `
-            SELECT
-                s.id,
-                s.doctor_id,
-                u.full_name AS doctor_name,
-                s.schedule_date,
-                s.start_time,
-                s.end_time,
-                s.status
-            FROM schedules s
-            JOIN doctors d
-                ON s.doctor_id = d.id
-            JOIN users u
-                ON d.user_id = u.id
-            WHERE s.doctor_id = ?
-              AND s.schedule_date = ?
-            ORDER BY s.start_time ASC
-            `,
-            [doctorId, date]
-        );
-        res.json({
+        const user =
+            getCurrentUser(req);
+        if (!isAdmin(user)) {
+            return res.status(403).json({
+                success: false,
+                message:
+                    "Chỉ ADMIN mới được thực hiện chức năng này."
+            });
+        }
+        const [rows] =
+            await db.pool.query(
+                `
+                SELECT
+                    s.id,
+                    s.doctor_id,
+                    s.schedule_date,
+                    s.start_time,
+                    s.end_time,
+                    s.status,
+                    s.created_at,
+                    d.user_id,
+                    u.full_name,
+                    sp.name AS specialty_name
+                FROM schedules s
+                INNER JOIN doctors d
+                    ON d.id = s.doctor_id
+                INNER JOIN users u
+                    ON u.id = d.user_id
+                INNER JOIN specialties sp
+                    ON sp.id = d.specialty_id
+                ORDER BY
+                    s.schedule_date ASC,
+                    s.start_time ASC,
+                    u.full_name ASC
+                `
+            );
+        return res.json({
             success: true,
             data: rows
         });
-    } catch (error) {
-        console.error("GET SCHEDULE BY DATE ERROR:", error);
-        res.status(500).json({
+    }
+    catch (error) {
+        console.error(
+            "GET ALL SCHEDULES ERROR:",
+            error
+        );
+        return res.status(500).json({
             success: false,
-            message: "Không thể lấy lịch khám."
+            message:
+                "Không thể lấy danh sách lịch."
         });
     }
 }
 /*
-    ============================================
-    TẠO LỊCH LÀM VIỆC CHO BÁC SĨ
-    POST /api/schedules
-    ============================================
+=====================================================
+LẤY MỘT LỊCH
+
+GET /api/schedules/:id
+=====================================================
 */
-async function createSchedule(req, res) {
+
+async function getScheduleById(
+    req,
+    res
+) {
     try {
+        const {
+            id
+        } = req.params;
+        const [rows] =
+            await db.pool.query(
+                `
+                SELECT
+                    id,
+                    doctor_id,
+                    schedule_date,
+                    start_time,
+                    end_time,
+                    status,
+                    created_at
+                FROM schedules
+                WHERE id = ?
+                LIMIT 1
+                `,
+                [id]
+            );
+        if (!rows.length) {
+            return res.status(404).json({
+                success: false,
+                message:
+                    "Không tìm thấy lịch."
+            });
+        }
+        return res.json({
+            success: true,
+            data: rows[0]
+        });
+    }
+    catch (error) {
+        console.error(
+            "GET SCHEDULE ERROR:",
+            error
+        );
+        return res.status(500).json({
+            success: false,
+            message:
+                "Không thể lấy lịch."
+        });
+    }
+}
+/*
+=====================================================
+TẠO LỊCH
+
+POST /api/schedules
+
+DOCTOR:
+    chỉ tạo cho chính mình
+
+ADMIN:
+    tạo cho bất kỳ bác sĩ nào
+=====================================================
+*/
+
+async function createSchedule(
+    req,
+    res
+) {
+    try {
+        const user =
+            getCurrentUser(req);
+        if (
+            !user ||
+            (!isDoctor(user) && !isAdmin(user))
+        ) {
+            return res.status(403).json({
+                success: false,
+                message:
+                    "Bạn không có quyền tạo lịch."
+            });
+        }
         const {
             doctor_id,
             schedule_date,
@@ -97,150 +284,376 @@ async function createSchedule(req, res) {
             end_time
         } = req.body;
         if (
-            !doctor_id ||
             !schedule_date ||
             !start_time ||
             !end_time
         ) {
             return res.status(400).json({
                 success: false,
-                message: "Vui lòng nhập đầy đủ thông tin lịch."
+                message:
+                    "Vui lòng nhập đầy đủ thông tin."
             });
         }
-        /*
-            Kiểm tra bác sĩ tồn tại
-        */
-        const [doctor] = await db.pool.query(
-            `
-            SELECT id
-            FROM doctors
-            WHERE id = ?
-            LIMIT 1
-            `,
-            [doctor_id]
-        );
-        if (doctor.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: "Không tìm thấy bác sĩ."
-            });
+        let doctorId;
+        if (isDoctor(user)) {
+            doctorId =
+                await getDoctorIdFromUser(
+                    user
+                );
         }
-        /*
-            Kiểm tra thời gian
-        */
-        if (start_time >= end_time) {
+        else {
+            doctorId =
+                doctor_id;
+        }
+        if (!doctorId) {
             return res.status(400).json({
                 success: false,
-                message: "Giờ bắt đầu phải nhỏ hơn giờ kết thúc."
+                message:
+                    "Chưa xác định được bác sĩ."
+            });
+        }
+        if (
+            String(start_time) >=
+            String(end_time)
+        ) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    "Giờ kết thúc phải lớn hơn giờ bắt đầu."
             });
         }
         /*
-            Kiểm tra lịch bị trùng
+        Kiểm tra bác sĩ
         */
-        const [existing] = await db.pool.query(
-            `
-            SELECT id
-            FROM schedules
-            WHERE doctor_id = ?
-              AND schedule_date = ?
-              AND status = 'AVAILABLE'
-              AND start_time < ?
-              AND end_time > ?
-            LIMIT 1
-            `,
-            [
-                doctor_id,
-                schedule_date,
-                end_time,
-                start_time
-            ]
-        );
-        if (existing.length > 0) {
+        const [doctors] =
+            await db.pool.query(
+                `
+                SELECT id
+                FROM doctors
+                WHERE id = ?
+                LIMIT 1
+                `,
+                [doctorId]
+            );
+        if (!doctors.length) {
+            return res.status(404).json({
+                success: false,
+                message:
+                    "Không tìm thấy bác sĩ."
+            });
+        }
+        /*
+        Kiểm tra trùng lịch
+        */
+        const [existing] =
+            await db.pool.query(
+                `
+                SELECT id
+                FROM schedules
+                WHERE doctor_id = ?
+                  AND schedule_date = ?
+                  AND status <> 'CLOSED'
+                  AND start_time < ?
+                  AND end_time > ?
+                LIMIT 1
+                `,
+                [
+                    doctorId,
+                    schedule_date,
+                    end_time,
+                    start_time
+                ]
+            );
+        if (existing.length) {
             return res.status(409).json({
                 success: false,
-                message: "Lịch làm việc bị trùng với lịch đã tồn tại."
+                message:
+                    "Lịch làm việc bị trùng với lịch đã có."
             });
         }
         /*
-            Tạo lịch
+        Tạo lịch
         */
-        const [result] = await db.pool.query(
-            `
-            INSERT INTO schedules
-            (
-                doctor_id,
-                schedule_date,
-                start_time,
-                end_time,
-                status
-            )
-            VALUES (?, ?, ?, ?, 'AVAILABLE')
-            `,
-            [
-                doctor_id,
-                schedule_date,
-                start_time,
-                end_time
-            ]
-        );
-        res.status(201).json({
+        const [result] =
+            await db.pool.query(
+                `
+                INSERT INTO schedules
+                (
+                    doctor_id,
+                    schedule_date,
+                    start_time,
+                    end_time,
+                    status
+                )
+                VALUES
+                (?, ?, ?, ?, 'AVAILABLE')
+                `,
+                [
+                    doctorId,
+                    schedule_date,
+                    start_time,
+                    end_time
+                ]
+            );
+        return res.status(201).json({
             success: true,
-            message: "Tạo lịch làm việc thành công.",
+            message:
+                "Tạo lịch làm việc thành công.",
             data: {
                 id: result.insertId,
-                doctor_id,
+                doctor_id: doctorId,
                 schedule_date,
                 start_time,
                 end_time,
                 status: "AVAILABLE"
             }
         });
-    } catch (error) {
-        console.error("CREATE SCHEDULE ERROR:", error);
-        res.status(500).json({
+    }
+    catch (error) {
+        console.error(
+            "CREATE SCHEDULE ERROR:",
+            error
+        );
+        return res.status(500).json({
             success: false,
-            message: "Không thể tạo lịch làm việc."
+            message:
+                "Không thể tạo lịch làm việc."
         });
     }
 }
 /*
-    ============================================
-    ĐÓNG LỊCH
-    PATCH /api/schedules/:id/close
-    ============================================
+=====================================================
+CẬP NHẬT LỊCH
+
+PUT /api/schedules/:id
+=====================================================
 */
-async function closeSchedule(req, res) {
+
+async function updateSchedule(
+    req,
+    res
+) {
     try {
-        const { id } = req.params;
-        const [result] = await db.pool.query(
+        const user =
+            getCurrentUser(req);
+        if (
+            !user ||
+            (!isDoctor(user) && !isAdmin(user))
+        ) {
+            return res.status(403).json({
+                success: false,
+                message:
+                    "Bạn không có quyền chỉnh sửa lịch."
+            });
+        }
+        const {
+            id
+        } = req.params;
+        const {
+            schedule_date,
+            start_time,
+            end_time
+        } = req.body;
+        const [rows] =
+            await db.pool.query(
+                `
+                SELECT *
+                FROM schedules
+                WHERE id = ?
+                LIMIT 1
+                `,
+                [id]
+            );
+        if (!rows.length) {
+            return res.status(404).json({
+                success: false,
+                message:
+                    "Không tìm thấy lịch."
+            });
+        }
+        const schedule =
+            rows[0];
+        /*
+        Nếu là DOCTOR,
+        chỉ được sửa lịch của mình.
+        */
+        if (isDoctor(user)) {
+            const doctorId =
+                await getDoctorIdFromUser(
+                    user
+                );
+            if (
+                Number(doctorId) !==
+                Number(schedule.doctor_id)
+            ) {
+                return res.status(403).json({
+                    success: false,
+                    message:
+                        "Bạn không được sửa lịch của bác sĩ khác."
+                });
+            }
+        }
+        if (
+            String(start_time) >=
+            String(end_time)
+        ) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    "Giờ kết thúc phải lớn hơn giờ bắt đầu."
+            });
+        }
+        await db.pool.query(
             `
             UPDATE schedules
-            SET status = 'CLOSED'
+            SET
+                schedule_date = ?,
+                start_time = ?,
+                end_time = ?
+            WHERE id = ?
+            `,
+            [
+                schedule_date,
+                start_time,
+                end_time,
+                id
+            ]
+        );
+        return res.json({
+            success: true,
+            message:
+                "Cập nhật lịch thành công."
+        });
+    }
+    catch (error) {
+        console.error(
+            "UPDATE SCHEDULE ERROR:",
+            error
+        );
+        return res.status(500).json({
+            success: false,
+            message:
+                "Không thể cập nhật lịch."
+        });
+    }
+}
+/*
+=====================================================
+XÓA LỊCH
+
+DELETE /api/schedules/:id
+=====================================================
+*/
+
+async function deleteSchedule(
+    req,
+    res
+) {
+    try {
+        const user =
+            getCurrentUser(req);
+        if (
+            !user ||
+            (!isDoctor(user) && !isAdmin(user))
+        ) {
+            return res.status(403).json({
+                success: false,
+                message:
+                    "Bạn không có quyền xóa lịch."
+            });
+        }
+        const {
+            id
+        } = req.params;
+        const [rows] =
+            await db.pool.query(
+                `
+                SELECT *
+                FROM schedules
+                WHERE id = ?
+                LIMIT 1
+                `,
+                [id]
+            );
+        if (!rows.length) {
+            return res.status(404).json({
+                success: false,
+                message:
+                    "Không tìm thấy lịch."
+            });
+        }
+        const schedule =
+            rows[0];
+        if (isDoctor(user)) {
+            const doctorId =
+                await getDoctorIdFromUser(
+                    user
+                );
+            if (
+                Number(doctorId) !==
+                Number(schedule.doctor_id)
+            ) {
+                return res.status(403).json({
+                    success: false,
+                    message:
+                        "Bạn không được xóa lịch của bác sĩ khác."
+                });
+            }
+        }
+        /*
+        Không cho xóa lịch đã có
+        cuộc hẹn.
+        */
+        const [appointments] =
+            await db.pool.query(
+                `
+                SELECT id
+                FROM appointments
+                WHERE schedule_id = ?
+                  AND status <> 'CANCELLED'
+                LIMIT 1
+                `,
+                [id]
+            );
+        if (appointments.length) {
+            return res.status(409).json({
+                success: false,
+                message:
+                    "Lịch này đã có bệnh nhân đặt. Không thể xóa."
+            });
+        }
+        await db.pool.query(
+            `
+            DELETE FROM schedules
             WHERE id = ?
             `,
             [id]
         );
-        if (result.affectedRows === 0) {
-            return res.status(404).json({
-                success: false,
-                message: "Không tìm thấy lịch."
-            });
-        }
-        res.json({
+        return res.json({
             success: true,
-            message: "Đã đóng lịch khám."
+            message:
+                "Xóa lịch thành công."
         });
-    } catch (error) {
-        console.error("CLOSE SCHEDULE ERROR:", error);
-        res.status(500).json({
+    }
+    catch (error) {
+        console.error(
+            "DELETE SCHEDULE ERROR:",
+            error
+        );
+        return res.status(500).json({
             success: false,
-            message: "Không thể đóng lịch."
+            message:
+                "Không thể xóa lịch."
         });
     }
 }
+
+
 module.exports = {
-    getDoctorSchedules,
-    getDoctorScheduleByDate,
+    getMySchedules,
+    getAllSchedules,
+    getScheduleById,
     createSchedule,
-    closeSchedule
+    updateSchedule,
+    deleteSchedule
 };
