@@ -106,5 +106,63 @@
 </main>
 <script src="js/api.js"></script>
 <script src="js/doctor-detail.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+    const loginLink = document.getElementById("loginLink");
+    const registerLink = document.getElementById("registerLink");
+    const userInfo = document.getElementById("userInfo");
+    const welcomeUser = document.getElementById("welcomeUser");
+    const logoutButton = document.getElementById("logoutButton");
+    // Lấy thông tin người dùng đã đăng nhập
+    const user = JSON.parse(localStorage.getItem("user"));
+    // =========================
+    // CHƯA ĐĂNG NHẬP
+    // =========================
+    if (!user) {
+        if (loginLink) {
+            loginLink.style.display = "inline-flex";
+        }
+        if (registerLink) {
+            registerLink.style.display = "inline-flex";
+        }
+        if (userInfo) {
+            userInfo.style.display = "none";
+        }
+        return;
+    }
+    // =========================
+    // ĐÃ ĐĂNG NHẬP
+    // =========================
+    if (loginLink) {
+        loginLink.style.display = "none";
+    }
+    if (registerLink) {
+        registerLink.style.display = "none";
+    }
+    if (userInfo) {
+        userInfo.style.display = "flex";
+    }
+    if (welcomeUser) {
+        const name =
+            user.full_name ||
+            user.fullName ||
+            user.name ||
+            user.email;
+        welcomeUser.textContent = `Xin chào, ${name}`;
+    }
+    // =========================
+    // ĐĂNG XUẤT
+    // =========================
+    if (logoutButton) {
+        logoutButton.addEventListener("click", function () {
+            // Xóa thông tin đăng nhập
+            localStorage.removeItem("user");
+            localStorage.removeItem("token");
+            // Quay về trang chủ
+            window.location.href = "home.html";
+        });
+    }
+});
+</script>
 </body>
 </html>
