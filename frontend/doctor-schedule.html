@@ -17,7 +17,7 @@
         href="css/doctor-pages.css"
     >
 </head>
-<body>
+<body data-role="DOCTOR">
 <header class="site-header">
   <div class="container header-inner">
     <a href="home.html" class="brand" aria-label="Clinic Booking - Trang chủ">
@@ -180,6 +180,7 @@
 </main>
 <script src="js/api.js"></script>
 <script src="js/doctor-schedule.js"></script>
+<script src="js/role-guard.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
     const loginLink = document.getElementById("loginLink");

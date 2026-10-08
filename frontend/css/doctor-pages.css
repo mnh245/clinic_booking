@@ -860,3 +860,288 @@
         border-radius: 12px;
     }
 }
+/* =====================================================
+   DOCTOR DASHBOARD
+===================================================== */
+.doctor-dashboard {
+    min-height: calc(100vh - 80px);
+    padding: 45px 0 80px;
+    background: var(--bg);
+}
+/* =========================
+   HEADER
+========================= */
+.dashboard-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 30px;
+    margin-bottom: 30px;
+}
+.dashboard-eyebrow,
+.panel-eyebrow {
+    display: block;
+    color: var(--primary-deep);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .08em;
+}
+.dashboard-header h2 {
+    margin: 7px 0 8px;
+    color: var(--ink);
+    font-size: 32px;
+}
+.dashboard-header p {
+    margin: 0;
+    color: var(--muted);
+}
+.doctor-dashboard-user {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    padding: 13px 18px;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: #fff;
+}
+.doctor-dashboard-avatar {
+    width: 46px;
+    height: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #e8f5f3;
+    color: var(--primary);
+    font-size: 20px;
+}
+.doctor-dashboard-user strong {
+    display: block;
+    color: var(--ink);
+    font-size: 14px;
+}
+.doctor-dashboard-user span {
+    display: block;
+    margin-top: 3px;
+    color: var(--muted);
+    font-size: 12px;
+}
+/* =========================
+   STATISTICS
+========================= */
+.dashboard-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+.dashboard-stat {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 20px;
+    border: 1px solid var(--border);
+    border-radius: 17px;
+    background: #fff;
+    box-shadow: 0 8px 25px rgba(15, 23, 42, .04);
+}
+.dashboard-stat-icon {
+    width: 46px;
+    height: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 13px;
+    background: #eaf7f5;
+    color: var(--primary);
+}
+.dashboard-stat span {
+    display: block;
+    color: var(--muted);
+    font-size: 12px;
+}
+.dashboard-stat strong {
+    display: block;
+    margin-top: 4px;
+    color: var(--ink);
+    font-size: 25px;
+}
+/* =========================
+   PANEL
+========================= */
+.dashboard-panel {
+    margin-bottom: 24px;
+    padding: 25px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    background: #fff;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, .04);
+}
+.dashboard-panel-header {
+    margin-bottom: 22px;
+}
+.dashboard-panel-header h3 {
+    margin: 6px 0 6px;
+    color: var(--ink);
+    font-size: 20px;
+}
+.dashboard-panel-header p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 13px;
+}
+.dashboard-panel-header.panel-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+/* =========================
+   CREATE SCHEDULE
+========================= */
+.dashboard-schedule-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr auto;
+    gap: 15px;
+    align-items: end;
+}
+.dashboard-field label {
+    display: block;
+    margin-bottom: 7px;
+    color: var(--ink);
+    font-size: 13px;
+    font-weight: 700;
+}
+.dashboard-field input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 11px 13px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: #fff;
+    color: var(--ink);
+    outline: none;
+}
+.dashboard-field input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(20, 150, 135, .08);
+}
+/* =========================
+   TABLE
+========================= */
+.dashboard-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+.dashboard-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 760px;
+}
+.dashboard-table th {
+    padding: 13px 14px;
+    border-bottom: 1px solid var(--border);
+    background: #f8fafc;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 800;
+    text-align: left;
+    text-transform: uppercase;
+}
+.dashboard-table td {
+    padding: 15px 14px;
+    border-bottom: 1px solid #edf1f3;
+    color: var(--ink);
+    font-size: 13px;
+    vertical-align: middle;
+}
+.dashboard-table tbody tr:hover {
+    background: #fbfdfd;
+}
+/* =========================
+   STATUS
+========================= */
+.dashboard-status {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 800;
+}
+.dashboard-status.available,
+.dashboard-status.confirmed,
+.dashboard-status.completed {
+    background: #ecfdf5;
+    color: #047857;
+}
+.dashboard-status.closed,
+.dashboard-status.cancelled,
+.dashboard-status.no-show {
+    background: #fef2f2;
+    color: #b91c1c;
+}
+.dashboard-status.pending {
+    background: #fff7ed;
+    color: #c2410c;
+}
+/* =========================
+   BUTTON GROUP
+========================= */
+.dashboard-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+}
+.dashboard-actions .btn {
+    white-space: nowrap;
+}
+/* =========================
+   MESSAGE
+========================= */
+.dashboard-message {
+    margin-top: 14px;
+    font-size: 13px;
+}
+.dashboard-message.success {
+    color: #047857;
+}
+.dashboard-message.error {
+    color: #b91c1c;
+}
+.dashboard-loading {
+    padding: 35px !important;
+    color: var(--muted) !important;
+    text-align: center;
+}
+/* =========================
+   RESPONSIVE
+========================= */
+@media (max-width: 1000px) {
+    .dashboard-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .dashboard-schedule-form {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+@media (max-width: 700px) {
+    .dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .doctor-dashboard-user {
+        width: 100%;
+        box-sizing: border-box;
+    }
+    .dashboard-stats {
+        grid-template-columns: 1fr;
+    }
+    .dashboard-schedule-form {
+        grid-template-columns: 1fr;
+    }
+    .dashboard-panel-header.panel-row {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}

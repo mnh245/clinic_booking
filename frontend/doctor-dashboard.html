@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+    <title>Dashboard bác sĩ | Clinic Booking</title>
+    <!-- CSS dùng chung -->
+    <link
+        rel="stylesheet"
+        href="css/overall.css"
+    >
+    <!-- CSS dành cho trang bác sĩ -->
+    <link
+        rel="stylesheet"
+        href="css/doctor-pages.css"
+    >
+    <!-- Font Awesome -->
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    >
+    <style>
+        /* =====================================================
+           HEADER DÀNH CHO DOCTOR DASHBOARD
+        ===================================================== */
+        .doctor-site-header-user {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .doctor-site-user {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            padding: 6px 10px;
+            border: 1px solid var(--border, #e2e8f0);
+            border-radius: 12px;
+            background: #ffffff;
+        }
+        .doctor-site-user-avatar {
+            width: 34px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            background: var(--primary-light, #ccfbf1);
+            color: var(--primary-deep, #0b5f59);
+            font-size: 15px;
+        }
+        .doctor-site-user-text {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+        .doctor-site-user-text strong {
+            font-size: 13px;
+            color: var(--text, #0f172a);
+            white-space: nowrap;
+        }
+        .doctor-site-user-text span {
+            font-size: 11px;
+            color: var(--muted, #64748b);
+        }
+        .doctor-logout-button {
+            border: 0;
+            cursor: pointer;
+        }
+        /* =====================================================
+           CHỌN CA LÀM VIỆC
+        ===================================================== */
+        .shift-options {
+            display: grid;
+            grid-template-columns:
+                repeat(4, minmax(0, 1fr));
+            gap: 12px;
+        }
+        .shift-option {
+            position: relative;
+        }
+        .shift-option input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .shift-option label {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            padding: 15px;
+            min-height: 96px;
+            border: 1px solid
+                var(--border, #e2e8f0);
+            border-radius: 14px;
+            background: #ffffff;
+            cursor: pointer;
+            transition:
+                border-color .2s ease,
+                background .2s ease,
+                transform .2s ease,
+                box-shadow .2s ease;
+        }
+        .shift-option label:hover {
+            transform: translateY(-1px);
+            box-shadow:
+                0 8px 20px
+                rgba(15, 23, 42, .06);
+        }
+        .shift-option input:checked + label {
+            border-color:
+                var(--primary, #0ea5a4);
+            background:
+                var(--primary-light, #ccfbf1);
+            box-shadow:
+                0 0 0 2px
+                rgba(14, 165, 164, .10);
+        }
+        .shift-option-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            color: var(--text, #0f172a);
+            font-size: 14px;
+        }
+        .shift-option-title i {
+            color:
+                var(--primary-deep, #0b5f59);
+        }
+        .shift-option-time {
+            font-size: 13px;
+            color:
+                var(--muted, #64748b);
+        }
+        .shift-option-note {
+            margin-top: auto;
+            font-size: 11px;
+            color:
+                var(--muted, #64748b);
+        }
+        .shift-select-help {
+            margin-top: 8px;
+            font-size: 12px;
+            color:
+                var(--muted, #64748b);
+        }
+        /* =====================================================
+           RESPONSIVE
+        ===================================================== */
+        @media (max-width: 900px) {
+            .shift-options {
+                grid-template-columns:
+                    repeat(2, minmax(0, 1fr));
+            }
+        }
+        @media (max-width: 700px) {
+            .doctor-site-header-user {
+                width: 100%;
+                justify-content: flex-end;
+            }
+            .doctor-site-user-text {
+                display: none;
+            }
+        }
+        @media (max-width: 520px) {
+            .shift-options {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body data-role="DOCTOR">
+<!-- =========================================================
+     HEADER
+========================================================= -->
+<header class="site-header">
+    <div class="container header-inner">
+        <!-- LOGO -->
+        <a
+            href="home.html"
+            class="brand"
+            aria-label="Clinic Booking - Trang chủ"
+        >
+            <div class="logo">
+                <i class="fa-solid fa-stethoscope"></i>
+            </div>
+            <div>
+                <h1>Clinic Booking</h1>
+                <p>Đặt lịch khám trực tuyến</p>
+            </div>
+        </a>
+        <!-- MENU -->
+        <nav
+            class="nav"
+            aria-label="Điều hướng chính"
+        >
+            <a href="home.html">
+                Trang chủ
+            </a>
+            <a
+                href="#schedule-section"
+                class="active"
+            >
+                Lịch làm việc
+            </a>
+            <a href="#appointment-section">
+                Lịch hẹn
+            </a>
+        </nav>
+        <!-- USER -->
+        <div
+            class="header-actions doctor-site-header-user"
+            id="headerActions"
+        >
+            <div
+                class="doctor-site-user"
+                id="doctorHeaderUser"
+            >
+                <div class="doctor-site-user-avatar">
+                    <i class="fa-solid fa-user-doctor"></i>
+                </div>
+                <div class="doctor-site-user-text">
+                    <strong id="headerDoctorName">
+                        Đang tải...
+                    </strong>
+                    <span>
+                        Bác sĩ
+                    </span>
+                </div>
+            </div>
+            <button
+                type="button"
+                class="btn btn-outline doctor-logout-button"
+                id="logoutButton"
+            >
+                <i class="fa-solid fa-right-from-bracket"></i>
+                Đăng xuất
+            </button>
+        </div>
+    </div>
+</header>
+<!-- =========================================================
+     MAIN
+========================================================= -->
+<main class="doctor-dashboard">
+    <div class="container">
+        <!-- =================================================
+             DASHBOARD HEADER
+        ================================================== -->
+        <section class="dashboard-header">
+            <div>
+                <span class="dashboard-eyebrow">
+                    BẢNG ĐIỀU KHIỂN
+                </span>
+                <h2>
+                    Dashboard bác sĩ
+                </h2>
+                <p>
+                    Quản lý lịch làm việc,
+                    lịch hẹn và hoạt động khám bệnh.
+                </p>
+            </div>
+            <div class="doctor-dashboard-user">
+                <div class="doctor-dashboard-avatar">
+                    <i class="fa-solid fa-user-doctor"></i>
+                </div>
+                <div>
+                    <strong id="doctorName">
+                        Đang tải...
+                    </strong>
+                    <span id="doctorSpecialty">
+                        Bác sĩ
+                    </span>
+                </div>
+            </div>
+        </section>
+        <!-- =================================================
+             THỐNG KÊ
+        ================================================== -->
+        <section class="dashboard-stats">
+            <div class="dashboard-stat">
+                <div class="dashboard-stat-icon">
+                    <i class="fa-solid fa-calendar-day"></i>
+                </div>
+                <div>
+                    <span>
+                        Lịch hôm nay
+                    </span>
+                    <strong id="todayScheduleCount">
+                        0
+                    </strong>
+                </div>
+            </div>
+            <div class="dashboard-stat">
+                <div class="dashboard-stat-icon">
+                    <i class="fa-solid fa-calendar-check"></i>
+                </div>
+                <div>
+                    <span>
+                        Lịch hẹn
+                    </span>
+                    <strong id="appointmentCount">
+                        0
+                    </strong>
+                </div>
+            </div>
+            <div class="dashboard-stat">
+                <div class="dashboard-stat-icon">
+                    <i class="fa-solid fa-clock"></i>
+                </div>
+                <div>
+                    <span>
+                        Chờ xác nhận
+                    </span>
+                    <strong id="pendingCount">
+                        0
+                    </strong>
+                </div>
+            </div>
+            <div class="dashboard-stat">
+                <div class="dashboard-stat-icon">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <div>
+                    <span>
+                        Đã hoàn thành
+                    </span>
+                    <strong id="completedCount">
+                        0
+                    </strong>
+                </div>
+            </div>
+        </section>
+        <!-- =================================================
+             TẠO LỊCH LÀM VIỆC
+        ================================================== -->
+        <section
+            class="dashboard-panel"
+            id="schedule-section"
+        >
+            <div class="dashboard-panel-header">
+                <div>
+                    <span class="panel-eyebrow">
+                        LỊCH LÀM VIỆC
+                    </span>
+                    <h3>
+                        Tạo lịch làm việc
+                    </h3>
+                    <p>
+                        Chọn ngày và ca làm việc
+                        bạn có thể tiếp nhận bệnh nhân.
+                    </p>
+                </div>
+            </div>
+            <form
+                id="createScheduleForm"
+                class="dashboard-schedule-form"
+            >
+                <!-- NGÀY -->
+                <div class="dashboard-field">
+                    <label for="scheduleDate">
+                        Ngày làm việc
+                    </label>
+                    <input
+                        type="date"
+                        id="scheduleDate"
+                        required
+                    >
+                </div>
+                <!-- CA -->
+                <div
+                    class="dashboard-field"
+                    style="grid-column: 1 / -1;"
+                >
+                    <label>
+                        Ca làm việc
+                    </label>
+                    <div class="shift-options">
+                        <!-- CA ĐÊM -->
+                        <div class="shift-option">
+                            <input
+                                type="radio"
+                                name="shift_type"
+                                id="shiftNight"
+                                value="NIGHT"
+                                required
+                            >
+                            <label for="shiftNight">
+                                <span class="shift-option-title">
+                                    <i class="fa-solid fa-moon"></i>
+                                    Ca đêm
+                                </span>
+                                <span class="shift-option-time">
+                                    00:00 – 06:00
+                                </span>
+                                <span class="shift-option-note">
+                                    Trực đêm
+                                </span>
+                            </label>
+                        </div>
+                        <!-- CA SÁNG -->
+                        <div class="shift-option">
+                            <input
+                                type="radio"
+                                name="shift_type"
+                                id="shiftMorning"
+                                value="MORNING"
+                            >
+                            <label for="shiftMorning">
+                                <span class="shift-option-title">
+                                    <i class="fa-solid fa-sun"></i>
+                                    Ca sáng
+                                </span>
+                                <span class="shift-option-time">
+                                    06:00 – 12:00
+                                </span>
+                                <span class="shift-option-note">
+                                    Buổi sáng
+                                </span>
+                            </label>
+                        </div>
+                        <!-- CA CHIỀU -->
+                        <div class="shift-option">
+                            <input
+                                type="radio"
+                                name="shift_type"
+                                id="shiftAfternoon"
+                                value="AFTERNOON"
+                            >
+                            <label for="shiftAfternoon">
+                                <span class="shift-option-title">
+                                    <i class="fa-solid fa-cloud-sun"></i>
+                                    Ca chiều
+                                </span>
+                                <span class="shift-option-time">
+                                    12:00 – 18:00
+                                </span>
+                                <span class="shift-option-note">
+                                    Buổi chiều
+                                </span>
+                            </label>
+                        </div>
+                        <!-- CA TỐI -->
+                        <div class="shift-option">
+                            <input
+                                type="radio"
+                                name="shift_type"
+                                id="shiftEvening"
+                                value="EVENING"
+                            >
+                            <label for="shiftEvening">
+                                <span class="shift-option-title">
+                                    <i class="fa-solid fa-cloud-moon"></i>
+                                    Ca tối
+                                </span>
+                                <span class="shift-option-time">
+                                    18:00 – 00:00
+                                </span>
+                                <span class="shift-option-note">
+                                    Buổi tối
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="shift-select-help">
+                        Mỗi ngày có thể đăng ký nhiều ca.
+                        Ngày nghỉ không cần tạo lịch.
+                    </div>
+                </div>
+                <!-- NÚT -->
+                <div
+                    style="
+                        display:flex;
+                        justify-content:flex-end;
+                        grid-column:1 / -1;
+                        margin-top:4px;
+                    "
+                >
+                    <button
+                        type="submit"
+                        class="btn btn-primary"
+                    >
+                        <i class="fa-solid fa-plus"></i>
+                        Tạo lịch
+                    </button>
+                </div>
+            </form>
+            <!-- MESSAGE -->
+            <div
+                id="scheduleMessage"
+                class="dashboard-message"
+            ></div>
+        </section>
+        <!-- =================================================
+             DANH SÁCH LỊCH
+        ================================================== -->
+        <section class="dashboard-panel">
+            <div
+                class="dashboard-panel-header panel-row"
+            >
+                <div>
+                    <span class="panel-eyebrow">
+                        QUẢN LÝ LỊCH
+                    </span>
+                    <h3>
+                        Lịch làm việc của tôi
+                    </h3>
+                    <p>
+                        Quản lý các ca làm việc
+                        đang mở cho bệnh nhân đặt lịch.
+                    </p>
+                </div>
+                <button
+                    type="button"
+                    id="refreshSchedules"
+                    class="btn btn-outline"
+                >
+                    <i class="fa-solid fa-rotate"></i>
+                    Làm mới
+                </button>
+            </div>
+            <div class="dashboard-table-wrapper">
+                <table class="dashboard-table">
+                    <thead>
+                        <tr>
+                            <th>
+                                Ngày
+                            </th>
+                            <th>
+                                Ca
+                            </th>
+                            <th>
+                                Thời gian
+                            </th>
+                            <th>
+                                Trạng thái
+                            </th>
+                            <th>
+                                Thao tác
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="scheduleTableBody">
+                        <tr>
+                            <td
+                                colspan="5"
+                                class="dashboard-loading"
+                            >
+                                Đang tải lịch...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        <!-- =================================================
+             LỊCH HẸN
+        ================================================== -->
+        <section
+            class="dashboard-panel"
+            id="appointment-section"
+        >
+            <div
+                class="dashboard-panel-header panel-row"
+            >
+                <div>
+                    <span class="panel-eyebrow">
+                        BỆNH NHÂN
+                    </span>
+                    <h3>
+                        Lịch hẹn bệnh nhân
+                    </h3>
+                    <p>
+                        Theo dõi và xử lý các lịch hẹn
+                        của bệnh nhân.
+                    </p>
+                </div>
+                <button
+                    type="button"
+                    id="refreshAppointments"
+                    class="btn btn-outline"
+                >
+                    <i class="fa-solid fa-rotate"></i>
+                    Làm mới
+                </button>
+            </div>
+            <div class="dashboard-table-wrapper">
+                <table class="dashboard-table">
+                    <thead>
+                        <tr>
+                            <th>
+                                Bệnh nhân
+                            </th>
+                            <th>
+                                Ngày
+                            </th>
+                            <th>
+                                Giờ
+                            </th>
+                            <th>
+                                Lý do
+                            </th>
+                            <th>
+                                Trạng thái
+                            </th>
+                            <th>
+                                Thao tác
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="appointmentTableBody">
+                        <tr>
+                            <td
+                                colspan="6"
+                                class="dashboard-loading"
+                            >
+                                Đang tải lịch hẹn...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+</main>
+<!-- =========================================================
+     SCRIPT
+========================================================= -->
+<script src="js/api.js"></script>
+<script src="js/role-guard.js"></script>
+<script src="js/doctor-dashboard.js"></script>
+<script>
+    /*
+    =====================================================
+    HEADER + SESSION + LOGOUT
+    =====================================================
+    */
+    document.addEventListener(
+        "DOMContentLoaded",
+        async function () {
+            const headerDoctorName =
+                document.getElementById(
+                    "headerDoctorName"
+                );
+            const doctorName =
+                document.getElementById(
+                    "doctorName"
+                );
+            const logoutButton =
+                document.getElementById(
+                    "logoutButton"
+                );
+            // ==========================================
+            // LẤY SESSION
+            // ==========================================
+            try {
+                const response =
+                    await fetch(
+                        "/api/session",
+                        {
+                            method: "GET",
+                            credentials: "include"
+                        }
+                    );
+                const result =
+                    await response.json();
+                if (
+                    !result.success ||
+                    !result.user
+                ) {
+                    window.location.href =
+                        "login.html";
+                    return;
+                }
+                // ======================================
+                // KIỂM TRA ROLE
+                // ======================================
+                if (
+                    result.user.role !== "DOCTOR"
+                ) {
+                    alert(
+                        "Bạn không có quyền truy cập trang bác sĩ."
+                    );
+                    window.location.href =
+                        "home.html";
+                    return;
+                }
+                // ======================================
+                // HIỂN THỊ TÊN
+                // ======================================
+                const fullName =
+                    result.user.full_name ||
+                    "Bác sĩ";
+                if (headerDoctorName) {
+                    headerDoctorName.textContent =
+                        `BS. ${fullName}`;
+                }
+                if (doctorName) {
+                    doctorName.textContent =
+                        `BS. ${fullName}`;
+                }
+            } catch (error) {
+                console.error(
+                    "SESSION CHECK ERROR:",
+                    error
+                );
+                window.location.href =
+                    "login.html";
+                return;
+            }
+            // ==========================================
+            // ĐĂNG XUẤT
+            // ==========================================
+            if (logoutButton) {
+                logoutButton.addEventListener(
+                    "click",
+                    async function () {
+                        const confirmed =
+                            window.confirm(
+                                "Bạn có chắc chắn muốn đăng xuất?"
+                            );
+                        if (!confirmed) {
+                            return;
+                        }
+                        try {
+                            await fetch(
+                                "/api/logout",
+                                {
+                                    method: "POST",
+                                    credentials: "include",
+                                    headers: {
+                                        "Content-Type":
+                                            "application/json"
+                                    }
+                                }
+                            );
+                        } catch (error) {
+                            console.error(
+                                "LOGOUT ERROR:",
+                                error
+                            );
+                        }
+                        // Xóa dữ liệu frontend nếu có
+                        localStorage.removeItem(
+                            "user"
+                        );
+                        sessionStorage.clear();
+                        window.location.href =
+                            "login.html";
+                    }
+                );
+            }
+        }
+    );
+</script>
+</body>
+</html>

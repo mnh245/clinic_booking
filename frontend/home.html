@@ -712,7 +712,7 @@
                         type="button"
                         id="cancelBooking"
                         class="btn btn-outline"
-                        onclick="closeBookingPanel()"
+                        "
                     >
                         Hủy
                     </button>
@@ -1270,7 +1270,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                                 </span>
                             </div>
                             <i class="fa-solid fa-chevron-right"></i>
-                        </a>
+                      </button>
                     `;
                 })
                 .join("");
@@ -1529,29 +1529,29 @@ document.addEventListener("DOMContentLoaded", async function () {
     if(heroBookingButton)heroBookingButton.addEventListener("click",()=>{clearBookingMessage();openBookingPanel()});
     if(closeAppointment)closeAppointment.addEventListener("click",closeBookingPanel);
     if(cancelBooking)cancelBooking.addEventListener("click",closeBookingPanel);
-    if(appointmentForm)appointmentForm.addEventListener("submit",async event=>{
-        event.preventDefault();clearBookingMessage();
-        if(!localStorage.getItem("user")){bookingMessage("Bạn cần đăng nhập trước khi đặt lịch.");return}
-        const doctorId=bookingDoctorId?.value||doctorSelect?.value;
-        const scheduleId=selectedScheduleId?.value;
-        const appointmentTime=selectedAppointmentTime?.value;
-        const date=appointmentDate?.value;
-        const reason=appointmentReason?.value.trim()||"";
-        if(!doctorId)return bookingMessage("Vui lòng chọn bác sĩ.");
-        if(!date)return bookingMessage("Vui lòng chọn ngày khám.");
-        if(!scheduleId||!appointmentTime)return bookingMessage("Vui lòng chọn giờ khám.");
-        const submit=appointmentForm.querySelector('button[type="submit"]'),old=submit?.innerHTML;
-        if(submit){submit.disabled=true;submit.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Đang đặt lịch...'}
-        try{
-            const payload={doctor_id:Number(doctorId),schedule_id:Number(scheduleId),appointment_time:appointmentTime,appointment_date:date,reason};
-            console.log("Dữ liệu đặt lịch gửi API:",payload);
-            await apiFetch("/api/appointments",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
-            bookingMessage("Đặt lịch khám thành công. Lịch hẹn đang chờ xác nhận.","success");
-            appointmentReason.value="";resetSelectedTime();
-            if(slotList)slotList.innerHTML='<div class="slot-empty">Chọn ngày để xem giờ khám.</div>';
-        }catch(error){console.error("Lỗi đặt lịch:",error);bookingMessage(error?.message||"Không thể đặt lịch. Vui lòng thử lại.")}
-        finally{if(submit){submit.disabled=false;submit.innerHTML=old}}
-    });
+    // if(appointmentForm)appointmentForm.addEventListener("submit",async event=>{
+    //     event.preventDefault();clearBookingMessage();
+    //     if(!localStorage.getItem("user")){bookingMessage("Bạn cần đăng nhập trước khi đặt lịch.");return}
+    //     const doctorId=bookingDoctorId?.value||doctorSelect?.value;
+    //     const scheduleId=selectedScheduleId?.value;
+    //     const appointmentTime=selectedAppointmentTime?.value;
+    //     const date=appointmentDate?.value;
+    //     const reason=appointmentReason?.value.trim()||"";
+    //     if(!doctorId)return bookingMessage("Vui lòng chọn bác sĩ.");
+    //     if(!date)return bookingMessage("Vui lòng chọn ngày khám.");
+    //     if(!scheduleId||!appointmentTime)return bookingMessage("Vui lòng chọn giờ khám.");
+    //     const submit=appointmentForm.querySelector('button[type="submit"]'),old=submit?.innerHTML;
+    //     if(submit){submit.disabled=true;submit.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Đang đặt lịch...'}
+    //     try{
+    //         const payload={doctor_id:Number(doctorId),schedule_id:Number(scheduleId),appointment_time:appointmentTime,appointment_date:date,reason};
+    //         console.log("Dữ liệu đặt lịch gửi API:",payload);
+    //         await apiFetch("/api/appointments",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+    //         bookingMessage("Đặt lịch khám thành công. Lịch hẹn đang chờ xác nhận.","success");
+    //         appointmentReason.value="";resetSelectedTime();
+    //         if(slotList)slotList.innerHTML='<div class="slot-empty">Chọn ngày để xem giờ khám.</div>';
+    //     }catch(error){console.error("Lỗi đặt lịch:",error);bookingMessage(error?.message||"Không thể đặt lịch. Vui lòng thử lại.")}
+    //     finally{if(submit){submit.disabled=false;submit.innerHTML=old}}
+    // });
     if(doctorGrid)doctorGrid.addEventListener("click",event=>{
         const button=event.target.closest(".doctor-book-button, .doctor-featured-button");
         if(!button)return;selectDoctorAndOpenBooking(button.dataset.doctorId);

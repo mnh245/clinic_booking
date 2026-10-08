@@ -2,47 +2,79 @@ const express = require("express");
 
 const router = express.Router();
 
-const {
-    cancelAppointment,
-    confirmAppointment,
-    recordArrival,
-    markNoShow,
-    completeAppointment
-} = require("../controllers/appointment.controller");
+const appointmentController =
+    require("../controllers/appointment.controller");
+// =====================================================
+// GIỜ KHÁM CÒN TRỐNG
+// GET /api/doctors/:doctorId/available-slots?date=YYYY-MM-DD
+// =====================================================
 
-
-// Hủy lịch
-router.post(
-    "/:id/cancel",
-    cancelAppointment
+router.get(
+    "/doctors/:doctorId/available-slots",
+    appointmentController.getAvailableSlots
 );
+// =====================================================
+// TẠO LỊCH HẸN
+// POST /api/appointments
+// =====================================================
 
-
-// Xác nhận lịch
 router.post(
-    "/:id/confirm",
-    confirmAppointment
+    "/appointments",
+    appointmentController.createAppointment
 );
+// =====================================================
+// LẤY LỊCH KHÁM CỦA BỆNH NHÂN
+// GET /api/patients/:patientId/appointments
+// =====================================================
 
-
-// Ghi nhận bệnh nhân đến
-router.post(
-    "/:id/arrival",
-    recordArrival
+router.get(
+    "/patients/:patientId/appointments",
+    appointmentController.getPatientAppointments
 );
+// =====================================================
+// HỦY LỊCH
+// PATCH /api/appointments/:id/cancel
+// =====================================================
 
-
-// Đánh dấu không đến
-router.post(
-    "/:id/no-show",
-    markNoShow
+router.patch(
+    "/appointments/:id/cancel",
+    appointmentController.cancelAppointment
 );
+// =====================================================
+// BÁC SĨ XÁC NHẬN
+// POST /api/appointments/:id/confirm
+// =====================================================
 
-
-// Hoàn thành khám
 router.post(
-    "/:id/complete",
-    completeAppointment
+    "/appointments/:id/confirm",
+    appointmentController.confirmAppointment
+);
+// =====================================================
+// GHI NHẬN BỆNH NHÂN ĐẾN
+// POST /api/appointments/:id/arrival
+// =====================================================
+
+router.post(
+    "/appointments/:id/arrival",
+    appointmentController.recordArrival
+);
+// =====================================================
+// ĐÁNH DẤU KHÔNG ĐẾN
+// POST /api/appointments/:id/no-show
+// =====================================================
+
+router.post(
+    "/appointments/:id/no-show",
+    appointmentController.markNoShow
+);
+// =====================================================
+// HOÀN THÀNH
+// POST /api/appointments/:id/complete
+// =====================================================
+
+router.post(
+    "/appointments/:id/complete",
+    appointmentController.completeAppointment
 );
 
 

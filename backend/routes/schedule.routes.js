@@ -1,70 +1,93 @@
 const express = require("express");
 
-const router =
-    express.Router();
-
+const router = express.Router();
 
 const scheduleController =
     require("../controllers/schedule.controller");
 /*
 =====================================================
-BÁC SĨ XEM LỊCH CỦA MÌNH
+LẤY DANH SÁCH 4 CA
 =====================================================
+
+GET /api/schedules/shifts
 */
 
 router.get(
-    "/my",
+    "/schedules/shifts",
+    scheduleController.getShiftTypes
+);
+/*
+=====================================================
+BÁC SĨ XEM LỊCH CỦA MÌNH
+=====================================================
+
+GET /api/schedules/my
+*/
+
+router.get(
+    "/schedules/my",
     scheduleController.getMySchedules
 );
 /*
 =====================================================
 ADMIN XEM TOÀN BỘ LỊCH
 =====================================================
+
+GET /api/schedules/admin
 */
 
 router.get(
-    "/admin",
+    "/schedules/admin",
     scheduleController.getAllSchedules
 );
 /*
 =====================================================
 LẤY MỘT LỊCH
 =====================================================
+
+GET /api/schedules/:id
 */
 
 router.get(
-    "/:id",
+    "/schedules/:id",
     scheduleController.getScheduleById
 );
 /*
 =====================================================
 TẠO LỊCH
-DOCTOR hoặc ADMIN
 =====================================================
+
+POST /api/schedules
+
+DOCTOR hoặc ADMIN
 */
 
 router.post(
-    "/",
+    "/schedules",
     scheduleController.createSchedule
 );
 /*
 =====================================================
 SỬA LỊCH
 =====================================================
+
+PUT /api/schedules/:id
 */
 
 router.put(
-    "/:id",
+    "/schedules/:id",
     scheduleController.updateSchedule
 );
 /*
 =====================================================
 XÓA LỊCH
 =====================================================
+
+DELETE /api/schedules/:id
 */
 
 router.delete(
-    "/:id",
+    "/schedules/:id",
     scheduleController.deleteSchedule
 );
 
