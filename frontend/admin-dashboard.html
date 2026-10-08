@@ -1,0 +1,581 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Admin Dashboard | Clinic Booking</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- CSS dùng chung toàn hệ thống -->
+  <link rel="stylesheet" href="css/overall.css">
+  <!-- CSS riêng cho Admin Dashboard -->
+  <link rel="stylesheet" href="css/admin-pages.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="container header-inner">
+    <!-- LOGO -->
+    <a href="home.html"
+       class="brand"
+       aria-label="Clinic Booking - Trang chủ">
+      <div class="logo">
+        <i class="fa-solid fa-stethoscope"></i>
+      </div>
+      <div>
+        <h1>Clinic Booking</h1>
+        <p>Quản trị hệ thống</p>
+      </div>
+    </a>
+    <!-- NAV -->
+    <nav class="nav" aria-label="Điều hướng quản trị">
+      <a href="#overview" class="active">
+        Dashboard
+      </a>
+      <a href="#pendingSection">
+        Lịch chờ duyệt
+      </a>
+      <a href="#schedulesSection">
+        Tất cả lịch
+      </a>
+    </nav>
+    <!-- ADMIN -->
+    <div class="header-actions">
+      <div class="admin-user-chip">
+        <span class="admin-avatar">
+          <i class="fa-solid fa-user-shield"></i>
+        </span>
+        <div>
+          <strong id="adminName">
+            Quản trị viên
+          </strong>
+          <small>
+            ADMIN
+          </small>
+        </div>
+      </div>
+      <button
+        type="button"
+        class="btn btn-outline"
+        id="logoutButton"
+      >
+        <i class="fa-solid fa-right-from-bracket"></i>
+        Đăng xuất
+      </button>
+    </div>
+  </div>
+</header>
+<main class="admin-main">
+  <div class="container">
+    <!-- =========================
+         HERO ADMIN
+    ========================== -->
+    <section
+      class="admin-hero"
+      id="overview"
+    >
+      <div>
+        <span class="admin-eyebrow">
+          <i class="fa-solid fa-shield-heart"></i>
+          KHU VỰC QUẢN TRỊ
+        </span>
+        <h2>
+          Xin chào,
+          <span id="adminGreeting">
+            Quản trị viên
+          </span>
+        </h2>
+        <p>
+          Quản lý lịch khám, phê duyệt lịch bác sĩ
+          và theo dõi trạng thái hoạt động của hệ thống.
+        </p>
+      </div>
+      <button
+        type="button"
+        class="btn btn-primary"
+        id="refreshButton"
+      >
+        <i class="fa-solid fa-rotate"></i>
+        Làm mới dữ liệu
+      </button>
+    </section>
+    <!-- MESSAGE -->
+    <div
+      id="pageMessage"
+      class="alert"
+    ></div>
+    <!-- =========================
+         THỐNG KÊ
+    ========================== -->
+    <section
+      class="stats-grid"
+      aria-label="Tổng quan hệ thống"
+    >
+      <!-- BÁC SĨ -->
+      <article class="stat-card card">
+        <div class="stat-icon">
+          <i class="fa-solid fa-user-doctor"></i>
+        </div>
+        <div class="stat-text">
+          <span>
+            Bác sĩ
+          </span>
+          <strong id="statDoctors">
+            0
+          </strong>
+          <small>
+            Đang có trong hệ thống
+          </small>
+        </div>
+      </article>
+      <!-- CHỜ DUYỆT -->
+      <article class="stat-card card stat-warning">
+        <div class="stat-icon">
+          <i class="fa-solid fa-hourglass-half"></i>
+        </div>
+        <div class="stat-text">
+          <span>
+            Chờ duyệt
+          </span>
+          <strong id="statPending">
+            0
+          </strong>
+          <small>
+            Bác sĩ đang chờ admin duyệt
+          </small>
+        </div>
+      </article>
+      <!-- ĐÃ DUYỆT -->
+      <article class="stat-card card stat-success">
+        <div class="stat-icon">
+          <i class="fa-solid fa-circle-check"></i>
+        </div>
+        <div class="stat-text">
+          <span>
+            Đã duyệt
+          </span>
+          <strong id="statApproved">
+            0
+          </strong>
+          <small>
+            Lịch được phép hoạt động
+          </small>
+        </div>
+      </article>
+      <!-- TỪ CHỐI -->
+      <article class="stat-card card stat-danger">
+        <div class="stat-icon">
+          <i class="fa-solid fa-circle-xmark"></i>
+        </div>
+        <div class="stat-text">
+          <span>
+            Từ chối
+          </span>
+          <strong id="statRejected">
+            0
+          </strong>
+          <small>
+            Lịch cần bác sĩ tạo lại
+          </small>
+        </div>
+      </article>
+      <!-- TỔNG LỊCH -->
+      <article class="stat-card card stat-blue">
+        <div class="stat-icon">
+          <i class="fa-solid fa-calendar-days"></i>
+        </div>
+        <div class="stat-text">
+          <span>
+            Tổng lịch
+          </span>
+          <strong id="statTotalSchedules">
+            0
+          </strong>
+          <small>
+            Tất cả lịch trong hệ thống
+          </small>
+        </div>
+      </article>
+    </section>
+    <!-- =========================
+         LỊCH CHỜ DUYỆT
+    ========================== -->
+    <section class="admin-grid admin-grid-top">
+      <div
+        class="admin-panel card"
+        id="pendingSection"
+      >
+        <div class="panel-header">
+          <div>
+            <span class="panel-kicker">
+              DUYỆT LỊCH
+            </span>
+            <h3>
+              Lịch bác sĩ chờ phê duyệt
+            </h3>
+            <p>
+              Kiểm tra trước khi đưa lịch
+              vào trạng thái có thể đặt.
+            </p>
+          </div>
+          <span
+            class="count-badge"
+            id="pendingCountBadge"
+          >
+            0
+          </span>
+        </div>
+        <div class="table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>
+                  Bác sĩ
+                </th>
+                <th>
+                  Ngày
+                </th>
+                <th>
+                  Ca
+                </th>
+                <th>
+                  Thời gian
+                </th>
+                <th>
+                  Trạng thái
+                </th>
+                <th>
+                  Thao tác
+                </th>
+              </tr>
+            </thead>
+            <tbody id="pendingTableBody">
+              <tr>
+                <td
+                  colspan="6"
+                  class="empty-state"
+                >
+                  <i class="fa-solid fa-spinner fa-spin"></i>
+                  Đang tải...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+    <!-- =========================
+         TẠO LỊCH
+    ========================== -->
+    <section
+      class="admin-panel card"
+      id="createSection"
+    >
+      <div class="panel-header">
+        <div>
+          <span class="panel-kicker">
+            TẠO LỊCH
+          </span>
+          <h3>
+            Tạo lịch khám cho bác sĩ
+          </h3>
+          <p>
+            Lịch do admin tạo sẽ được duyệt ngay
+            và ở trạng thái sẵn sàng.
+          </p>
+        </div>
+        <span class="approval-note">
+          <i class="fa-solid fa-bolt"></i>
+          Duyệt ngay
+        </span>
+      </div>
+      <form
+        id="createScheduleForm"
+        class="admin-form"
+      >
+        <!-- BÁC SĨ -->
+        <div class="form-group">
+          <label for="doctorSelect">
+            Bác sĩ
+          </label>
+          <select
+            id="doctorSelect"
+            class="form-control"
+            required
+          >
+            <option value="">
+              -- Chọn bác sĩ --
+            </option>
+          </select>
+        </div>
+        <!-- NGÀY -->
+        <div class="form-group">
+          <label for="scheduleDate">
+            Ngày khám
+          </label>
+          <input
+            id="scheduleDate"
+            class="form-control"
+            type="date"
+            required
+          >
+        </div>
+        <!-- CA -->
+        <div class="form-group form-group-wide">
+          <label>
+            Ca làm việc
+          </label>
+          <div class="shift-grid">
+            <!-- CA ĐÊM -->
+            <label class="shift-card">
+              <input
+                type="radio"
+                name="shift_type"
+                value="NIGHT"
+                required
+              >
+              <span class="shift-card-inner">
+                <strong>
+                  Đêm
+                </strong>
+                <small>
+                  00:00 – 06:00
+                </small>
+              </span>
+            </label>
+            <!-- CA SÁNG -->
+            <label class="shift-card">
+              <input
+                type="radio"
+                name="shift_type"
+                value="MORNING"
+              >
+              <span class="shift-card-inner">
+                <strong>
+                  Sáng
+                </strong>
+                <small>
+                  06:00 – 12:00
+                </small>
+              </span>
+            </label>
+            <!-- CA CHIỀU -->
+            <label class="shift-card">
+              <input
+                type="radio"
+                name="shift_type"
+                value="AFTERNOON"
+              >
+              <span class="shift-card-inner">
+                <strong>
+                  Chiều
+                </strong>
+                <small>
+                  12:00 – 18:00
+                </small>
+              </span>
+            </label>
+            <!-- CA TỐI -->
+            <label class="shift-card">
+              <input
+                type="radio"
+                name="shift_type"
+                value="EVENING"
+              >
+              <span class="shift-card-inner">
+                <strong>
+                  Tối
+                </strong>
+                <small>
+                  18:00 – 00:00
+                </small>
+              </span>
+            </label>
+          </div>
+        </div>
+        <!-- BUTTON -->
+        <div class="form-actions form-group-wide">
+          <button
+            type="reset"
+            class="btn btn-outline"
+          >
+            <i class="fa-solid fa-rotate-left"></i>
+            Nhập lại
+          </button>
+          <button
+            type="submit"
+            class="btn btn-primary"
+            id="createButton"
+          >
+            <i class="fa-solid fa-calendar-plus"></i>
+            Tạo lịch
+          </button>
+        </div>
+      </form>
+    </section>
+    <!-- =========================
+         TẤT CẢ LỊCH
+    ========================== -->
+    <section
+      class="admin-panel card"
+      id="schedulesSection"
+    >
+      <div
+        class="panel-header panel-header-stack-mobile"
+      >
+        <div>
+          <span class="panel-kicker">
+            QUẢN LÝ LỊCH
+          </span>
+          <h3>
+            Tất cả lịch khám
+          </h3>
+          <p>
+            Admin có thể duyệt, từ chối,
+            mở/đóng và xóa lịch khi cần.
+          </p>
+        </div>
+        <!-- BỘ LỌC -->
+        <div class="table-tools">
+          <select
+            id="approvalFilter"
+            class="form-control compact-control"
+          >
+            <option value="ALL">
+              Tất cả phê duyệt
+            </option>
+            <option value="PENDING">
+              Chờ duyệt
+            </option>
+            <option value="APPROVED">
+              Đã duyệt
+            </option>
+            <option value="REJECTED">
+              Từ chối
+            </option>
+          </select>
+          <select
+            id="statusFilter"
+            class="form-control compact-control"
+          >
+            <option value="ALL">
+              Tất cả trạng thái
+            </option>
+            <option value="AVAILABLE">
+              Đang mở
+            </option>
+            <option value="CLOSED">
+              Đã đóng
+            </option>
+          </select>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>
+                Bác sĩ
+              </th>
+              <th>
+                Chuyên khoa
+              </th>
+              <th>
+                Ngày
+              </th>
+              <th>
+                Ca
+              </th>
+              <th>
+                Thời gian
+              </th>
+              <th>
+                Phê duyệt
+              </th>
+              <th>
+                Hoạt động
+              </th>
+              <th>
+                Thao tác
+              </th>
+            </tr>
+          </thead>
+          <tbody id="schedulesTableBody">
+            <tr>
+              <td
+                colspan="8"
+                class="empty-state"
+              >
+                <i class="fa-solid fa-spinner fa-spin"></i>
+                Đang tải...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</main>
+<!-- =========================
+     MODAL TỪ CHỐI
+========================== -->
+<div
+  class="modal-backdrop"
+  id="rejectModal"
+  aria-hidden="true"
+>
+  <div class="modal-card">
+    <div class="modal-header">
+      <div>
+        <span class="panel-kicker">
+          TỪ CHỐI LỊCH
+        </span>
+        <h3>
+          Nhập lý do từ chối
+        </h3>
+      </div>
+      <button
+        type="button"
+        class="modal-close"
+        id="closeRejectModal"
+        aria-label="Đóng"
+      >
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <p class="modal-description">
+      Lý do sẽ được lưu vào lịch để bác sĩ
+      biết nội dung cần chỉnh sửa.
+    </p>
+    <textarea
+      id="rejectionReason"
+      class="form-control"
+      rows="4"
+      maxlength="500"
+      placeholder="Ví dụ: Ca làm việc bị trùng với lịch đã duyệt..."
+    ></textarea>
+    <div class="form-actions">
+      <button
+        type="button"
+        class="btn btn-outline"
+        id="cancelRejectButton"
+      >
+        Hủy
+      </button>
+      <button
+        type="button"
+        class="btn btn-danger"
+        id="confirmRejectButton"
+      >
+        <i class="fa-solid fa-ban"></i>
+        Từ chối lịch
+      </button>
+    </div>
+  </div>
+</div>
+<!-- JAVASCRIPT -->
+<script src="js/api.js"></script>
+<script src="js/admin-dashboard.js"></script>
+</body>
+</html>

@@ -68,6 +68,7 @@ async function getAvailableSlots(req, res) {
                 FROM schedules
                 WHERE doctor_id = ?
                   AND schedule_date = ?
+                  AND approval_status = 'APPROVED'
                   AND status = 'AVAILABLE'
                 ORDER BY start_time ASC
                 `,
