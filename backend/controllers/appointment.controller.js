@@ -33,6 +33,99 @@ async function getDoctorIdFromUser(user) {
     }
     return rows[0].id;
 }
+
+// =====================================================
+// KIỂM SOÁT SỐ BÁC SĨ TRONG MỖI CHUYÊN KHOA / CA
+// =====================================================
+
+const MAX_DOCTORS_PER_SPECIALTY_SHIFT = 3;
+
+function getDateKey(value) {
+    if (value instanceof Date) {
+        const year = value.getFullYear();
+        const month = String(value.getMonth() + 1).padStart(2, "0");
+        const day = String(value.getDate()).padStart(2, "0");
+
+        return `${year}-${month}-${day}`;
+    }
+
+    return String(value || "").slice(0, 10);
+}
+
+function isTodayOrFuture(dateValue) {
+    const now = new Date();
+
+    const today = [
+        now.getFullYear(),
+        String(now.getMonth() + 1).padStart(2, "0"),
+        String(now.getDate()).padStart(2, "0")
+    ].join("-");
+
+    return getDateKey(dateValue) >= today;
+}
+
+/**
+ * Đếm số bác sĩ khác nhau trong một chuyên khoa, ngày và ca.
+ *
+ * activeOnly = false:
+ * Đếm lịch chưa bị từ chối, bao gồm cả lịch đang chờ duyệt.
+ *
+ * activeOnly = true:
+ * Chỉ đếm lịch đã được duyệt và đang mở.
+ */
+async function countSpecialtyShiftDoctors({
+    specialtyId,
+    scheduleDate,
+    shiftType,
+    excludeScheduleId = null,
+    activeOnly = false
+}) {
+    if (!specialtyId || !scheduleDate || !shiftType) {
+        return 0;
+    }
+
+    const conditions = [
+        "d.specialty_id = ?",
+        "s.schedule_date = ?",
+        "s.shift_type = ?"
+    ];
+
+    const params = [
+        specialtyId,
+        getDateKey(scheduleDate),
+        shiftType
+    ];
+
+    if (activeOnly) {
+        conditions.push(
+            "s.approval_status = 'APPROVED'",
+            "s.status = 'AVAILABLE'"
+        );
+    } else {
+        conditions.push("s.approval_status <> 'REJECTED'");
+    }
+
+    if (
+        excludeScheduleId !== null &&
+        excludeScheduleId !== undefined
+    ) {
+        conditions.push("s.id <> ?");
+        params.push(excludeScheduleId);
+    }
+
+    const [rows] = await pool.query(
+        `
+        SELECT COUNT(DISTINCT s.doctor_id) AS total
+        FROM schedules s
+        INNER JOIN doctors d
+            ON d.id = s.doctor_id
+        WHERE ${conditions.join(" AND ")}
+        `,
+        params
+    );
+
+    return Number(rows[0]?.total || 0);
+}
 // =====================================================
 // 1. LẤY GIỜ KHÁM CÒN TRỐNG
 //
@@ -308,7 +401,8 @@ async function createAppointment(req, res) {
                     shift_type,
                     start_time,
                     end_time,
-                    status
+                    status,
+                    approval_status
                 FROM schedules
                 WHERE id = ?
                   AND doctor_id = ?
@@ -332,6 +426,22 @@ async function createAppointment(req, res) {
         // =================================================
         // KIỂM TRA LỊCH CÒN MỞ
         // =================================================
+        // =================================================
+// KIỂM TRA LỊCH ĐÃ ĐƯỢC ADMIN PHÊ DUYỆT
+// =================================================
+
+        if (
+              String(schedule.approval_status || "").toUpperCase()
+              !==
+              "APPROVED"
+             ) {
+            await connection.rollback();
+
+             return res.status(400).json({
+                  success: false,
+                  message: "Lịch khám chưa được admin phê duyệt."
+             });
+   }
         if (
             schedule.status
             !==
