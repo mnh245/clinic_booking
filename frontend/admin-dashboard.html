@@ -302,10 +302,16 @@
         </div>
         <div class="roster-tools">
           <select
+                id="rosterSpecialtyFilter"
+                class="form-control compact-control"
+                aria-label="Lọc theo chuyên khoa">
+  <option value="ALL">Tất cả chuyên khoa</option>
+</select>
+          <select
             id="rosterDoctorFilter"
             class="form-control compact-control"
-            aria-label="Lọc theo bác sĩ"
-          >
+            aria-label="Lọc theo bác sĩ">
+
             <option value="ALL">Tất cả bác sĩ</option>
           </select>
           <button type="button" class="btn btn-outline roster-nav-btn" id="rosterPrev" aria-label="Tuần trước">

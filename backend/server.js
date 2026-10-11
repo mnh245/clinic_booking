@@ -142,12 +142,12 @@ async function startServer() {
             console.log(
                 `Server running at http://localhost:${PORT}`
             );
-            console.log(
-                `Login page: http://localhost:${PORT}/login.html`
-            );
-            console.log(
-                `Register page: http://localhost:${PORT}/register.html`
-            );
+            // console.log(
+            //     `Login page: http://localhost:${PORT}/login.html`
+            // );
+            // console.log(
+            //     `Register page: http://localhost:${PORT}/register.html`
+            // );
         });
     } catch (error) {
         console.error(
