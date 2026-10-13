@@ -1,10 +1,16 @@
 /**
- * Gọi API và trả về dữ liệu đã parse (JSON hoặc text).
- * Ném Error với thông báo dễ hiểu nếu request thất bại.
+ * Gọi API và trả về dữ liệu JSON hoặc text.
  */
 async function apiFetch(url, options = {}) {
     const config = {
         ...options,
+
+        // Gửi cookie session cùng yêu cầu API
+        credentials: "include",
+
+        // Tránh dùng phản hồi cache cũ khi kiểm tra session
+        cache: "no-store",
+
         headers: {
             "Content-Type": "application/json",
             ...options.headers
@@ -16,13 +22,17 @@ async function apiFetch(url, options = {}) {
 
         const contentType = response.headers.get("content-type") || "";
         const isJson = contentType.includes("application/json");
-        const data = isJson ? await response.json() : await response.text();
+
+        const data = isJson
+            ? await response.json()
+            : await response.text();
 
         if (!response.ok) {
             const message =
                 typeof data === "object" && data?.message
                     ? data.message
                     : `API trả về lỗi ${response.status}`;
+
             throw new Error(message);
         }
 
@@ -30,7 +40,6 @@ async function apiFetch(url, options = {}) {
     } catch (error) {
         console.error("API ERROR:", error);
 
-        // fetch ném TypeError khi mất mạng / server không phản hồi
         if (error instanceof TypeError) {
             throw new Error("Không thể kết nối đến máy chủ.");
         }

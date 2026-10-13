@@ -11,8 +11,8 @@
   <link rel="stylesheet" href="css/overall.css">
   <style>
     :root {
-      --primary-deep: #0b5f59; /* nền nút chính: đủ tương phản với chữ trắng */
-      --ink: #0b2a2e;          /* nền footer, tiêu đề đậm */
+      --primary-deep: #0b5f59; 
+      --ink: #0b2a2e;          
       --ring: 0 0 0 4px rgba(14,165,164,.16);
       --ease: cubic-bezier(.2,.7,.2,1);
     }
@@ -517,12 +517,19 @@
         <p>Đặt lịch khám trực tuyến</p>
       </div>
     </a>
-    <nav class="nav" aria-label="Điều hướng chính">
-      <a href="home.html" class="active">Trang chủ</a>
-      <a href="#specialties">Chuyên khoa</a>
-      <a href="#doctors">Bác sĩ</a>
-      <a href="#how-it-works">Hướng dẫn</a>
-    </nav>
+   <nav class="nav" aria-label="Điều hướng chính">
+    <a href="home.html" class="active">Trang chủ</a>
+    <a href="#specialties">Chuyên khoa</a>
+    <a href="#doctors">Bác sĩ</a>
+    <a href="#how-it-works">Hướng dẫn</a>
+
+    <!-- Điều hướng hồ sơ theo vai trò đăng nhập -->
+    <a href="#"
+       id="myProfileLink"
+       style="display: none;">
+        Hồ sơ của tôi
+    </a>
+</nav>
     <div class="header-actions" id="headerActions">
       <a href="login.html" class="btn btn-outline" id="loginLink">Đăng nhập</a>
       <a href="register.html" class="btn btn-primary" id="registerLink">Đăng ký</a>

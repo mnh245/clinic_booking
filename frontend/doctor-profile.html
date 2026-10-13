@@ -1,0 +1,720 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Hồ sơ bác sĩ | Clinic Booking</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/overall.css">
+  <style>
+    :root {
+      --primary-deep:#0b5f59;
+      --ink:#0b2a2e;
+      --ring:0 0 0 4px rgba(14,165,164,.16);
+      --line:rgba(15,23,42,.1);
+      --danger:#b42318;
+    }
+    body {
+      -webkit-font-smoothing:antialiased;
+      background:#f6fbfa;
+    }
+    :focus-visible {
+      outline:3px solid rgba(14,165,164,.55);
+      outline-offset:2px;
+    }
+    .btn {
+      cursor:pointer;
+      border:0;
+    }
+    .btn-outline {
+      border:1px solid var(--line);
+      background:#fff;
+      color:var(--primary-deep);
+    }
+    .btn:disabled {
+      opacity:.5;
+      cursor:not-allowed;
+    }
+    .profile-head {
+      padding:36px 0 8px;
+    }
+    .profile-id {
+      display:flex;
+      gap:20px;
+      align-items:center;
+    }
+    .avatar-lg {
+      flex:none;
+      width:84px;
+      height:84px;
+      border-radius:50%;
+      display:grid;
+      place-items:center;
+      overflow:hidden;
+      background:#ccfbf1;
+      color:#0f766e;
+      font-size:30px;
+      font-weight:700;
+    }
+    .avatar-lg img {
+      width:100%;
+      height:100%;
+      object-fit:cover;
+    }
+    .profile-id h2 {
+      font-size:26px;
+      color:var(--ink);
+      line-height:1.2;
+    }
+    .role-badge {
+      display:inline-flex;
+      gap:6px;
+      align-items:center;
+      margin-top:8px;
+      padding:4px 12px;
+      border-radius:999px;
+      background:#ccfbf1;
+      color:#0f766e;
+      font-size:12.5px;
+      font-weight:600;
+    }
+    .profile-layout {
+      display:grid;
+      grid-template-columns:240px 1fr;
+      gap:24px;
+      padding:20px 0 64px;
+      align-items:start;
+    }
+    .side-nav {
+      position:sticky;
+      top:96px;
+      display:grid;
+      gap:4px;
+      padding:10px;
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:16px;
+    }
+    .side-nav a {
+      display:flex;
+      gap:10px;
+      align-items:center;
+      padding:11px 14px;
+      border-radius:10px;
+      font-size:14.5px;
+      font-weight:500;
+      color:var(--text);
+      transition:background .2s,color .2s;
+    }
+    .side-nav a i {
+      width:18px;
+      text-align:center;
+      color:#64748b;
+    }
+    .side-nav a:hover {
+      background:#f1faf9;
+    }
+    .side-nav a.active {
+      background:#ccfbf1;
+      color:var(--primary-deep);
+    }
+    .side-nav a.active i {
+      color:var(--primary-deep);
+    }
+    .panel {
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:26px;
+    }
+    .panel + .panel {
+      margin-top:20px;
+    }
+    .panel h3 {
+      font-size:18px;
+      color:var(--ink);
+    }
+    .panel-sub {
+      margin:6px 0 22px;
+      font-size:14px;
+      color:var(--muted);
+    }
+    .form-grid {
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:16px 18px;
+    }
+    .field {
+      display:grid;
+      gap:6px;
+      align-content:start;
+    }
+    .field.full {
+      grid-column:1/-1;
+    }
+    .field label {
+      font-size:13.5px;
+      font-weight:600;
+      color:var(--ink);
+    }
+    .field input,
+    .field select,
+    .field textarea {
+      width:100%;
+      padding:11px 13px;
+      border:1px solid rgba(15,23,42,.18);
+      border-radius:10px;
+      font:inherit;
+      font-size:14.5px;
+      background:#fff;
+      color:var(--text);
+      transition:border-color .2s, box-shadow .2s;
+    }
+    .field textarea {
+      min-height:104px;
+      resize:vertical;
+      line-height:1.6;
+    }
+    .field input:focus,
+    .field select:focus,
+    .field textarea:focus {
+      outline:none;
+      border-color:#0ea5a4;
+      box-shadow:var(--ring);
+    }
+    .field input[readonly] {
+      background:#f1f5f4;
+      color:#475569;
+      cursor:not-allowed;
+    }
+    .field .hint {
+      font-size:12.5px;
+      color:var(--muted);
+    }
+    .field.has-error input,
+    .field.has-error select,
+    .field.has-error textarea {
+      border-color:var(--danger);
+    }
+    .field-error {
+      min-height:0;
+      font-size:12.5px;
+      color:var(--danger);
+    }
+    .form-actions {
+      display:flex;
+      gap:12px;
+      justify-content:flex-end;
+      margin-top:22px;
+    }
+    .pw-wrap {
+      position:relative;
+    }
+    .pw-wrap input {
+      padding-right:42px;
+    }
+    .pw-wrap button {
+      position:absolute;
+      right:4px;
+      top:50%;
+      transform:translateY(-50%);
+      width:36px;
+      height:36px;
+      border:0;
+      background:transparent;
+      color:#64748b;
+      cursor:pointer;
+      border-radius:8px;
+    }
+    .banner {
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+      margin:0 0 18px;
+      padding:12px 16px;
+      border-radius:12px;
+      font-size:14px;
+      line-height:1.55;
+    }
+    .banner--info {
+      background:#eff6ff;
+      color:#1e40af;
+    }
+    .banner--warn {
+      background:#fffbeb;
+      color:#92400e;
+    }
+    .banner[hidden] {
+      display:none;
+    }
+    .list {
+      display:grid;
+      gap:12px;
+    }
+    .item {
+      display:flex;
+      gap:16px;
+      align-items:center;
+      padding:14px 16px;
+      border:1px solid var(--line);
+      border-radius:14px;
+    }
+    .item-date {
+      flex:none;
+      width:64px;
+      text-align:center;
+      padding:8px 0;
+      border-radius:12px;
+      background:#f1faf9;
+      color:var(--primary-deep);
+    }
+    .item-date strong {
+      display:block;
+      font-size:22px;
+      line-height:1.1;
+    }
+    .item-date span {
+      font-size:12px;
+    }
+    .item-main {
+      flex:1;
+      min-width:0;
+    }
+    .item-main strong {
+      display:block;
+      color:var(--ink);
+    }
+    .item-main span {
+      display:block;
+      margin-top:3px;
+      font-size:13.5px;
+      color:var(--muted);
+    }
+    .tag {
+      flex:none;
+      padding:4px 11px;
+      border-radius:999px;
+      font-size:12.5px;
+      font-weight:600;
+      background:#e2e8f0;
+      color:#334155;
+    }
+    .tag--ok {
+      background:#dcfce7;
+      color:#166534;
+    }
+    .tag--wait {
+      background:#fef3c7;
+      color:#92400e;
+    }
+    .tag--bad {
+      background:#fee2e2;
+      color:#991b1b;
+    }
+    .empty {
+      text-align:center;
+      padding:36px 12px;
+      color:var(--muted);
+    }
+    .empty i {
+      font-size:30px;
+      color:#94a3b8;
+    }
+    .empty p {
+      margin-top:10px;
+    }
+    .tabs {
+      display:flex;
+      gap:8px;
+      margin-bottom:18px;
+    }
+    .tabs button {
+      padding:8px 16px;
+      border:1px solid var(--line);
+      background:#fff;
+      border-radius:999px;
+      font:inherit;
+      font-size:14px;
+      cursor:pointer;
+    }
+    .tabs button.active {
+      background:#ccfbf1;
+      border-color:transparent;
+      color:var(--primary-deep);
+      font-weight:600;
+    }
+    .avatar-preview {
+      display:flex;
+      gap:14px;
+      align-items:center;
+    }
+    .avatar-preview .avatar-lg {
+      width:64px;
+      height:64px;
+      font-size:22px;
+    }
+    .toast-box {
+      position:fixed;
+      right:20px;
+      bottom:20px;
+      display:grid;
+      gap:10px;
+      z-index:100;
+    }
+    .toast {
+      display:flex;
+      gap:10px;
+      align-items:center;
+      padding:12px 18px;
+      border-radius:12px;
+      color:#fff;
+      font-size:14px;
+      box-shadow:0 10px 30px rgba(15,23,42,.2);
+      animation:toast-in .25s ease;
+    }
+    .toast--success {
+      background:#0f766e;
+    }
+    .toast--error {
+      background:#b42318;
+    }
+    @keyframes toast-in {
+      from {
+        opacity:0;
+        transform:translateY(8px);
+      }
+    }
+    @media (prefers-reduced-motion:reduce) {
+      .toast {
+        animation:none;
+      }
+    }
+    @media (max-width:860px) {
+      .profile-layout {
+        grid-template-columns:1fr;
+      }
+      .side-nav {
+        position:static;
+        grid-auto-flow:column;
+        overflow-x:auto;
+      }
+      .side-nav a {
+        white-space:nowrap;
+      }
+    }
+    @media (max-width:600px) {
+      .form-grid {
+        grid-template-columns:1fr;
+      }
+      .panel {
+        padding:18px;
+      }
+      .profile-id {
+        align-items:flex-start;
+      }
+      .item {
+        flex-wrap:wrap;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="home.html" class="brand" aria-label="Clinic Booking - Trang chủ">
+        <div class="logo">
+          <i class="fa-solid fa-stethoscope"></i>
+        </div>
+        <div>
+          <h1>Clinic Booking</h1>
+          <p>Đặt lịch khám trực tuyến</p>
+        </div>
+      </a>
+      <nav class="nav" aria-label="Điều hướng chính">
+        <a href="home.html">Trang chủ</a>
+        <a href="home.html#specialties">Chuyên khoa</a>
+        <a href="home.html#doctors">Bác sĩ</a>
+        <a href="#" class="active">Hồ sơ của tôi</a>
+      </nav>
+      <div class="header-actions">
+        <div id="userInfo" style="display:flex;align-items:center;gap:10px;">
+          <span id="welcomeUser" style="font-size:14px;color:var(--text);font-weight:500;"></span>
+          <button type="button" class="btn btn-outline" id="logoutButton">Đăng xuất</button>
+        </div>
+      </div>
+    </div>
+  </header>
+  <main class="container">
+    <div class="profile-head">
+      <div class="profile-id">
+        <div class="avatar-lg" id="avatarBox">
+          <i class="fa-solid fa-user-doctor"></i>
+        </div>
+        <div>
+          <h2 id="displayName">Đang tải...</h2>
+          <span class="role-badge">
+            <i class="fa-solid fa-user-doctor"></i> Bác sĩ
+          </span>
+        </div>
+      </div>
+    </div>
+    <div class="profile-layout">
+      <nav class="side-nav" aria-label="Mục hồ sơ">
+        <a href="#personal" data-section-link="personal">
+          <i class="fa-solid fa-id-card"></i> Thông tin cá nhân
+        </a>
+        <a href="#professional" data-section-link="professional">
+          <i class="fa-solid fa-briefcase-medical"></i> Thông tin chuyên môn
+        </a>
+        <a href="#schedule" data-section-link="schedule">
+          <i class="fa-solid fa-calendar-days"></i> Lịch làm việc
+        </a>
+        <a href="#security" data-section-link="security">
+          <i class="fa-solid fa-lock"></i> Đổi mật khẩu
+        </a>
+      </nav>
+      <div>
+        <div id="profileBanner" class="banner" hidden></div>
+        <!-- THÔNG TIN CÁ NHÂN -->
+        <section data-section="personal">
+          <form class="panel" id="personalForm" novalidate>
+            <h3>Thông tin cá nhân</h3>
+            <p class="panel-sub">
+              Thông tin dùng để liên hệ và xác nhận lịch khám.
+            </p>
+            <div class="form-grid">
+              <div class="field full">
+                <label for="full_name">Họ và tên *</label>
+                <input
+                  id="full_name"
+                  name="full_name"
+                  autocomplete="name"
+                  maxlength="100"
+                >
+              </div>
+              <div class="field">
+                <label for="email">Email</label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  readonly
+                >
+                <span class="hint">
+                  Email dùng để đăng nhập, không thể thay đổi.
+                </span>
+              </div>
+              <div class="field">
+                <label for="phone">Số điện thoại</label>
+                <input
+                  id="phone"
+                  name="phone"
+                  type="tel"
+                  autocomplete="tel"
+                  placeholder="0901234567"
+                >
+              </div>
+              <div class="field">
+                <label for="date_of_birth">Ngày sinh</label>
+                <input
+                  id="date_of_birth"
+                  name="date_of_birth"
+                  type="date"
+                >
+              </div>
+              <div class="field">
+                <label for="gender">Giới tính</label>
+                <select id="gender" name="gender">
+                  <option value="">Chưa chọn</option>
+                  <option value="MALE">Nam</option>
+                  <option value="FEMALE">Nữ</option>
+                  <option value="OTHER">Khác</option>
+                </select>
+              </div>
+              <div class="field full">
+                <label for="address">Địa chỉ</label>
+                <input
+                  id="address"
+                  name="address"
+                  autocomplete="street-address"
+                  maxlength="255"
+                >
+              </div>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-floppy-disk"></i>
+                Lưu thay đổi
+              </button>
+            </div>
+          </form>
+        </section>
+        <!-- THÔNG TIN CHUYÊN MÔN -->
+        <section data-section="professional" hidden>
+          <form class="panel" id="professionalForm" novalidate>
+            <h3>Thông tin chuyên môn</h3>
+            <p class="panel-sub">
+              Hiển thị công khai cho bệnh nhân khi chọn bác sĩ.
+            </p>
+            <div class="form-grid">
+              <div class="field">
+                <label for="specialty_name">Chuyên khoa</label>
+                <input
+                  id="specialty_name"
+                  name="specialty_name"
+                  readonly
+                >
+                <span class="hint">
+                  Do quản trị viên thiết lập.
+                </span>
+              </div>
+              <div class="field">
+                <label for="license_number">Số giấy phép hành nghề</label>
+                <input
+                  id="license_number"
+                  name="license_number"
+                  readonly
+                >
+              </div>
+              <div class="field">
+                <label for="experience_years">Số năm kinh nghiệm</label>
+                <input
+                  id="experience_years"
+                  name="experience_years"
+                  readonly
+                >
+              </div>
+              <div class="field">
+                <label for="qualification">Trình độ / học vị</label>
+                <input
+                  id="qualification"
+                  name="qualification"
+                  maxlength="150"
+                  placeholder="Ví dụ: Thạc sĩ, Bác sĩ chuyên khoa II"
+                >
+              </div>
+              <div class="field full">
+                <label for="avatar">Ảnh đại diện (đường dẫn)</label>
+                <div class="avatar-preview">
+                  <div class="avatar-lg" id="avatarPreview">
+                    <i class="fa-solid fa-user-doctor"></i>
+                  </div>
+                  <input
+                    id="avatar"
+                    name="avatar"
+                    type="url"
+                    placeholder="https://..."
+                  >
+                </div>
+              </div>
+              <div class="field full">
+                <label for="introduction">Giới thiệu bản thân</label>
+                <textarea
+                  id="introduction"
+                  name="introduction"
+                  maxlength="1000"
+                  placeholder="Quá trình công tác, thế mạnh chuyên môn..."
+                ></textarea>
+                <span class="hint" id="introCount">0/1000</span>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-floppy-disk"></i>
+                Lưu thay đổi
+              </button>
+            </div>
+          </form>
+        </section>
+        <!-- LỊCH LÀM VIỆC -->
+        <section data-section="schedule" hidden>
+          <div class="panel">
+            <h3>Lịch làm việc sắp tới</h3>
+            <p class="panel-sub">
+              Các ca làm việc của bạn. Đăng ký ca mới do quản trị viên duyệt.
+            </p>
+            <div class="list" id="scheduleList"></div>
+          </div>
+        </section>
+        <!-- ĐỔI MẬT KHẨU -->
+        <section data-section="security" hidden>
+          <form class="panel" id="passwordForm" novalidate>
+            <h3>Đổi mật khẩu</h3>
+            <p class="panel-sub">
+              Mật khẩu mới tối thiểu 8 ký tự, gồm cả chữ và số.
+            </p>
+            <div class="form-grid">
+              <div class="field full">
+                <label for="current_password">Mật khẩu hiện tại</label>
+                <div class="pw-wrap">
+                  <input
+                    type="password"
+                    id="current_password"
+                    name="current_password"
+                    autocomplete="current-password"
+                  >
+                  <button
+                    type="button"
+                    data-toggle-password
+                    aria-label="Hiện mật khẩu"
+                  >
+                    <i class="fa-solid fa-eye"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="field full">
+                <label for="new_password">Mật khẩu mới</label>
+                <div class="pw-wrap">
+                  <input
+                    type="password"
+                    id="new_password"
+                    name="new_password"
+                    autocomplete="new-password"
+                  >
+                  <button
+                    type="button"
+                    data-toggle-password
+                    aria-label="Hiện mật khẩu"
+                  >
+                    <i class="fa-solid fa-eye"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="field full">
+                <label for="confirm_password">Nhập lại mật khẩu mới</label>
+                <div class="pw-wrap">
+                  <input
+                    type="password"
+                    id="confirm_password"
+                    name="confirm_password"
+                    autocomplete="new-password"
+                  >
+                  <button
+                    type="button"
+                    data-toggle-password
+                    aria-label="Hiện mật khẩu"
+                  >
+                    <i class="fa-solid fa-eye"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-key"></i>
+                Đổi mật khẩu
+              </button>
+            </div>
+          </form>
+        </section>
+      </div>
+    </div>
+  </main>
+  <script src="js/api.js"></script>
+  <script src="js/profile-common.js"></script>
+  <script src="js/doctor-profile.js"></script>
+</body>
+</html>

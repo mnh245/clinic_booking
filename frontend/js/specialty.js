@@ -200,6 +200,16 @@ URL: specialty.html?specialty=<slug>   (vd: tim-mach)
         "Xin chào, " + (user.full_name || user.fullName || user.email || "bạn");
     }
 
+    // Nút "Hồ sơ" dẫn đến trang đúng vai trò
+    const profileLink = $("profileLink");
+    if (profileLink && loggedIn) {
+      const role = String(user.role || user.vai_tro || user.vaiTro || localStorage.getItem("role") || "")
+        .toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      profileLink.href = role.includes("doctor") || role.includes("bac si")
+        ? "doctor-profile.html"
+        : role.includes("admin") ? "admin-dashboard.html" : "patient-profile.html";
+    }
+
     $("logoutButton")?.addEventListener("click", async () => {
       if (!window.confirm("Bạn có chắc chắn muốn đăng xuất?")) {
         return;

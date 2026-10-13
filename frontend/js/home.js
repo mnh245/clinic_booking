@@ -127,15 +127,49 @@ CLINIC BOOKING - HOME PAGE (một file duy nhất)
     const registerLink = $("registerLink");
     const userInfo = $("userInfo");
     const welcomeUser = $("welcomeUser");
-    if (loginLink) loginLink.style.display = loggedIn ? "none" : "inline-flex";
-    if (registerLink) registerLink.style.display = loggedIn ? "none" : "inline-flex";
-    if (userInfo) userInfo.style.display = loggedIn ? "flex" : "none";
+    const myProfileLink = $("myProfileLink");
+    if (loginLink) {
+        loginLink.style.display = loggedIn ? "none" : "inline-flex";
+    }
+    if (registerLink) {
+        registerLink.style.display = loggedIn ? "none" : "inline-flex";
+    }
+    if (userInfo) {
+        userInfo.style.display = loggedIn ? "flex" : "none";
+    }
     if (loggedIn && welcomeUser) {
-      welcomeUser.textContent =
-        "Xin chào, " + (user.full_name || user.fullName || user.email || "bạn");
+        welcomeUser.textContent =
+            "Xin chào, " +
+            (user.full_name || user.fullName || user.email || "bạn");
+    }
+    // Hiển thị và điều hướng nút hồ sơ theo role
+    if (myProfileLink) {
+        myProfileLink.style.display = "none";
+        if (loggedIn) {
+            const rawRole =
+                user.role ||
+                user.vai_tro ||
+                user.vaiTro ||
+                localStorage.getItem("role") ||
+                localStorage.getItem("vaiTro") ||
+                "";
+            const role = String(rawRole)
+                .toLowerCase()
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .replace(/đ/g, "d")
+                .replace(/[\s_-]+/g, "");
+            if (role === "patient" || role === "benhnhan") {
+                myProfileLink.href = "patient-profile.html";
+                myProfileLink.style.display = "inline-flex";
+            } else if (role === "doctor" || role === "bacsi") {
+                myProfileLink.href = "doctor-profile.html";
+                myProfileLink.style.display = "inline-flex";
+            }
+        }
     }
     $("logoutButton")?.addEventListener("click", handleLogout);
-  }
+}
   async function handleLogout() {
     if (!window.confirm("Bạn có chắc chắn muốn đăng xuất?")) {
       return;

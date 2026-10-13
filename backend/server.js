@@ -20,6 +20,8 @@ const frontendPath = path.join(
     "..",
     "frontend"
 );
+
+
 /*
 =====================================================
 BODY PARSER
@@ -59,10 +61,13 @@ API ROUTES
 =====================================================
 */
 
+
 app.use(
     "/api",
     authRoutes
 );
+
+app.use("/api/profile", require("./routes/profile.routes"));
 
 app.use(
     "/api/doctors",
