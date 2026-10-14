@@ -1,1021 +1,1352 @@
 /*
 =====================================================
-CLINIC BOOKING - HOME PAGE (một file duy nhất)
+CLINIC BOOKING - HOME PAGE
 =====================================================
-1. Đăng nhập / đăng xuất
-2. Tải bác sĩ → chuyên khoa, danh sách, bác sĩ nổi bật
-3. Tìm kiếm (từ khóa, chuyên khoa, sắp xếp, lưu lên URL)
-4. Form đặt lịch (bác sĩ, ngày, giờ, tạo lịch hẹn)
+
+Nhiệm vụ:
+1. Kiểm tra trạng thái đăng nhập
+2. Hiển thị người dùng trên header
+3. Đăng xuất
+4. Tải danh sách bác sĩ
+5. Tải và hiển thị chuyên khoa
+6. Hiển thị bác sĩ nổi bật
+7. Mở form đặt lịch
+8. Chọn bác sĩ
+9. Chọn ngày
+10. Tải giờ khám
+11. Chọn giờ khám
+12. Tạo lịch hẹn
+13. Tìm kiếm bác sĩ
+14. Tự điền thông tin liên hệ đặt lịch
 =====================================================
 */
-(() => {
-  "use strict";
-  const $ = (id) => document.getElementById(id);
-  /* =====================================================
-     TRẠNG THÁI
-     ===================================================== */
-  let allDoctors = [];
-  let selectedDoctor = null;
-  let doctorsLoaded = false;
-  let searchTimer = null;
-  let pendingSpecialty = "";
-  let searchFromUrl = false;
-  const AVATAR_STYLE =
-    "width:100%;height:100%;object-fit:cover;border-radius:inherit;";
-  document.addEventListener("DOMContentLoaded", async () => {
+/* =====================================================
+   BIẾN TOÀN CỤC
+===================================================== */
+
+let allDoctors = [];
+let selectedDoctor = null;
+/* =====================================================
+   KHỞI TẠO TRANG
+===================================================== */
+
+document.addEventListener("DOMContentLoaded", async function () {
     setupLoginState();
     setupSearch();
-    setupBooking();
+    setupBookingForm();
+    setupBookingPanel();
     await loadDoctors();
-  });
-  /* =====================================================
-     TIỆN ÍCH
-     ===================================================== */
-  function escapeHtml(value) {
-    return String(value ?? "")
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#039;");
-  }
-  /** Bỏ dấu, chữ thường: "Tim Mạch" -> "tim mach", "Đức" -> "duc". */
-  function normalizeText(value) {
-    return String(value || "")
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/đ/g, "d")
-      .replace(/\s+/g, " ")
-      .trim();
-  }
-  function createSpecialtySlug(name) {
-    return normalizeText(name)
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "");
-  }
-  function getSpecialtyIcon(name) {
-    const value = String(name || "").toLowerCase();
-    if (value.includes("tim")) return "fa-heart-pulse";
-    if (value.includes("nhi")) return "fa-child";
-    if (value.includes("thần kinh")) return "fa-brain";
-    if (value.includes("da liễu")) return "fa-hand-dots";
-    if (value.includes("tai") || value.includes("mũi") || value.includes("họng")) {
-      return "fa-ear-listen";
-    }
-    if (value.includes("ngoại")) return "fa-scissors";
-    if (value.includes("nội")) return "fa-stethoscope";
-    if (value.includes("răng")) return "fa-tooth";
-    return "fa-stethoscope";
-  }
-  function formatExperience(years) {
-    if (years === null || years === undefined) {
-      return "Chưa cập nhật kinh nghiệm";
-    }
-    const value = Number(years);
-    return value === 0 ? "Dưới 1 năm kinh nghiệm" : `${value} năm kinh nghiệm`;
-  }
-  function formatTime(value) {
-    return value ? String(value).slice(0, 5) : "";
-  }
-  /** Lấy mảng từ response dạng [..] hoặc { data: [..] } hoặc { doctors: [..] }. */
-  function extractArray(result) {
-    if (Array.isArray(result)) return result;
-    if (Array.isArray(result?.data)) return result.data;
-    if (Array.isArray(result?.doctors)) return result.doctors;
-    if (Array.isArray(result?.schedules)) return result.schedules;
-    if (Array.isArray(result?.data?.schedules)) return result.data.schedules;
-    return [];
-  }
-  /** Ngày hôm nay theo giờ địa phương, dạng YYYY-MM-DD. */
-  function todayString() {
-    const now = new Date();
-    const month = String(now.getMonth() + 1).padStart(2, "0");
-    const day = String(now.getDate()).padStart(2, "0");
-    return `${now.getFullYear()}-${month}-${day}`;
-  }
-  function getDoctorById(id) {
-    return allDoctors.find((doctor) => Number(doctor.id) === Number(id)) || null;
-  }
-  function doctorAvatarHtml(doctor, imgStyle = "") {
-    if (!doctor.avatar) {
-      return '<i class="fa-solid fa-user-doctor"></i>';
-    }
-    const style = imgStyle ? ` style="${imgStyle}"` : "";
-    return `<img src="${escapeHtml(doctor.avatar)}" alt="BS. ${escapeHtml(doctor.full_name || "Bác sĩ")}"${style}>`;
-  }
-  /* =====================================================
-     1. ĐĂNG NHẬP / ĐĂNG XUẤT
-     ===================================================== */
-  function getCurrentUser() {
-    const value = localStorage.getItem("user");
-    if (!value) {
-      return null;
-    }
-    try {
-      return JSON.parse(value);
-    } catch (error) {
-      console.error("Không thể đọc user:", error);
-      localStorage.removeItem("user");
-      return null;
-    }
-  }
-  function setupLoginState() {
+});
+/* =====================================================
+   1. TRẠNG THÁI ĐĂNG NHẬP
+===================================================== */
+
+function setupLoginState() {
+    const loginLink = document.getElementById("loginLink");
+    const registerLink = document.getElementById("registerLink");
+    const userInfo = document.getElementById("userInfo");
+    const welcomeUser = document.getElementById("welcomeUser");
+    const logoutButton = document.getElementById("logoutButton");
     const user = getCurrentUser();
-    const loggedIn = Boolean(user);
-    const loginLink = $("loginLink");
-    const registerLink = $("registerLink");
-    const userInfo = $("userInfo");
-    const welcomeUser = $("welcomeUser");
-    const myProfileLink = $("myProfileLink");
-    if (loginLink) {
-        loginLink.style.display = loggedIn ? "none" : "inline-flex";
-    }
-    if (registerLink) {
-        registerLink.style.display = loggedIn ? "none" : "inline-flex";
-    }
-    if (userInfo) {
-        userInfo.style.display = loggedIn ? "flex" : "none";
-    }
-    if (loggedIn && welcomeUser) {
-        welcomeUser.textContent =
-            "Xin chào, " +
-            (user.full_name || user.fullName || user.email || "bạn");
-    }
-    // Hiển thị và điều hướng nút hồ sơ theo role
-    if (myProfileLink) {
-        myProfileLink.style.display = "none";
-        if (loggedIn) {
-            const rawRole =
-                user.role ||
-                user.vai_tro ||
-                user.vaiTro ||
-                localStorage.getItem("role") ||
-                localStorage.getItem("vaiTro") ||
-                "";
-            const role = String(rawRole)
-                .toLowerCase()
-                .normalize("NFD")
-                .replace(/[\u0300-\u036f]/g, "")
-                .replace(/đ/g, "d")
-                .replace(/[\s_-]+/g, "");
-            if (role === "patient" || role === "benhnhan") {
-                myProfileLink.href = "patient-profile.html";
-                myProfileLink.style.display = "inline-flex";
-            } else if (role === "doctor" || role === "bacsi") {
-                myProfileLink.href = "doctor-profile.html";
-                myProfileLink.style.display = "inline-flex";
-            }
+    if (!user) {
+        if (loginLink) {
+            loginLink.style.display = "inline-flex";
+        }
+        if (registerLink) {
+            registerLink.style.display = "inline-flex";
+        }
+        if (userInfo) {
+            userInfo.style.display = "none";
+        }
+    } else {
+        if (loginLink) {
+            loginLink.style.display = "none";
+        }
+        if (registerLink) {
+            registerLink.style.display = "none";
+        }
+        if (userInfo) {
+            userInfo.style.display = "flex";
+        }
+        if (welcomeUser) {
+            welcomeUser.textContent =
+                "Xin chào, " +
+                (
+                    user.full_name ||
+                    user.fullName ||
+                    user.email ||
+                    "bạn"
+                );
         }
     }
-    $("logoutButton")?.addEventListener("click", handleLogout);
+    if (logoutButton) {
+        logoutButton.addEventListener("click", handleLogout);
+    }
 }
-  async function handleLogout() {
-    if (!window.confirm("Bạn có chắc chắn muốn đăng xuất?")) {
-      return;
+/* =====================================================
+   2. LẤY USER HIỆN TẠI
+===================================================== */
+
+function getCurrentUser() {
+    const value = localStorage.getItem("user");
+    if (!value) {
+        return null;
     }
     try {
-      await fetch("/api/logout", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" }
-      });
+        return JSON.parse(value);
     } catch (error) {
-      console.warn("Không thể gọi API logout:", error);
+        console.error("Không thể đọc user:", error);
+        localStorage.removeItem("user");
+        return null;
+    }
+}
+/* =====================================================
+   2.1. ĐIỀN TRƯỚC THÔNG TIN LIÊN HỆ ĐẶT LỊCH
+===================================================== */
+
+function setBookingFieldIfEmpty(id, value) {
+    const field = document.getElementById(id);
+    if (!field || field.value.trim()) {
+        return;
+    }
+    const text = String(value ?? "").trim();
+    if (text) {
+        field.value = text;
+    }
+}
+
+async function prefillBookingContact() {
+    const user = getCurrentUser() || {};
+    // Điền từ dữ liệu tài khoản đã lưu sau khi đăng nhập.
+    setBookingFieldIfEmpty(
+        "bookingContactName",
+        user.full_name || user.name
+    );
+    setBookingFieldIfEmpty(
+        "bookingContactEmail",
+        user.email
+    );
+    setBookingFieldIfEmpty(
+        "bookingContactPhone",
+        user.phone
+    );
+    setBookingFieldIfEmpty(
+        "bookingContactAddress",
+        user.address
+    );
+    // Thử lấy hồ sơ mới nhất từ Backend.
+    // Nếu API lỗi, người dùng vẫn có thể nhập thủ công.
+    try {
+        const result = await apiFetch("/api/profile", {
+            cache: "no-store"
+        });
+        const profile =
+            result?.data?.user ||
+            result?.data ||
+            result?.user ||
+            result?.profile ||
+            null;
+        if (!profile || typeof profile !== "object") {
+            return;
+        }
+        setBookingFieldIfEmpty(
+            "bookingContactName",
+            profile.full_name || profile.name
+        );
+        setBookingFieldIfEmpty(
+            "bookingContactEmail",
+            profile.email
+        );
+        setBookingFieldIfEmpty(
+            "bookingContactPhone",
+            profile.phone
+        );
+        setBookingFieldIfEmpty(
+            "bookingContactAddress",
+            profile.address
+        );
+    } catch (error) {
+        console.warn(
+            "Không thể tự điền hồ sơ vào form đặt lịch:",
+            error.message
+        );
+    }
+}
+/* =====================================================
+   3. ĐĂNG XUẤT
+===================================================== */
+
+async function handleLogout() {
+    const confirmed = window.confirm(
+        "Bạn có chắc chắn muốn đăng xuất?"
+    );
+    if (!confirmed) {
+        return;
+    }
+    try {
+        await fetch("/api/logout", {
+            method: "POST",
+            credentials: "include",
+            headers: {
+                "Content-Type": "application/json"
+            }
+        });
+    } catch (error) {
+        console.warn(
+            "Không thể gọi API logout:",
+            error
+        );
     }
     localStorage.removeItem("user");
     localStorage.removeItem("role");
     localStorage.removeItem("vaiTro");
     sessionStorage.clear();
     window.location.href = "login.html";
-  }
-  /* =====================================================
-     2. TẢI VÀ HIỂN THỊ BÁC SĨ / CHUYÊN KHOA
-     ===================================================== */
-  async function loadDoctors() {
-    const doctorGrid = $("doctorList");
+}
+/* =====================================================
+   4. LẤY BÁC SĨ TỪ DATABASE
+===================================================== */
+
+async function loadDoctors() {
+    const doctorGrid = document.getElementById("doctorList");
     if (!doctorGrid) {
-      return;
+        return;
     }
     doctorGrid.innerHTML = `
-      <div class="loading">
-        <i class="fa-solid fa-spinner fa-spin"></i>
-        Đang tải danh sách bác sĩ...
-      </div>
+        <div class="loading">
+            <i class="fa-solid fa-spinner fa-spin"></i>
+            Đang tải danh sách bác sĩ...
+        </div>
     `;
     try {
-      allDoctors = extractArray(await apiFetch("/api/doctors"));
-      doctorsLoaded = true;
-      // renderSpecialties dựng lại ô chọn chuyên khoa nên phải chọn lại giá trị cũ
-      const previousSpecialty = $("specialtySelect")?.value || pendingSpecialty;
-      pendingSpecialty = "";
-      renderSpecialties(allDoctors);
-      restoreSpecialtySelection(previousSpecialty);
-      renderFeaturedDoctors(allDoctors);
-      populateDoctorSelect();
-      renderDoctorResults();
-      if (selectedDoctor) {
-        selectedDoctor = getDoctorById(selectedDoctor.id);
-        updateSelectedDoctorInfo(selectedDoctor);
-      }
-      // Vào trang bằng link có sẵn bộ lọc: cuộn tới kết quả
-      if (searchFromUrl) {
-        searchFromUrl = false;
-        $("doctors")?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
+        const result = await getDoctors();
+        if (
+            !result ||
+            !result.success ||
+            !Array.isArray(result.data)
+        ) {
+            throw new Error(
+                "Dữ liệu bác sĩ không hợp lệ."
+            );
+        }
+        allDoctors = result.data;
+        renderSpecialties(allDoctors);
+        renderFeaturedDoctors(allDoctors);
+        populateDoctorSelect();
+        applyHomeSearch();
     } catch (error) {
-      console.error("LOAD DOCTORS ERROR:", error);
-      doctorGrid.innerHTML = `
-        <div class="card specialty-card">
-          <div class="specialty-icon">
-            <i class="fa-solid fa-triangle-exclamation"></i>
-          </div>
-          <h3>Không thể tải dữ liệu</h3>
-          <p>${escapeHtml(error.message || "Không thể kết nối đến hệ thống bác sĩ.")}</p>
-          <button type="button" class="btn btn-primary retry-doctors">
-            <i class="fa-solid fa-rotate"></i>
-            Thử lại
-          </button>
-        </div>
-      `;
-      doctorGrid
-        .querySelector(".retry-doctors")
-        ?.addEventListener("click", loadDoctors);
-      const featured = $("featuredDoctors");
-      if (featured) {
-        featured.innerHTML = `
-          <div class="doctor-mini">
-            <div class="doctor-avatar">
-              <i class="fa-solid fa-triangle-exclamation"></i>
+        console.error("LOAD DOCTORS ERROR:", error);
+        doctorGrid.innerHTML = `
+            <div class="card specialty-card">
+                <div class="specialty-icon">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <h3>Không thể tải dữ liệu</h3>
+                <p>
+                    Không thể kết nối đến hệ thống bác sĩ.
+                </p>
+                <button
+                    type="button"
+                    class="btn btn-primary retry-doctors"
+                >
+                    <i class="fa-solid fa-rotate"></i>
+                    Thử lại
+                </button>
             </div>
-            <div class="doctor-info">
-              <strong>Không thể tải dữ liệu</strong>
-              <span>Máy chủ không phản hồi</span>
-            </div>
-          </div>
         `;
-      }
+        const retryButton =
+            doctorGrid.querySelector(".retry-doctors");
+        if (retryButton) {
+            retryButton.addEventListener(
+                "click",
+                loadDoctors
+            );
+        }
     }
-  }
-  function renderSpecialties(doctors) {
-    const specialtyGrid = $("specialtyGrid");
+}
+/* =====================================================
+   5. TẠO SLUG CHUYÊN KHOA
+===================================================== */
+
+function createSpecialtySlug(name) {
+    return String(name || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/đ/g, "d")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+}
+/* =====================================================
+   6. ICON CHUYÊN KHOA
+===================================================== */
+
+function getSpecialtyIcon(name) {
+    const value = String(name || "").toLowerCase();
+    if (value.includes("tim")) {
+        return "fa-heart-pulse";
+    }
+    if (value.includes("nhi")) {
+        return "fa-child";
+    }
+    if (value.includes("thần kinh")) {
+        return "fa-brain";
+    }
+    if (value.includes("da liễu")) {
+        return "fa-hand-dots";
+    }
+    if (
+        value.includes("tai") ||
+        value.includes("mũi") ||
+        value.includes("họng")
+    ) {
+        return "fa-ear-listen";
+    }
+    if (value.includes("ngoại")) {
+        return "fa-scissors";
+    }
+    if (value.includes("nội")) {
+        return "fa-stethoscope";
+    }
+    if (value.includes("răng")) {
+        return "fa-tooth";
+    }
+    return "fa-stethoscope";
+}
+/* =====================================================
+   7. FORMAT KINH NGHIỆM
+===================================================== */
+
+function formatExperience(years) {
+    if (years === null || years === undefined) {
+        return "Chưa cập nhật kinh nghiệm";
+    }
+    const value = Number(years);
+    if (value === 0) {
+        return "Dưới 1 năm kinh nghiệm";
+    }
+    return value + " năm kinh nghiệm";
+}
+/* =====================================================
+   8. HIỂN THỊ CHUYÊN KHOA
+===================================================== */
+
+function renderSpecialties(doctors) {
+    const specialtyGrid =
+        document.getElementById("specialtyGrid");
     if (!specialtyGrid) {
-      return;
+        return;
     }
     const specialtyMap = new Map();
-    doctors.forEach((doctor) => {
-      if (!doctor.specialty_id || !doctor.specialty_name) {
-        return;
-      }
-      if (!specialtyMap.has(doctor.specialty_id)) {
-        specialtyMap.set(doctor.specialty_id, {
-          id: doctor.specialty_id,
-          name: doctor.specialty_name,
-          count: 0
-        });
-      }
-      specialtyMap.get(doctor.specialty_id).count++;
+    doctors.forEach(function (doctor) {
+        if (
+            !doctor.specialty_id ||
+            !doctor.specialty_name
+        ) {
+            return;
+        }
+        if (!specialtyMap.has(doctor.specialty_id)) {
+            specialtyMap.set(
+                doctor.specialty_id,
+                {
+                    id: doctor.specialty_id,
+                    name: doctor.specialty_name,
+                    count: 0
+                }
+            );
+        }
+        specialtyMap.get(doctor.specialty_id).count++;
     });
-    const specialties = Array.from(specialtyMap.values());
+    const specialties =
+        Array.from(specialtyMap.values());
     if (!specialties.length) {
-      specialtyGrid.innerHTML = `
-        <div class="card specialty-card">
-          <div class="specialty-icon">
-            <i class="fa-solid fa-circle-exclamation"></i>
-          </div>
-          <h3>Chưa có chuyên khoa</h3>
-          <p>Hiện chưa có dữ liệu chuyên khoa.</p>
-        </div>
-      `;
-      return;
+        specialtyGrid.innerHTML = `
+            <div class="card specialty-card">
+                <div class="specialty-icon">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                </div>
+                <h3>Chưa có chuyên khoa</h3>
+                <p>
+                    Hiện chưa có dữ liệu chuyên khoa.
+                </p>
+            </div>
+        `;
+        return;
     }
     specialtyGrid.innerHTML = specialties
-      .slice(0, 4)
-      .map((specialty) => {
-        const slug = createSpecialtySlug(specialty.name);
-        const icon = getSpecialtyIcon(specialty.name);
-        return `
-          <a
-            href="doctors.html?specialty=${encodeURIComponent(slug)}"
-            class="card specialty-card"
-          >
-            <div class="specialty-icon">
-              <i class="fa-solid ${icon}"></i>
-            </div>
-            <h3>${escapeHtml(specialty.name)}</h3>
-            <p>
-              ${specialty.count} bác sĩ đang hoạt động
-              trong chuyên khoa này.
-            </p>
-            <span class="specialty-more">
-              Xem bác sĩ
-              <i class="fa-solid fa-arrow-right"></i>
-            </span>
-          </a>
-        `;
-      })
-      .join("");
-    // Ô chọn chuyên khoa ở thanh tìm kiếm: liệt kê TẤT CẢ chuyên khoa
-    const specialtySelect = $("specialtySelect");
+        .slice(0, 4)
+        .map(function (specialty) {
+            const slug =
+                createSpecialtySlug(specialty.name);
+            const icon =
+                getSpecialtyIcon(specialty.name);
+            return `
+                <a
+                    href="doctors.html?specialty=${encodeURIComponent(slug)}"
+                    class="card specialty-card"
+                >
+                    <div class="specialty-icon">
+                        <i class="fa-solid ${icon}"></i>
+                    </div>
+                    <h3>${escapeHtml(specialty.name)}</h3>
+                    <p>
+                        ${specialty.count}
+                        bác sĩ đang hoạt động
+                        trong chuyên khoa này.
+                    </p>
+                    <span class="specialty-more">
+                        Xem bác sĩ
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </span>
+                </a>
+            `;
+        })
+        .join("");
+    const specialtySelect =
+        document.getElementById("specialtySelect");
     if (specialtySelect) {
-      specialtySelect.innerHTML = '<option value="">Tất cả chuyên khoa</option>';
-      specialties
-        .slice()
-        .sort((a, b) => a.name.localeCompare(b.name, "vi"))
-        .forEach((specialty) => {
-          const option = document.createElement("option");
-          option.value = createSpecialtySlug(specialty.name);
-          option.textContent = specialty.name;
-          specialtySelect.appendChild(option);
+        specialtySelect.innerHTML = `
+            <option value="">
+                Tất cả chuyên khoa
+            </option>
+        `;
+        specialties.forEach(function (specialty) {
+            const option =
+                document.createElement("option");
+            option.value =
+                createSpecialtySlug(specialty.name);
+            option.textContent = specialty.name;
+            specialtySelect.appendChild(option);
         });
     }
-  }
-  function renderDoctors(doctors, limit = 6) {
-    const doctorGrid = $("doctorList");
+}
+/* =====================================================
+   9. HIỂN THỊ BÁC SĨ
+===================================================== */
+
+function renderDoctors(doctors, options = {}) {
+    const doctorGrid =
+        document.getElementById("doctorList");
     if (!doctorGrid) {
-      return;
+        return;
     }
-    if (!doctors.length) {
-      doctorGrid.innerHTML = `
-        <div class="card specialty-card">
-          <div class="specialty-icon">
-            <i class="fa-solid fa-user-doctor"></i>
-          </div>
-          <h3>Chưa có bác sĩ</h3>
-          <p>Hiện chưa có dữ liệu bác sĩ.</p>
-        </div>
-      `;
-      return;
-    }
-    doctorGrid.innerHTML = doctors
-      .slice(0, limit)
-      .map((doctor) => {
-        const introduction =
-          doctor.introduction || "Bác sĩ đang cập nhật thông tin giới thiệu.";
-        const rating = doctor.rating
-          ? Number(doctor.rating).toFixed(1)
-          : "Chưa có đánh giá";
-        return `
-          <article class="card doctor-card">
-            <div class="doctor-cover"></div>
-            <div class="doctor-body">
-              <div class="doctor-avatar">
-                ${doctorAvatarHtml(doctor, AVATAR_STYLE)}
-              </div>
-              <h3>BS. ${escapeHtml(doctor.full_name || "Bác sĩ")}</h3>
-              <div class="doctor-specialty">
-                ${escapeHtml(doctor.specialty_name || "Chưa cập nhật chuyên khoa")}
-              </div>
-              <div class="doctor-info">${escapeHtml(introduction)}</div>
-              <span class="chip">
-                <i class="fa-regular fa-clock"></i>
-                ${formatExperience(doctor.experience_years)}
-              </span>
-              <div class="doctor-card-footer">
-                <span class="rating">
-                  <i class="fa-solid fa-star"></i>
-                  <span>${rating}</span>
-                </span>
-                <button
-                  type="button"
-                  class="btn btn-primary doctor-book-button"
-                  data-doctor-id="${doctor.id}"
-                >
-                  <i class="fa-solid fa-calendar-check"></i>
-                  Đặt lịch
-                </button>
-              </div>
+    const searchActive =
+        Boolean(options.searchActive);
+    const visibleDoctors =
+        options.showAll
+            ? doctors
+            : doctors.slice(0, 6);
+    if (!visibleDoctors.length) {
+        doctorGrid.innerHTML = `
+            <div class="card specialty-card">
+                <div class="specialty-icon">
+                    <i class="fa-solid fa-user-doctor"></i>
+                </div>
+                <h3>
+                    ${
+                        searchActive
+                            ? "Không tìm thấy bác sĩ phù hợp"
+                            : "Chưa có bác sĩ"
+                    }
+                </h3>
+                <p>
+                    ${
+                        searchActive
+                            ? "Hãy thử tên bác sĩ khác hoặc chọn một chuyên khoa khác."
+                            : "Hiện chưa có dữ liệu bác sĩ."
+                    }
+                </p>
             </div>
-          </article>
         `;
-      })
-      .join("");
-  }
-  function renderFeaturedDoctors(doctors) {
-    const featuredDoctors = $("featuredDoctors");
+        return;
+    }
+    doctorGrid.innerHTML = visibleDoctors
+        .map(doctor => {
+            const fullName =
+                doctor.full_name || "Bác sĩ";
+            const specialtyName =
+                doctor.specialty_name ||
+                "Chưa cập nhật chuyên khoa";
+            const introduction =
+                doctor.introduction ||
+                "Bác sĩ đang cập nhật thông tin giới thiệu.";
+            const experience =
+                formatExperience(doctor.experience_years);
+            const rating =
+                doctor.rating
+                    ? Number(doctor.rating).toFixed(1)
+                    : "Chưa có đánh giá";
+            const avatar = doctor.avatar
+                ? `
+                    <img
+                        src="${escapeHtml(doctor.avatar)}"
+                        alt="BS. ${escapeHtml(fullName)}"
+                        loading="lazy"
+                    >
+                `
+                : `
+                    <i
+                        class="fa-solid fa-user-doctor"
+                        aria-hidden="true"
+                    ></i>
+                `;
+            return `
+                <article class="card doctor-card">
+                    <div class="doctor-cover"></div>
+                    <div class="doctor-body">
+                        <div class="doctor-avatar">
+                            ${avatar}
+                        </div>
+                        <h3>
+                            BS. ${escapeHtml(fullName)}
+                        </h3>
+                        <div class="doctor-specialty">
+                            ${escapeHtml(specialtyName)}
+                        </div>
+                        <div class="doctor-info">
+                            ${escapeHtml(introduction)}
+                        </div>
+                        <span class="chip">
+                            <i
+                                class="fa-regular fa-clock"
+                                aria-hidden="true"
+                            ></i>
+                            ${escapeHtml(experience)}
+                        </span>
+                        <div class="doctor-card-footer">
+                            <span class="rating">
+                                <i
+                                    class="fa-solid fa-star"
+                                    aria-hidden="true"
+                                ></i>
+                                <span>
+                                    ${escapeHtml(rating)}
+                                </span>
+                            </span>
+                            <button
+                                type="button"
+                                class="btn btn-primary doctor-book-button"
+                                data-doctor-id="${Number(doctor.id)}"
+                            >
+                                <i
+                                    class="fa-solid fa-calendar-check"
+                                    aria-hidden="true"
+                                ></i>
+                                Đặt lịch
+                            </button>
+                        </div>
+                    </div>
+                </article>
+            `;
+        })
+        .join("");
+    doctorGrid
+        .querySelectorAll(".doctor-book-button")
+        .forEach(button => {
+            button.addEventListener("click", function () {
+                openBookingPanel(
+                    Number(this.dataset.doctorId)
+                );
+            });
+        });
+}
+
+function renderFeaturedDoctors(doctors) {
+    const featuredDoctors =
+        document.getElementById("featuredDoctors");
     if (!featuredDoctors) {
-      return;
+        return;
     }
     if (!doctors.length) {
-      featuredDoctors.innerHTML = `
-        <div class="doctor-mini">
-          <div class="doctor-avatar">
-            <i class="fa-solid fa-user-doctor"></i>
-          </div>
-          <div class="doctor-info">
-            <strong>Chưa có bác sĩ</strong>
-            <span>Chưa có dữ liệu bác sĩ</span>
-          </div>
-        </div>
-      `;
-      return;
+        featuredDoctors.innerHTML = `
+            <div class="doctor-mini">
+                <div class="doctor-avatar">
+                    <i class="fa-solid fa-user-doctor"></i>
+                </div>
+                <div class="doctor-info">
+                    <strong>Chưa có bác sĩ</strong>
+                    <span>Chưa có dữ liệu bác sĩ</span>
+                </div>
+            </div>
+        `;
+        return;
     }
     featuredDoctors.innerHTML = doctors
-      .slice(0, 3)
-      .map((doctor) => `
-        <button
-          type="button"
-          class="doctor-mini doctor-featured-button"
-          data-doctor-id="${doctor.id}"
-        >
-          <div class="doctor-avatar">
-            ${doctorAvatarHtml(doctor, AVATAR_STYLE)}
-          </div>
-          <div class="doctor-info">
-            <strong>BS. ${escapeHtml(doctor.full_name || "Bác sĩ")}</strong>
-            <span>
-              ${escapeHtml(doctor.specialty_name || "Chưa cập nhật chuyên khoa")}
-              •
-              ${formatExperience(doctor.experience_years)}
-            </span>
-          </div>
-          <i class="fa-solid fa-chevron-right"></i>
-        </button>
-      `)
-      .join("");
-  }
-  function populateDoctorSelect() {
-    const doctorSelect = $("doctorSelect");
-    if (!doctorSelect) {
-      return;
-    }
-    const current = doctorSelect.value;
-    doctorSelect.innerHTML = '<option value="">-- Chọn bác sĩ --</option>';
-    allDoctors.forEach((doctor) => {
-      const option = document.createElement("option");
-      option.value = doctor.id;
-      option.textContent =
-        `BS. ${doctor.full_name || "Bác sĩ"} - ` +
-        (doctor.specialty_name || "Chưa cập nhật chuyên khoa");
-      doctorSelect.appendChild(option);
-    });
-    if (current && getDoctorById(current)) {
-      doctorSelect.value = current;
-    }
-  }
-  /* =====================================================
-     3. TÌM KIẾM
-     ===================================================== */
-  function getSearchCriteria() {
-    const keyword = $("searchKeyword")?.value.trim() || "";
-    const specialty = $("specialtySelect")?.value || "";
-    return {
-      keyword,
-      specialty,
-      // Mỗi từ khóa phải xuất hiện (không phân biệt dấu / hoa thường)
-      tokens: normalizeText(keyword).split(" ").filter(Boolean)
-    };
-  }
-  function doctorMatches(doctor, criteria) {
-    if (criteria.specialty) {
-      const slug = createSpecialtySlug(doctor.specialty_name);
-      // Chấp nhận cả slug đầy đủ ("noi-khoa") lẫn slug rút gọn ("noi")
-      const sameSpecialty =
-        slug === criteria.specialty || slug.startsWith(criteria.specialty + "-");
-      if (!sameSpecialty) {
-        return false;
-      }
-    }
-    if (!criteria.tokens.length) {
-      return true;
-    }
-    const haystack = normalizeText(
-      [
-        doctor.full_name,
-        doctor.specialty_name,
-        doctor.qualification,
-        doctor.introduction
-      ]
-        .filter(Boolean)
-        .join(" ")
-    );
-    return criteria.tokens.every((token) => haystack.includes(token));
-  }
-  /** Điểm liên quan: khớp tên bác sĩ > khớp chuyên khoa > khớp mô tả. */
-  function relevanceScore(doctor, tokens) {
-    const name = normalizeText(doctor.full_name);
-    const specialty = normalizeText(doctor.specialty_name);
-    return tokens.reduce((score, token) => {
-      if (name.includes(token)) return score + 3;
-      if (specialty.includes(token)) return score + 2;
-      return score + 1;
-    }, 0);
-  }
-  function sortDoctors(list, criteria, mode) {
-    const sorted = list.slice();
-    const byNumberDesc = (field) => (a, b) =>
-      Number(b[field] || 0) - Number(a[field] || 0);
-    if (mode === "rating") {
-      sorted.sort(byNumberDesc("rating"));
-    } else if (mode === "experience") {
-      sorted.sort(byNumberDesc("experience_years"));
-    } else if (mode === "name") {
-      sorted.sort((a, b) =>
-        String(a.full_name || "").localeCompare(String(b.full_name || ""), "vi")
-      );
-    } else if (criteria.tokens.length) {
-      const scores = new Map(
-        sorted.map((doctor) => [doctor, relevanceScore(doctor, criteria.tokens)])
-      );
-      sorted.sort((a, b) => scores.get(b) - scores.get(a));
-    }
-    return sorted;
-  }
-  /** Chọn lại chuyên khoa trong ô select (chấp nhận slug rút gọn như "noi"). */
-  function restoreSpecialtySelection(value) {
-    const select = $("specialtySelect");
-    if (!select || !value) {
-      return;
-    }
-    const options = Array.from(select.options);
-    const match =
-      options.find((option) => option.value === value) ||
-      options.find((option) => option.value && option.value.startsWith(value + "-"));
-    if (match) {
-      select.value = match.value;
-    }
-  }
-  /** Ghi bộ lọc lên URL để chia sẻ / tải lại trang vẫn giữ kết quả. */
-  function syncSearchToUrl(criteria, sortMode) {
-    const params = new URLSearchParams();
-    if (criteria.keyword) params.set("keyword", criteria.keyword);
-    if (criteria.specialty) params.set("specialty", criteria.specialty);
-    if (sortMode && sortMode !== "relevance") params.set("sort", sortMode);
-    const query = params.toString();
-    try {
-      history.replaceState(
-        null,
-        "",
-        window.location.pathname + (query ? "?" + query : "") + window.location.hash
-      );
-    } catch (error) {
-      // Mở bằng file:// có thể không cho đổi URL, bỏ qua
-    }
-  }
-  /** Đọc ?keyword=&specialty=&sort= trên URL để điền sẵn thanh tìm kiếm. */
-  function applySearchFromUrl() {
-    const params = new URLSearchParams(window.location.search);
-    const keyword = params.get("keyword") || "";
-    const specialty = params.get("specialty") || "";
-    const sort = params.get("sort") || "";
-    if (!keyword && !specialty) {
-      return;
-    }
-    const keywordInput = $("searchKeyword");
-    if (keywordInput) keywordInput.value = keyword;
-    // Danh sách chuyên khoa chỉ đầy đủ sau khi tải bác sĩ, nên nhớ lại để chọn sau
-    pendingSpecialty = specialty;
-    restoreSpecialtySelection(specialty);
-    const sortSelect = $("searchSort");
-    if (sortSelect && ["rating", "experience", "name"].includes(sort)) {
-      sortSelect.value = sort;
-    }
-    searchFromUrl = true;
-  }
-  /** Hiển thị danh sách bác sĩ theo từ khóa / chuyên khoa đang nhập. */
-  function renderDoctorResults() {
-    const doctorGrid = $("doctorList");
-    const resultBar = $("searchResultBar");
-    const resultText = $("searchResultText");
-    // Chưa tải xong dữ liệu thì chưa lọc, tránh báo "không tìm thấy" sai
-    if (!doctorGrid || !doctorsLoaded) {
-      return;
-    }
-    const criteria = getSearchCriteria();
-    const isFiltering = Boolean(criteria.tokens.length || criteria.specialty);
-    const sortMode = $("searchSort")?.value || "relevance";
-    syncSearchToUrl(criteria, isFiltering ? sortMode : "relevance");
-    // Không lọc: giữ nguyên danh sách nổi bật (6 bác sĩ đầu)
-    if (!isFiltering) {
-      if (resultBar) resultBar.hidden = true;
-      renderDoctors(allDoctors);
-      return;
-    }
-    const matches = sortDoctors(
-      allDoctors.filter((doctor) => doctorMatches(doctor, criteria)),
-      criteria,
-      sortMode
-    );
-    if (resultBar && resultText) {
-      const specialtyLabel = criteria.specialty
-        ? $("specialtySelect")?.selectedOptions[0]?.textContent.trim()
-        : "";
-      resultText.textContent =
-        `Tìm thấy ${matches.length} bác sĩ` +
-        (criteria.keyword ? ` cho “${criteria.keyword}”` : "") +
-        (specialtyLabel ? ` · ${specialtyLabel}` : "");
-      resultBar.hidden = false;
-    }
-    if (!matches.length) {
-      doctorGrid.innerHTML = `
-        <div class="card specialty-card">
-          <div class="specialty-icon">
-            <i class="fa-solid fa-magnifying-glass"></i>
-          </div>
-          <h3>Không tìm thấy bác sĩ phù hợp</h3>
-          <p>
-            Hãy thử từ khóa khác hoặc chọn
-            “Tất cả chuyên khoa”.
-          </p>
-          <button type="button" class="btn btn-outline clear-search">
-            Xóa bộ lọc
-          </button>
-        </div>
-      `;
-      doctorGrid
-        .querySelector(".clear-search")
-        ?.addEventListener("click", clearSearch);
-      return;
-    }
-    // Khi tìm kiếm thì hiển thị toàn bộ kết quả, không cắt còn 6
-    renderDoctors(matches, matches.length);
-  }
-  function clearSearch() {
-    const keywordInput = $("searchKeyword");
-    const specialtySelect = $("specialtySelect");
-    const sortSelect = $("searchSort");
-    if (keywordInput) keywordInput.value = "";
-    if (specialtySelect) specialtySelect.value = "";
-    if (sortSelect) sortSelect.value = "relevance";
-    renderDoctorResults();
-  }
-  function setupSearch() {
-    const searchForm = $("searchForm");
-    if (!searchForm) {
-      return;
-    }
-    // Bấm "Tìm kiếm" / Enter: lọc ngay rồi cuộn tới danh sách bác sĩ
-    searchForm.addEventListener("submit", (event) => {
-      event.preventDefault();
-      clearTimeout(searchTimer);
-      renderDoctorResults();
-      $("doctors")?.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
-    // Gõ đến đâu lọc đến đó (chờ 250ms sau lần gõ cuối)
-    $("searchKeyword")?.addEventListener("input", () => {
-      clearTimeout(searchTimer);
-      searchTimer = setTimeout(renderDoctorResults, 250);
-    });
-    $("specialtySelect")?.addEventListener("change", renderDoctorResults);
-    $("searchSort")?.addEventListener("change", renderDoctorResults);
-    $("clearSearchButton")?.addEventListener("click", clearSearch);
-    applySearchFromUrl();
-  }
-  /* =====================================================
-     4. FORM ĐẶT LỊCH
-     ===================================================== */
-  function setupBooking() {
-    const doctorSelect = $("doctorSelect");
-    const appointmentDate = $("appointmentDate");
-    // Nút "Đặt lịch" trên thẻ bác sĩ / bác sĩ nổi bật (thẻ được vẽ lại nhiều lần)
-    document.addEventListener("click", (event) => {
-      const button = event.target.closest(".doctor-book-button, .doctor-featured-button");
-      if (button) {
-        openBookingPanel(Number(button.dataset.doctorId));
-      }
-    });
-    $("heroBookingButton")?.addEventListener("click", () => {
-      clearBookingMessage();
-      openBookingPanel();
-    });
-    $("closeAppointment")?.addEventListener("click", closeBookingPanel);
-    $("cancelBooking")?.addEventListener("click", closeBookingPanel);
-    doctorSelect?.addEventListener("change", async () => {
-      const doctor = getDoctorById(doctorSelect.value);
-      selectedDoctor = doctor;
-      const bookingDoctorId = $("bookingDoctorId");
-      if (bookingDoctorId) bookingDoctorId.value = doctor ? doctor.id : "";
-      updateSelectedDoctorInfo(doctor);
-      resetSelectedTime();
-      if (appointmentDate) appointmentDate.disabled = !doctor;
-      if (doctor && appointmentDate?.value) {
-        await loadAvailableSlots();
-      } else {
-        showSlotPlaceholder("Chọn ngày để xem giờ khám.");
-      }
-    });
-    if (appointmentDate) {
-      appointmentDate.min = todayString();
-      appointmentDate.addEventListener("change", loadAvailableSlots);
-    }
-    // Chọn giờ khám (các nút giờ được vẽ lại mỗi lần đổi ngày)
-    $("slotList")?.addEventListener("click", (event) => {
-      const button = event.target.closest(".appointment-slot:not(:disabled)");
-      if (!button) {
-        return;
-      }
-      $("slotList")
-        .querySelectorAll(".appointment-slot")
-        .forEach((item) => item.classList.remove("is-selected"));
-      button.classList.add("is-selected");
-      $("selectedScheduleId").value = button.dataset.scheduleId || "";
-      $("selectedAppointmentTime").value = button.dataset.time || "";
-    });
-    $("appointmentForm")?.addEventListener("submit", submitAppointment);
-  }
-  function bookingMessage(message, type = "error") {
-    const form = $("appointmentForm");
-    if (!form) {
-      return;
-    }
-    let box = $("bookingMessage");
-    if (!box) {
-      box = document.createElement("div");
-      box.id = "bookingMessage";
-      form.prepend(box);
-    }
-    box.className = `booking-message ${type}`;
-    box.textContent = message;
-    box.style.display = "block";
-  }
-  function clearBookingMessage() {
-    const box = $("bookingMessage");
-    if (box) {
-      box.style.display = "none";
-      box.textContent = "";
-    }
-  }
-  function openBookingPanel(doctorId = null) {
-    const panel = $("appointmentPanel");
-    if (!panel) {
-      return;
-    }
-    // Yêu cầu đăng nhập
-    if (!getCurrentUser()) {
-      alert("Bạn cần đăng nhập trước khi đặt lịch.");
-      window.location.href = "login.html";
-      return;
-    }
-    panel.classList.add("is-open");
-    if (doctorId) {
-      selectDoctor(getDoctorById(doctorId));
-    }
-    setTimeout(() => {
-      panel.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 50);
-  }
-  function closeBookingPanel() {
-    $("appointmentPanel")?.classList.remove("is-open");
-  }
-  async function selectDoctor(doctor) {
-    if (!doctor) {
-      bookingMessage("Không tìm thấy thông tin bác sĩ.");
-      return;
-    }
-    selectedDoctor = doctor;
-    const doctorSelect = $("doctorSelect");
-    const bookingDoctorId = $("bookingDoctorId");
-    const appointmentDate = $("appointmentDate");
-    if (doctorSelect) doctorSelect.value = doctor.id;
-    if (bookingDoctorId) bookingDoctorId.value = doctor.id;
-    if (appointmentDate) appointmentDate.disabled = false;
-    updateSelectedDoctorInfo(doctor);
-    resetSelectedTime();
-    clearBookingMessage();
-    if (appointmentDate?.value) {
-      await loadAvailableSlots();
-    } else {
-      showSlotPlaceholder("Chọn ngày để xem giờ khám.");
-    }
-  }
-  function updateSelectedDoctorInfo(doctor) {
-    const setText = (id, text) => {
-      const element = $(id);
-      if (element) element.textContent = text;
-    };
-    const avatar = $("selectedDoctorAvatar");
-    if (!doctor) {
-      setText("selectedDoctorName", "Chưa chọn bác sĩ");
-      setText("selectedDoctorSpecialty", "Vui lòng chọn bác sĩ để xem thông tin.");
-      setText("selectedDoctorExperience", "--");
-      setText("selectedDoctorQualification", "--");
-      setText("selectedDoctorLicense", "--");
-      setText("selectedDoctorIntroduction", "Thông tin bác sĩ sẽ được hiển thị tại đây.");
-      if (avatar) avatar.innerHTML = '<i class="fa-solid fa-user-doctor"></i>';
-      return;
-    }
-    setText("selectedDoctorName", `BS. ${doctor.full_name || "Bác sĩ"}`);
-    setText("selectedDoctorSpecialty", doctor.specialty_name || "Chưa cập nhật chuyên khoa");
-    setText(
-      "selectedDoctorExperience",
-      doctor.experience_years == null ? "Chưa cập nhật" : `${doctor.experience_years} năm`
-    );
-    setText("selectedDoctorQualification", doctor.qualification || "Chưa cập nhật");
-    setText("selectedDoctorLicense", doctor.license_number || "Chưa cập nhật");
-    setText(
-      "selectedDoctorIntroduction",
-      doctor.introduction || "Bác sĩ đang cập nhật thông tin giới thiệu."
-    );
-    if (avatar) avatar.innerHTML = doctorAvatarHtml(doctor);
-  }
-  function resetSelectedTime() {
-    const scheduleInput = $("selectedScheduleId");
-    const timeInput = $("selectedAppointmentTime");
-    if (scheduleInput) scheduleInput.value = "";
-    if (timeInput) timeInput.value = "";
-    document
-      .querySelectorAll(".appointment-slot")
-      .forEach((item) => item.classList.remove("is-selected"));
-  }
-  function showSlotPlaceholder(html) {
-    const slotList = $("slotList");
-    if (slotList) {
-      slotList.innerHTML = `<div class="slot-empty">${html}</div>`;
-    }
-    resetSelectedTime();
-  }
-  /* ---------- Lấy khung giờ khám ---------- */
-  /**
-   * Trả về [{ scheduleId, time, available }].
-   * Ưu tiên getAvailableSlots() (nếu api.js có), nếu không có hoặc lỗi
-   * thì tự dựng khung giờ 30 phút từ lịch làm việc của bác sĩ.
-   */
-  async function fetchSlots(doctorId, date) {
-    if (typeof getAvailableSlots === "function") {
-      try {
-        const result = await getAvailableSlots(doctorId, date);
-        return extractArray(result).map((slot) => ({
-          scheduleId: slot.schedule_id,
-          time: formatTime(slot.time),
-          available: Boolean(slot.available)
-        }));
-      } catch (error) {
-        console.warn("getAvailableSlots lỗi, chuyển sang lịch làm việc:", error);
-      }
-    }
-    return buildSlotsFromSchedules(await fetchDoctorSchedules(doctorId, date));
-  }
-  async function fetchDoctorSchedules(doctorId, date) {
-    const urls = [
-      `/api/doctors/${encodeURIComponent(doctorId)}/schedules?date=${encodeURIComponent(date)}`,
-      `/api/schedules?doctor_id=${encodeURIComponent(doctorId)}&date=${encodeURIComponent(date)}`
-    ];
-    let lastError = null;
-    for (const url of urls) {
-      try {
-        return extractArray(await apiFetch(url));
-      } catch (error) {
-        lastError = error;
-        console.warn("Không tải được lịch từ", url, error);
-      }
-    }
-    throw lastError || new Error("Không thể tải lịch khám.");
-  }
-  function buildSlotsFromSchedules(schedules) {
-    const bookedTimes = new Set();
-    schedules.forEach((schedule) => {
-      (schedule.booked_times || schedule.bookedTimes || []).forEach((value) => {
-        bookedTimes.add(formatTime(value));
-      });
-    });
-    const seen = new Set();
-    const slots = [];
-    schedules.flatMap(createSlots).forEach((slot) => {
-      const key = `${slot.scheduleId}-${slot.time}`;
-      if (!seen.has(key)) {
-        seen.add(key);
-        slots.push({
-          scheduleId: slot.scheduleId,
-          time: slot.time,
-          available: !slot.booked && !bookedTimes.has(slot.time)
-        });
-      }
-    });
-    return slots;
-  }
-  /** Khung giờ của một ca làm việc (mỗi khung 30 phút). */
-  function createSlots(schedule) {
-    const existing =
-      schedule.slots || schedule.available_slots || schedule.availableTimes;
-    // API đã trả sẵn danh sách khung giờ
-    if (Array.isArray(existing) && existing.length) {
-      return existing
-        .map((slot) => {
-          if (typeof slot === "string") {
-            return { scheduleId: schedule.id, time: formatTime(slot), booked: false };
-          }
-          return {
-            scheduleId: slot.schedule_id || schedule.id,
-            time: formatTime(slot.appointment_time || slot.time || slot.start_time),
-            booked: Boolean(slot.booked || slot.is_booked || slot.status === "BOOKED")
-          };
+        .slice(0, 3)
+        .map(function (doctor) {
+            return `
+                <button
+                    type="button"
+                    class="doctor-mini doctor-featured-button"
+                    data-doctor-id="${doctor.id}"
+                >
+                    <div class="doctor-avatar">
+                        ${
+                            doctor.avatar
+                                ? `
+                                    <img
+                                        src="${escapeHtml(doctor.avatar)}"
+                                        alt="BS. ${escapeHtml(doctor.full_name)}"
+                                        style="
+                                            width:100%;
+                                            height:100%;
+                                            object-fit:cover;
+                                            border-radius:inherit;
+                                        "
+                                    >
+                                `
+                                : `
+                                    <i class="fa-solid fa-user-doctor"></i>
+                                `
+                        }
+                    </div>
+                    <div class="doctor-info">
+                        <strong>
+                            BS. ${escapeHtml(
+                                doctor.full_name || "Bác sĩ"
+                            )}
+                        </strong>
+                        <span>
+                            ${escapeHtml(
+                                doctor.specialty_name ||
+                                "Chưa cập nhật chuyên khoa"
+                            )}
+                            •
+                            ${formatExperience(
+                                doctor.experience_years
+                            )}
+                        </span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            `;
         })
-        .filter((slot) => slot.time);
-    }
-    // Tự chia khung giờ từ giờ bắt đầu / kết thúc
-    const start = formatTime(schedule.start_time);
-    const end = formatTime(schedule.end_time);
-    if (!start || !end) {
-      return [];
-    }
-    const [startHour, startMinute] = start.split(":").map(Number);
-    const [endHour, endMinute] = end.split(":").map(Number);
-    let current = startHour * 60 + startMinute;
-    const finish = endHour * 60 + endMinute;
-    const slots = [];
-    while (current < finish) {
-      const hours = String(Math.floor(current / 60)).padStart(2, "0");
-      const minutes = String(current % 60).padStart(2, "0");
-      slots.push({ scheduleId: schedule.id, time: `${hours}:${minutes}`, booked: false });
-      current += 30;
-    }
-    return slots;
-  }
-  async function loadAvailableSlots() {
-    const slotList = $("slotList");
-    const doctorId = $("bookingDoctorId")?.value || $("doctorSelect")?.value;
-    const date = $("appointmentDate")?.value;
-    if (!slotList) {
-      return;
-    }
-    resetSelectedTime();
-    if (!doctorId) {
-      showSlotPlaceholder("Vui lòng chọn bác sĩ trước.");
-      return;
-    }
-    if (!date) {
-      showSlotPlaceholder("Chọn ngày để xem giờ khám.");
-      return;
-    }
-    showSlotPlaceholder('<i class="fa-solid fa-spinner fa-spin"></i> Đang tải giờ khám...');
-    try {
-      const slots = await fetchSlots(doctorId, date);
-      if (!slots.length) {
-        showSlotPlaceholder("Bác sĩ không có lịch khám trong ngày này.");
-        return;
-      }
-      slotList.innerHTML = slots
-        .map((slot) => `
-          <button
-            type="button"
-            class="appointment-slot ${slot.available ? "" : "is-booked"}"
-            data-schedule-id="${slot.scheduleId}"
-            data-time="${slot.time}"
-            ${slot.available ? "" : "disabled"}
-          >${slot.time}</button>
-        `)
         .join("");
-    } catch (error) {
-      console.error("LOAD SLOTS ERROR:", error);
-      showSlotPlaceholder("Không thể tải giờ khám. Vui lòng thử lại.");
+    featuredDoctors
+        .querySelectorAll(".doctor-featured-button")
+        .forEach(function (button) {
+            button.addEventListener("click", function () {
+                const doctorId =
+                    Number(this.dataset.doctorId);
+                openBookingPanel(doctorId);
+            });
+        });
+}
+/* =====================================================
+   11. ĐỔ BÁC SĨ VÀO SELECT
+===================================================== */
+
+function populateDoctorSelect() {
+    const doctorSelect =
+        document.getElementById("doctorSelect");
+    if (!doctorSelect) {
+        return;
     }
-  }
-  /* ---------- Tạo lịch hẹn ---------- */
-  async function submitAppointment(event) {
-    event.preventDefault();
-    clearBookingMessage();
+    doctorSelect.innerHTML = `
+        <option value="">
+            -- Chọn bác sĩ --
+        </option>
+    `;
+    allDoctors.forEach(function (doctor) {
+        const option =
+            document.createElement("option");
+        option.value = doctor.id;
+        option.textContent =
+            `BS. ${
+                doctor.full_name || "Bác sĩ"
+            } - ${
+                doctor.specialty_name ||
+                "Chưa cập nhật chuyên khoa"
+            }`;
+        doctorSelect.appendChild(option);
+    });
+}
+/* =====================================================
+   12. MỞ FORM ĐẶT LỊCH
+===================================================== */
+
+function openBookingPanel(doctorId = null) {
+    const panel =
+        document.getElementById("appointmentPanel");
+    if (!panel) {
+        return;
+    }
     const user = getCurrentUser();
     if (!user) {
-      alert("Bạn cần đăng nhập trước khi đặt lịch.");
-      window.location.href = "login.html";
-      return;
+        alert(
+            "Bạn cần đăng nhập trước khi đặt lịch."
+        );
+        window.location.href = "login.html";
+        return;
     }
-    const doctorId = $("bookingDoctorId")?.value || $("doctorSelect")?.value;
-    const date = $("appointmentDate")?.value;
-    const scheduleId = $("selectedScheduleId")?.value;
-    const appointmentTime = $("selectedAppointmentTime")?.value;
-    const reason = $("appointmentReason")?.value.trim() || "";
-    if (!doctorId) return bookingMessage("Vui lòng chọn bác sĩ.");
-    if (!date) return bookingMessage("Vui lòng chọn ngày khám.");
-    if (!scheduleId || !appointmentTime) return bookingMessage("Vui lòng chọn giờ khám.");
-    const submitButton = $("appointmentForm").querySelector('button[type="submit"]');
-    const oldButtonHtml = submitButton?.innerHTML;
+    panel.classList.add("is-open");
+    // Mỗi lần mở form, thử tự điền thông tin còn trống.
+    void prefillBookingContact();
+    if (doctorId) {
+        const doctor = getDoctorById(doctorId);
+        selectedDoctor = doctor;
+        const doctorSelect =
+            document.getElementById("doctorSelect");
+        if (doctorSelect) {
+            doctorSelect.value = String(doctorId);
+        }
+        const bookingDoctorId =
+            document.getElementById("bookingDoctorId");
+        if (bookingDoctorId) {
+            bookingDoctorId.value = String(doctorId);
+        }
+        updateSelectedDoctorInfo(doctor);
+        resetSlots();
+        const appointmentDate =
+            document.getElementById("appointmentDate");
+        if (appointmentDate) {
+            appointmentDate.disabled = false;
+        }
+    }
+    setTimeout(function () {
+        panel.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
+    }, 50);
+}
+/* =====================================================
+   13. ĐÓNG FORM
+===================================================== */
+
+function closeBookingPanel() {
+    const panel =
+        document.getElementById("appointmentPanel");
+    if (panel) {
+        panel.classList.remove("is-open");
+    }
+}
+/* =====================================================
+   14. CẤU HÌNH FORM ĐẶT LỊCH
+===================================================== */
+
+function setupBookingPanel() {
+    const heroBookingButton =
+        document.getElementById("heroBookingButton");
+    const closeAppointment =
+        document.getElementById("closeAppointment");
+    const cancelBooking =
+        document.getElementById("cancelBooking");
+    if (heroBookingButton) {
+        heroBookingButton.addEventListener(
+            "click",
+            function () {
+                openBookingPanel();
+            }
+        );
+    }
+    if (closeAppointment) {
+        closeAppointment.addEventListener(
+            "click",
+            closeBookingPanel
+        );
+    }
+    if (cancelBooking) {
+        cancelBooking.addEventListener(
+            "click",
+            closeBookingPanel
+        );
+    }
+}
+/* =====================================================
+   15. FORM ĐẶT LỊCH
+===================================================== */
+
+function setupBookingForm() {
+    const doctorSelect =
+        document.getElementById("doctorSelect");
+    const appointmentDate =
+        document.getElementById("appointmentDate");
+    const appointmentForm =
+        document.getElementById("appointmentForm");
+    // Tự điền họ tên, email, số điện thoại và địa chỉ.
+    // Không ghi đè thông tin người dùng đã nhập.
+    void prefillBookingContact();
+    /* CHỌN BÁC SĨ */
+    if (doctorSelect) {
+        doctorSelect.addEventListener(
+            "change",
+            async function () {
+                const doctorId = this.value;
+                resetSlots();
+                if (!doctorId) {
+                    selectedDoctor = null;
+                    updateSelectedDoctorInfo(null);
+                    if (appointmentDate) {
+                        appointmentDate.disabled = true;
+                    }
+                    return;
+                }
+                const doctor = getDoctorById(doctorId);
+                selectedDoctor = doctor;
+                const bookingDoctorId =
+                    document.getElementById("bookingDoctorId");
+                if (bookingDoctorId) {
+                    bookingDoctorId.value = String(doctorId);
+                }
+                updateSelectedDoctorInfo(doctor);
+                if (appointmentDate) {
+                    appointmentDate.disabled = false;
+                }
+                // Chỉ tải giờ khám khi người dùng chọn ngày.
+            }
+        );
+    }
+    /* CHỌN NGÀY */
+    if (appointmentDate) {
+        const now = new Date();
+        const today = [
+            now.getFullYear(),
+            String(now.getMonth() + 1).padStart(2, "0"),
+            String(now.getDate()).padStart(2, "0")
+        ].join("-");
+        appointmentDate.min = today;
+        appointmentDate.addEventListener(
+            "change",
+            async function () {
+                const currentDoctorSelect =
+                    document.getElementById("doctorSelect");
+                const doctorId =
+                    currentDoctorSelect?.value;
+                const date = this.value;
+                resetSelectedTime();
+                if (!doctorId || !date) {
+                    return;
+                }
+                await loadAvailableSlotsUI(
+                    doctorId,
+                    date
+                );
+            }
+        );
+    }
+    /* SUBMIT */
+    if (appointmentForm) {
+        appointmentForm.addEventListener(
+            "submit",
+            submitAppointment
+        );
+    }
+}
+/* =====================================================
+   16. CẬP NHẬT THÔNG TIN BÁC SĨ
+===================================================== */
+
+function updateSelectedDoctorInfo(doctor) {
+    const name =
+        document.getElementById("selectedDoctorName");
+    const specialty =
+        document.getElementById("selectedDoctorSpecialty");
+    const experience =
+        document.getElementById("selectedDoctorExperience");
+    const qualification =
+        document.getElementById("selectedDoctorQualification");
+    const license =
+        document.getElementById("selectedDoctorLicense");
+    const introduction =
+        document.getElementById("selectedDoctorIntroduction");
+    const avatar =
+        document.getElementById("selectedDoctorAvatar");
+    if (!doctor) {
+        if (name) {
+            name.textContent = "Chưa chọn bác sĩ";
+        }
+        if (specialty) {
+            specialty.textContent =
+                "Vui lòng chọn bác sĩ để xem thông tin.";
+        }
+        if (experience) {
+            experience.textContent = "--";
+        }
+        if (qualification) {
+            qualification.textContent = "--";
+        }
+        if (license) {
+            license.textContent = "--";
+        }
+        if (introduction) {
+            introduction.textContent =
+                "Thông tin bác sĩ sẽ được hiển thị tại đây.";
+        }
+        if (avatar) {
+            avatar.innerHTML = `
+                <i class="fa-solid fa-user-doctor"></i>
+            `;
+        }
+        return;
+    }
+    if (name) {
+        name.textContent =
+            `BS. ${doctor.full_name || "Bác sĩ"}`;
+    }
+    if (specialty) {
+        specialty.textContent =
+            doctor.specialty_name ||
+            "Chưa cập nhật chuyên khoa";
+    }
+    if (experience) {
+        experience.textContent =
+            doctor.experience_years == null
+                ? "Chưa cập nhật"
+                : `${doctor.experience_years} năm`;
+    }
+    if (qualification) {
+        qualification.textContent =
+            doctor.qualification || "Chưa cập nhật";
+    }
+    if (license) {
+        license.textContent =
+            doctor.license_number || "Chưa cập nhật";
+    }
+    if (introduction) {
+        introduction.textContent =
+            doctor.introduction ||
+            "Bác sĩ đang cập nhật thông tin giới thiệu.";
+    }
+    if (avatar) {
+        avatar.innerHTML = doctor.avatar
+            ? `
+                <img
+                    src="${escapeHtml(doctor.avatar)}"
+                    alt="BS. ${escapeHtml(
+                        doctor.full_name || "Bác sĩ"
+                    )}"
+                >
+            `
+            : `
+                <i class="fa-solid fa-user-doctor"></i>
+            `;
+    }
+}
+/* =====================================================
+   17. TÌM BÁC SĨ
+===================================================== */
+
+function getDoctorById(id) {
+    return (
+        allDoctors.find(function (doctor) {
+            return Number(doctor.id) === Number(id);
+        }) || null
+    );
+}
+/* =====================================================
+   18. LOAD GIỜ KHÁM
+===================================================== */
+
+async function loadAvailableSlotsUI(doctorId, date) {
+    const slotList =
+        document.getElementById("slotList");
+    if (!slotList) {
+        return;
+    }
+    slotList.innerHTML = `
+        <div class="slot-empty">
+            <i class="fa-solid fa-spinner fa-spin"></i>
+            Đang tải giờ khám...
+        </div>
+    `;
+    try {
+        const result =
+            await getAvailableSlots(doctorId, date);
+        const slots =
+            Array.isArray(result?.data)
+                ? result.data
+                : [];
+        if (!slots.length) {
+            slotList.innerHTML = `
+                <div class="slot-empty">
+                    Bác sĩ không có lịch khám trong ngày này.
+                </div>
+            `;
+            resetSelectedTime();
+            return;
+        }
+        slotList.innerHTML = slots
+            .map(function (slot) {
+                const disabled = !slot.available;
+                return `
+                    <button
+                        type="button"
+                        class="appointment-slot ${
+                            disabled ? "is-booked" : ""
+                        }"
+                        data-schedule-id="${slot.schedule_id}"
+                        data-time="${slot.time}"
+                        ${disabled ? "disabled" : ""}
+                    >
+                        ${formatTime(slot.time)}
+                    </button>
+                `;
+            })
+            .join("");
+        slotList
+            .querySelectorAll(".appointment-slot:not(:disabled)")
+            .forEach(function (button) {
+                button.addEventListener(
+                    "click",
+                    function () {
+                        slotList
+                            .querySelectorAll(".appointment-slot")
+                            .forEach(function (item) {
+                                item.classList.remove("is-selected");
+                            });
+                        this.classList.add("is-selected");
+                        const scheduleInput =
+                            document.getElementById(
+                                "selectedScheduleId"
+                            );
+                        const timeInput =
+                            document.getElementById(
+                                "selectedAppointmentTime"
+                            );
+                        if (scheduleInput) {
+                            scheduleInput.value =
+                                this.dataset.scheduleId || "";
+                        }
+                        if (timeInput) {
+                            timeInput.value =
+                                this.dataset.time || "";
+                        }
+                    }
+                );
+            });
+    } catch (error) {
+        console.error("LOAD SLOTS ERROR:", error);
+        slotList.innerHTML = `
+            <div class="slot-empty">
+                Không thể tải giờ khám.
+                Vui lòng thử lại.
+            </div>
+        `;
+        resetSelectedTime();
+    }
+}
+/* =====================================================
+   19. SUBMIT ĐẶT LỊCH
+===================================================== */
+
+async function submitAppointment(event) {
+    event.preventDefault();
+    const user = getCurrentUser();
+    if (!user) {
+        alert("Bạn cần đăng nhập trước khi đặt lịch.");
+        window.location.href = "login.html";
+        return;
+    }
+    /* LẤY THÔNG TIN LỊCH KHÁM */
+    const doctorId =
+        document.getElementById("doctorSelect")?.value;
+    const date =
+        document.getElementById("appointmentDate")?.value;
+    const scheduleId =
+        document.getElementById("selectedScheduleId")?.value;
+    const appointmentTime =
+        document.getElementById("selectedAppointmentTime")?.value;
+    const reason =
+        document.getElementById("appointmentReason")?.value.trim() || "";
+    /* LẤY THÔNG TIN NGƯỜI ĐẶT */
+    const contactName =
+        document.getElementById("bookingContactName")?.value.trim() || "";
+    const contactEmail =
+        document.getElementById("bookingContactEmail")?.value
+            .trim()
+            .toLowerCase() || "";
+    const contactPhoneInput =
+        document.getElementById("bookingContactPhone")?.value.trim() || "";
+    const contactAddress =
+        document.getElementById("bookingContactAddress")?.value.trim() || "";
+    const smsOptIn =
+        document.getElementById("bookingSmsConsent")?.checked === true;
+    /* KIỂM TRA BÁC SĨ VÀ GIỜ KHÁM */
+    if (!doctorId) {
+        alert("Vui lòng chọn bác sĩ.");
+        return;
+    }
+    if (!date) {
+        alert("Vui lòng chọn ngày khám.");
+        return;
+    }
+    if (!scheduleId || !appointmentTime) {
+        alert("Vui lòng chọn một giờ khám còn trống.");
+        return;
+    }
+    /* KIỂM TRA HỌ TÊN */
+    if (contactName.length < 2 || contactName.length > 100) {
+        alert("Họ tên phải có từ 2 đến 100 ký tự.");
+        document
+            .getElementById("bookingContactName")
+            ?.focus();
+        return;
+    }
+    /* KIỂM TRA EMAIL */
+    if (
+        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail) ||
+        contactEmail.length > 254
+    ) {
+        alert("Vui lòng nhập email hợp lệ.");
+        document
+            .getElementById("bookingContactEmail")
+            ?.focus();
+        return;
+    }
+    /* KIỂM TRA SỐ ĐIỆN THOẠI */
+    const contactPhone =
+        contactPhoneInput.replace(/[\s().-]/g, "");
+    if (!/^(?:0\d{9}|\+?84\d{9})$/.test(contactPhone)) {
+        alert("Số điện thoại chưa hợp lệ. Ví dụ: 0912345678.");
+        document
+            .getElementById("bookingContactPhone")
+            ?.focus();
+        return;
+    }
+    /* KIỂM TRA ĐỊA CHỈ */
+    if (!contactAddress || contactAddress.length > 255) {
+        alert("Vui lòng nhập địa chỉ hợp lệ, tối đa 255 ký tự.");
+        document
+            .getElementById("bookingContactAddress")
+            ?.focus();
+        return;
+    }
+    /* NÚT ĐẶT LỊCH */
+    const form =
+        document.getElementById("appointmentForm");
+    const submitButton =
+        form?.querySelector('button[type="submit"]');
+    const oldButtonHTML =
+        submitButton?.innerHTML;
     if (submitButton) {
-      submitButton.disabled = true;
-      submitButton.innerHTML = `
-        <i class="fa-solid fa-spinner fa-spin"></i>
-        Đang đặt lịch...
-      `;
+        submitButton.disabled = true;
+        submitButton.innerHTML =
+            '<i class="fa-solid fa-spinner fa-spin"></i> Đang đặt lịch...';
     }
     try {
-      const payload = {
-        patient_id: Number(user.id),
-        doctor_id: Number(doctorId),
-        schedule_id: Number(scheduleId),
-        appointment_time: appointmentTime,
-        reason: reason || null
-      };
-      console.log("Dữ liệu đặt lịch gửi API:", payload);
-      const result = await apiFetch("/api/appointments", {
-        method: "POST",
-        body: JSON.stringify(payload)
-      });
-      const reasonInput = $("appointmentReason");
-      if (reasonInput) reasonInput.value = "";
-      // Tải lại danh sách giờ (giờ vừa đặt sẽ bị khóa), rồi mới báo thành công
-      await loadAvailableSlots();
-      bookingMessage(
-        result?.message || "Đặt lịch khám thành công. Lịch hẹn đang chờ xác nhận.",
-        "success"
-      );
+        /* DỮ LIỆU GỬI BACKEND */
+        const payload = {
+            doctor_id: Number(doctorId),
+            schedule_id: Number(scheduleId),
+            appointment_time: appointmentTime,
+            reason: reason || null,
+            contact_name: contactName,
+            contact_email: contactEmail,
+            contact_phone: contactPhone,
+            contact_address: contactAddress,
+            sms_opt_in: smsOptIn
+        };
+        // Không ghi email, số điện thoại hoặc địa chỉ ra console.
+        console.log("Đang gửi yêu cầu đặt lịch:", {
+            doctor_id: payload.doctor_id,
+            schedule_id: payload.schedule_id,
+            appointment_time: payload.appointment_time,
+            sms_opt_in: payload.sms_opt_in
+        });
+        const result = await apiFetch("/api/appointments", {
+            method: "POST",
+            body: JSON.stringify(payload)
+        });
+        alert(
+            result.message ||
+            "Đặt lịch khám thành công."
+        );
+        // Xóa lựa chọn giờ cũ.
+        resetSlots();
+        const reasonInput =
+            document.getElementById("appointmentReason");
+        if (reasonInput) {
+            reasonInput.value = "";
+        }
+        // Giữ thông tin liên hệ để người dùng không phải nhập lại.
+        await loadAvailableSlotsUI(doctorId, date);
     } catch (error) {
-      console.error("CREATE APPOINTMENT ERROR:", error);
-      bookingMessage(error.message || "Không thể đặt lịch khám.");
+        console.error("CREATE APPOINTMENT ERROR:", error);
+        alert(
+            error.message ||
+            "Không thể đặt lịch khám."
+        );
     } finally {
-      if (submitButton) {
-        submitButton.disabled = false;
-        submitButton.innerHTML = oldButtonHtml;
-      }
+        if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.innerHTML = oldButtonHTML;
+        }
     }
-  }
-})();
+}
+/* =====================================================
+   20. RESET SLOT
+===================================================== */
+
+function resetSlots() {
+    const slotList =
+        document.getElementById("slotList");
+    const scheduleInput =
+        document.getElementById("selectedScheduleId");
+    const timeInput =
+        document.getElementById("selectedAppointmentTime");
+    if (slotList) {
+        slotList.innerHTML = `
+            <div class="slot-empty">
+                Chọn ngày để xem giờ khám.
+            </div>
+        `;
+    }
+    if (scheduleInput) {
+        scheduleInput.value = "";
+    }
+    if (timeInput) {
+        timeInput.value = "";
+    }
+}
+/* =====================================================
+   21. RESET GIỜ ĐƯỢC CHỌN
+===================================================== */
+
+function resetSelectedTime() {
+    const scheduleInput =
+        document.getElementById("selectedScheduleId");
+    const timeInput =
+        document.getElementById("selectedAppointmentTime");
+    if (scheduleInput) {
+        scheduleInput.value = "";
+    }
+    if (timeInput) {
+        timeInput.value = "";
+    }
+    document
+        .querySelectorAll(".appointment-slot")
+        .forEach(function (item) {
+            item.classList.remove("is-selected");
+        });
+}
+/* =====================================================
+   22. TÌM KIẾM
+===================================================== */
+
+function normalizeSearchText(value) {
+    return String(value || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[đĐ]/g, "d")
+        .toLowerCase()
+        .trim();
+}
+
+function applyHomeSearch() {
+    const keywordInput =
+        document.getElementById("searchKeyword");
+    const specialtySelect =
+        document.getElementById("specialtySelect");
+    const summary =
+        document.getElementById("doctorSearchSummary");
+    const keyword =
+        normalizeSearchText(keywordInput?.value || "");
+    const specialty =
+        String(specialtySelect?.value || "");
+    const searchActive =
+        Boolean(keyword || specialty);
+    const results = allDoctors.filter(doctor => {
+        const searchableText = normalizeSearchText([
+            doctor.full_name,
+            doctor.specialty_name,
+            doctor.qualification,
+            doctor.introduction,
+            doctor.license_number
+        ].filter(Boolean).join(" "));
+        const matchesKeyword =
+            !keyword || searchableText.includes(keyword);
+        const doctorSpecialty =
+            createSpecialtySlug(doctor.specialty_name || "");
+        const matchesSpecialty =
+            !specialty || doctorSpecialty === specialty;
+        return matchesKeyword && matchesSpecialty;
+    });
+    renderDoctors(results, {
+        showAll: searchActive,
+        searchActive
+    });
+    if (summary) {
+        if (!searchActive) {
+            summary.textContent = allDoctors.length
+                ? `Đang hiển thị ${Math.min(6, allDoctors.length)} bác sĩ nổi bật. Nhập tên bác sĩ hoặc chọn chuyên khoa để tìm kiếm.`
+                : "Chưa có dữ liệu bác sĩ để tìm kiếm.";
+        } else {
+            const countText =
+                `Tìm thấy ${results.length} bác sĩ phù hợp`;
+            const filters = [];
+            if (keywordInput?.value.trim()) {
+                filters.push(
+                    `từ khóa “${keywordInput.value.trim()}”`
+                );
+            }
+            if (
+                specialtySelect?.selectedOptions?.[0] &&
+                specialty
+            ) {
+                filters.push(
+                    `chuyên khoa ${specialtySelect.selectedOptions[0].textContent}`
+                );
+            }
+            summary.textContent =
+                `${countText}${
+                    filters.length
+                        ? ` với ${filters.join(" và ")}`
+                        : ""
+                }.`;
+        }
+    }
+}
+
+function setupSearch() {
+    const searchForm =
+        document.getElementById("searchForm");
+    const keywordInput =
+        document.getElementById("searchKeyword");
+    const specialtySelect =
+        document.getElementById("specialtySelect");
+    if (!searchForm) {
+        return;
+    }
+    searchForm.addEventListener("submit", function (event) {
+        event.preventDefault();
+        applyHomeSearch();
+        document.getElementById("doctors")?.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
+    });
+    keywordInput?.addEventListener(
+        "input",
+        applyHomeSearch
+    );
+    specialtySelect?.addEventListener(
+        "change",
+        applyHomeSearch
+    );
+}
+/* =====================================================
+   23. FORMAT TIME
+===================================================== */
+
+function formatTime(value) {
+    if (!value) {
+        return "";
+    }
+    return String(value).slice(0, 5);
+}
+/* =====================================================
+   24. ESCAPE HTML
+===================================================== */
+
+function escapeHtml(value) {
+    if (value === null || value === undefined) {
+        return "";
+    }
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}

@@ -3,7 +3,9 @@ const path = require("path");
 const session = require("express-session");
 
 require("dotenv").config();
-
+const {
+    startAppointmentReminderJob
+} = require("./jobs/appointment-reminder.job");
 const { testConnection } = require("./config/db");
 
 const authRoutes = require("./routes/auth.routes");

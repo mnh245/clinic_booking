@@ -508,7 +508,7 @@
 </head>
 <body>
 <!-- ================= HEADER ================= -->
-<header class="site-header">
+ <header class="site-header">
   <div class="container header-inner">
     <a href="home.html" class="brand" aria-label="Clinic Booking - Trang chủ">
       <div class="logo"><i class="fa-solid fa-stethoscope"></i></div>
@@ -524,9 +524,8 @@
     <a href="#how-it-works">Hướng dẫn</a>
 
     <!-- Điều hướng hồ sơ theo vai trò đăng nhập -->
-    <a href="#"
-       id="myProfileLink"
-       style="display: none;">
+    <a href="patient-profile.html"
+       id="myProfileLink">
         Hồ sơ của tôi
     </a>
 </nav>
@@ -702,6 +701,89 @@
           </div>
           <input type="hidden" id="selectedScheduleId">
           <input type="hidden" id="selectedAppointmentTime">
+          <!-- THÔNG TIN NGƯỜI ĐẶT LỊCH -->
+<div class="booking-contact-panel">
+    <div class="booking-contact-heading">
+        <h3>
+            <i class="fa-solid fa-address-card"></i>
+            Thông tin người đặt lịch
+        </h3>
+        <p>
+            Vui lòng kiểm tra thông tin để phòng khám liên hệ
+            và gửi thông báo lịch khám.
+        </p>
+    </div>
+
+    <div class="booking-contact-grid">
+        <div class="form-group">
+            <label for="bookingContactName">Họ và tên *</label>
+            <input
+                type="text"
+                id="bookingContactName"
+                name="contact_name"
+                autocomplete="name"
+                maxlength="100"
+                required
+                placeholder="Nhập họ và tên người khám"
+            >
+        </div>
+
+        <div class="form-group">
+            <label for="bookingContactEmail">Email *</label>
+            <input
+                type="email"
+                id="bookingContactEmail"
+                name="contact_email"
+                autocomplete="email"
+                maxlength="254"
+                required
+                placeholder="example@email.com"
+            >
+        </div>
+
+        <div class="form-group">
+            <label for="bookingContactPhone">Số điện thoại *</label>
+            <input
+                type="tel"
+                id="bookingContactPhone"
+                name="contact_phone"
+                autocomplete="tel"
+                inputmode="tel"
+                maxlength="20"
+                required
+                placeholder="0912345678"
+            >
+            <small class="booking-contact-hint">
+                Số điện thoại nhận SMS nhắc lịch.
+            </small>
+        </div>
+
+        <div class="form-group booking-contact-full">
+            <label for="bookingContactAddress">Địa chỉ *</label>
+            <input
+                type="text"
+                id="bookingContactAddress"
+                name="contact_address"
+                autocomplete="street-address"
+                maxlength="255"
+                required
+                placeholder="Số nhà, đường, phường/xã, tỉnh/thành phố"
+            >
+        </div>
+    </div>
+
+    <label class="booking-sms-consent" for="bookingSmsConsent">
+        <input
+            type="checkbox"
+            id="bookingSmsConsent"
+            name="sms_opt_in"
+        >
+        <span>
+            Tôi đồng ý nhận SMS xác nhận và nhắc lịch khám
+            đến số điện thoại đã cung cấp.
+        </span>
+    </label>
+</div>
           <div class="form-group">
             <label for="appointmentReason">Lý do khám</label>
             <textarea

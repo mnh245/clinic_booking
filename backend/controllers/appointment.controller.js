@@ -2,6 +2,12 @@ const { pool } = require("../config/db");
 // =====================================================
 // HELPER: LẤY USER ĐANG ĐĂNG NHẬP
 // =====================================================
+const {
+    sendSms,
+    isSmsConfigured,
+    isSmsSandbox,
+    normalizeVietnamPhone
+} = require("../services/sms.service");
 
 function getCurrentUser(req) {
     return (
@@ -326,11 +332,64 @@ async function createAppointment(req, res) {
             });
         }
         const {
-            doctor_id,
-            schedule_id,
-            appointment_time,
-            reason
-        } = req.body;
+    doctor_id,
+    schedule_id,
+    appointment_time,
+    reason,
+    contact_name,
+    contact_email,
+    contact_phone,
+    contact_address,
+    sms_opt_in
+} = req.body || {};
+
+const contactName = String(contact_name ?? "").trim();
+const contactEmail = String(contact_email ?? "")
+    .trim()
+    .toLowerCase();
+
+const contactPhone =
+    normalizeVietnamPhone(contact_phone);
+
+const contactAddress =
+    String(contact_address ?? "").trim();
+
+const smsOptIn =
+    sms_opt_in === true ||
+    sms_opt_in === 1 ||
+    sms_opt_in === "1" ||
+    sms_opt_in === "true";
+
+if (contactName.length < 2 || contactName.length > 100) {
+    return res.status(400).json({
+        success: false,
+        message: "Họ tên phải có từ 2 đến 100 ký tự."
+    });
+}
+
+if (
+    contactEmail.length > 254 ||
+    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)
+) {
+    return res.status(400).json({
+        success: false,
+        message: "Email người đặt không hợp lệ."
+    });
+}
+
+if (!/^0\d{9}$/.test(contactPhone)) {
+    return res.status(400).json({
+        success: false,
+        message: "Số điện thoại phải hợp lệ, ví dụ 0912345678."
+    });
+}
+
+if (!contactAddress || contactAddress.length > 255) {
+    return res.status(400).json({
+        success: false,
+        message: "Vui lòng nhập địa chỉ hợp lệ, tối đa 255 ký tự."
+    });
+}
         // =================================================
         // BỆNH NHÂN LẤY TỪ SESSION
         // =================================================
@@ -574,52 +633,114 @@ async function createAppointment(req, res) {
         // =================================================
         // TẠO LỊCH HẸN
         // =================================================
-        const [result] =
-            await connection.query(
-                `
-                INSERT INTO appointments
-                (
-                    patient_id,
-                    doctor_id,
-                    schedule_id,
-                    appointment_time,
-                    reason,
-                    status
-                )
-                VALUES (?, ?, ?, ?, ?, 'PENDING')
-                `,
-                [
-                    patient_id,
-                    Number(doctor_id),
-                    Number(schedule_id),
-                    appointment_time,
-                    reason
-                        ? String(reason).trim()
-                        : null
-                ]
-            );
-        await connection.commit();
-        return res.status(201).json({
-            success: true,
-            message:
-                "Đặt lịch khám thành công.",
-            data: {
-                id:
-                    result.insertId,
-                patient_id,
-                doctor_id:
-                    Number(doctor_id),
-                schedule_id:
-                    Number(schedule_id),
-                appointment_time,
-                reason:
-                    reason
-                        ? String(reason).trim()
-                        : null,
-                status:
-                    "PENDING"
+       const [result] = await connection.query(
+    `
+    INSERT INTO appointments (
+        patient_id,
+        doctor_id,
+        schedule_id,
+        appointment_time,
+        reason,
+        contact_name,
+        contact_email,
+        contact_phone,
+        contact_address,
+        sms_opt_in,
+        status
+    )
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING')
+    `,
+    [
+        patient_id,
+        Number(doctor_id),
+        Number(schedule_id),
+        appointment_time,
+        reason ? String(reason).trim() : null,
+        contactName,
+        contactEmail,
+        contactPhone,
+        contactAddress,
+        smsOptIn ? 1 : 0
+    ]
+);
+       await connection.commit();
+
+const appointmentId = Number(result.insertId);
+
+let bookingSmsSent = false;
+let smsMessage = "";
+
+if (smsOptIn) {
+    if (!isSmsConfigured()) {
+        smsMessage =
+            " Chưa gửi được SMS vì hệ thống chưa có cấu hình SMS hợp lệ.";
+
+        console.warn(
+            "BOOKING SMS SKIPPED: eSMS chưa được cấu hình."
+        );
+    } else {
+        try {
+            const smsContent =
+                `Clinic Booking: Da tiep nhan yeu cau dat lich ` +
+                `cua ${contactName}. Ngay ` +
+                `${schedule.schedule_date_display}, luc ` +
+                `${String(appointment_time).slice(0, 5)}. ` +
+                `Lich dang cho xac nhan. Ma lich ${appointmentId}.`;
+
+            await sendSms(contactPhone, smsContent);
+
+            if (!isSmsSandbox()) {
+                await pool.query(
+                    `
+                    UPDATE appointments
+                    SET booking_sms_sent = 1
+                    WHERE id = ?
+                    `,
+                    [appointmentId]
+                );
+
+                bookingSmsSent = true;
+
+                smsMessage =
+                    " Yêu cầu SMS đã được nhà cung cấp tiếp nhận.";
+            } else {
+                smsMessage =
+                    " Hệ thống đang ở chế độ Sandbox nên không gửi SMS thật.";
             }
-        });
+        } catch (smsError) {
+            console.error(
+                "BOOKING SMS FAILED:",
+                smsError.message
+            );
+
+            smsMessage =
+                " Lịch đã lưu nhưng gửi SMS thất bại; hãy kiểm tra log Backend.";
+        }
+    }
+} else {
+    smsMessage =
+        " Bạn chưa chọn nhận thông báo SMS.";
+}
+
+return res.status(201).json({
+    success: true,
+    message: "Đặt lịch khám thành công." + smsMessage,
+    data: {
+        id: appointmentId,
+        patient_id,
+        doctor_id: Number(doctor_id),
+        schedule_id: Number(schedule_id),
+        appointment_time,
+        reason: reason ? String(reason).trim() : null,
+        contact_name: contactName,
+        contact_email: contactEmail,
+        contact_phone: contactPhone,
+        contact_address: contactAddress,
+        sms_opt_in: smsOptIn,
+        booking_sms_sent: bookingSmsSent,
+        status: "PENDING"
+    }
+});
     } catch (error) {
         try {
             await connection.rollback();
@@ -1027,11 +1148,94 @@ async function confirmAppointment(
                 appointmentId
             ]
         );
-        return res.json({
-            success: true,
-            message:
-                "Xác nhận lịch khám thành công."
-        });
+
+let confirmationSmsSent = false;
+
+try {
+    const [rows] = await pool.query(
+        `
+        SELECT
+            a.id,
+            a.contact_name,
+            a.contact_phone,
+            a.sms_opt_in,
+            a.confirmation_sms_sent,
+            DATE_FORMAT(
+                s.schedule_date,
+                '%d/%m/%Y'
+            ) AS appointment_date_display,
+            TIME_FORMAT(
+                a.appointment_time,
+                '%H:%i'
+            ) AS appointment_time_display,
+            du.full_name AS doctor_name
+        FROM appointments a
+        INNER JOIN schedules s
+            ON s.id = a.schedule_id
+        INNER JOIN doctors d
+            ON d.id = a.doctor_id
+        INNER JOIN users du
+            ON du.id = d.user_id
+        WHERE a.id = ?
+        LIMIT 1
+        `,
+        [appointmentId]
+    );
+
+    const appointment = rows[0];
+
+    const optedIn =
+        Number(appointment?.sms_opt_in) === 1;
+
+    const alreadySent =
+        Number(appointment?.confirmation_sms_sent) === 1;
+
+    if (
+        appointment &&
+        optedIn &&
+        appointment.contact_phone &&
+        !alreadySent &&
+        isSmsConfigured()
+    ) {
+        const smsContent =
+            `Clinic Booking: Lich kham cua ` +
+            `${appointment.contact_name} da duoc xac nhan. ` +
+            `Ngay ${appointment.appointment_date_display}, luc ` +
+            `${appointment.appointment_time_display}, voi BS ` +
+            `${appointment.doctor_name}.`;
+
+        await sendSms(
+            appointment.contact_phone,
+            smsContent
+        );
+
+        if (!isSmsSandbox()) {
+            await pool.query(
+                `
+                UPDATE appointments
+                SET confirmation_sms_sent = 1
+                WHERE id = ?
+                `,
+                [appointmentId]
+            );
+
+            confirmationSmsSent = true;
+        }
+    }
+} catch (smsError) {
+    console.error(
+        "APPOINTMENT CONFIRMATION SMS FAILED:",
+        smsError.message
+    );
+}
+        
+       return res.json({
+    success: true,
+    message: confirmationSmsSent
+        ? "Xác nhận lịch khám thành công. Yêu cầu SMS xác nhận đã được tiếp nhận."
+        : "Xác nhận lịch khám thành công. SMS chưa được gửi hoặc đang ở chế độ thử nghiệm."
+});
+
     } catch (error) {
         console.error(
             "CONFIRM APPOINTMENT ERROR:",
