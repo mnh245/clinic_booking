@@ -42,10 +42,18 @@
         window.location.href = "home.html";
         return;
       }
-      const name = user.full_name || user.fullName || "Quản trị viên";
-      $("#adminName").textContent = name;
-      $("#adminGreeting").textContent = name;
-      await loadDashboardData();
+
+const name = user.full_name || user.fullName || "Quản trị viên";
+
+// Cập nhật lời chào admin
+const greeting = $("#adminGreeting");
+
+if (greeting) {
+    greeting.textContent = name;
+}
+
+await loadDashboardData();
+
     } catch (error) {
       console.error("Không thể khởi tạo admin dashboard:", error);
       showMessage(
