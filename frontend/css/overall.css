@@ -1415,89 +1415,191 @@ button{
    THÔNG TIN LIÊN HỆ TRONG FORM ĐẶT LỊCH
 ========================================= */
 
+
+/* =========================================
+   THÔNG TIN NGƯỜI ĐẶT LỊCH
+========================================= */
+
 .booking-contact-panel {
-    margin: 20px 0;
-    padding: 20px;
-    border: 1px solid #dbe7e7;
-    border-radius: 16px;
-    background: #f8fbfb;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 16px;
+    border: 1px solid #dcebea;
+    border-radius: 12px;
+    background: #f7fbfb;
+    width: 100%;
 }
 
+/* Tiêu đề và mô tả */
+
 .booking-contact-heading {
-    margin-bottom: 18px;
+    margin-bottom: 16px;
 }
 
 .booking-contact-heading h3 {
     display: flex;
     align-items: center;
-    gap: 9px;
-    margin: 0 0 8px;
-    color: #0b5f59;
-    font-size: 18px;
+    gap: 8px;
+    margin: 0 0 7px;
+    color: #086b65;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.5;
+}
+
+.booking-contact-heading h3 i {
+    color: #0d8179;
+    font-size: 15px;
 }
 
 .booking-contact-heading p {
     margin: 0;
-    color: #64748b;
-    font-size: 13px;
+    color: #718096;
+    font-size: 12px;
     line-height: 1.6;
 }
+
+/* Bố cục các trường thông tin */
 
 .booking-contact-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 15px;
+    gap: 14px 12px;
 }
 
 .booking-contact-grid .form-group {
+    display: flex;
+    flex-direction: column;
     min-width: 0;
     margin: 0;
 }
 
-.booking-contact-grid input {
+/* Nhãn */
+
+.booking-contact-grid .form-group label {
+    display: block;
+    margin-bottom: 6px;
+    color: #334155;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.5;
+}
+
+/* Ô nhập liệu */
+
+.booking-contact-grid input,
+.booking-contact-grid select,
+.booking-contact-grid textarea {
     box-sizing: border-box;
     width: 100%;
-    min-height: 44px;
+    min-width: 0;
+    min-height: 42px;
+    padding: 10px 12px;
+    border: 1px solid #dce5ed;
+    border-radius: 9px;
+    outline: none;
+    background: #ffffff;
+    color: #334155;
+    font-family: inherit;
+    font-size: 13px;
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        background 0.2s ease;
 }
+
+/* Placeholder */
+
+.booking-contact-grid input::placeholder,
+.booking-contact-grid textarea::placeholder {
+    color: #94a3b8;
+    opacity: 1;
+}
+
+/* Khi chọn hoặc nhập dữ liệu */
+
+.booking-contact-grid input:focus,
+.booking-contact-grid select:focus,
+.booking-contact-grid textarea:focus {
+    border-color: #0d9488;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.10);
+}
+
+/* Trường chiếm toàn bộ chiều rộng */
 
 .booking-contact-full {
     grid-column: 1 / -1;
 }
 
+/* Địa chỉ và trường nhập dài */
+
+.booking-contact-grid textarea {
+    min-height: 90px;
+    resize: vertical;
+    line-height: 1.6;
+}
+
+/* Ghi chú dưới trường nhập */
+
 .booking-contact-hint {
     display: block;
     margin-top: 5px;
-    color: #64748b;
-    font-size: 12px;
+    color: #8492a6;
+    font-size: 11px;
     line-height: 1.5;
 }
+
+/* Đồng ý nhận SMS */
 
 .booking-sms-consent {
     display: flex;
     align-items: flex-start;
-    gap: 10px;
-    margin-top: 18px;
-    color: #334155;
-    font-size: 13px;
+    gap: 9px;
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid #e3eeee;
+    color: #475569;
+    font-size: 11px;
+    font-weight: 500;
     line-height: 1.6;
     cursor: pointer;
 }
 
 .booking-sms-consent input {
-    flex: 0 0 auto;
-    margin-top: 4px;
+    flex: 0 0 15px;
+    width: 15px;
+    min-height: 15px;
+    height: 15px;
+    margin: 3px 0 0;
+    accent-color: #0d8179;
+    cursor: pointer;
 }
+
+/* Responsive */
 
 @media (max-width: 640px) {
     .booking-contact-panel {
-        padding: 15px;
+        padding: 14px;
+        border-radius: 11px;
+    }
+
+    .booking-contact-heading h3 {
+        font-size: 15px;
     }
 
     .booking-contact-grid {
         grid-template-columns: minmax(0, 1fr);
+        gap: 13px;
     }
 
     .booking-contact-full {
         grid-column: auto;
+    }
+
+    .booking-contact-grid input,
+    .booking-contact-grid select,
+    .booking-contact-grid textarea {
+        min-height: 42px;
     }
 }
