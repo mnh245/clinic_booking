@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Quản lý chuyên khoa | Clinic Booking</title>
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+          rel="stylesheet">
+
+    <link rel="stylesheet" href="css/overall.css">
+    <link rel="stylesheet" href="css/admin-pages.css">
+
+    <style>
+        .specialty-page {
+            padding: 30px 0 50px;
+        }
+
+        .specialty-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .specialty-header h2 {
+            margin: 8px 0;
+        }
+
+        .specialty-header p {
+            color: var(--muted, #64748b);
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .specialty-panel {
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .specialty-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+
+        .specialty-form .form-group {
+            margin: 0;
+            min-width: 0;
+        }
+
+        .specialty-form .form-control {
+            box-sizing: border-box;
+            width: 100%;
+        }
+
+        .specialty-wide {
+            grid-column: 1 / -1;
+        }
+
+        .specialty-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .specialty-message {
+            display: none;
+            margin-bottom: 20px;
+            padding: 13px 16px;
+            border-radius: 10px;
+            line-height: 1.6;
+        }
+
+        .specialty-message.show {
+            display: block;
+        }
+
+        .specialty-message.success {
+            background: #f0fdf4;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+
+        .specialty-message.error {
+            background: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        .specialty-table-wrap {
+            overflow-x: auto;
+            border: 1px solid var(--border, #e2e8f0);
+            border-radius: 12px;
+        }
+
+        .specialty-table {
+            width: 100%;
+            min-width: 650px;
+            border-collapse: collapse;
+        }
+
+        .specialty-table th,
+        .specialty-table td {
+            padding: 13px 14px;
+            border-bottom: 1px solid var(--border, #e2e8f0);
+            text-align: left;
+            vertical-align: middle;
+        }
+
+        .specialty-table th {
+            background: #f8fafc;
+            color: #475569;
+            font-size: 12px;
+        }
+
+        .specialty-table tbody tr:last-child td {
+            border-bottom: 0;
+        }
+
+        .specialty-table-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px;
+        }
+
+        .specialty-table-actions button {
+            white-space: nowrap;
+        }
+
+        .specialty-empty {
+            text-align: center !important;
+            padding: 28px 16px !important;
+            color: var(--muted, #64748b);
+        }
+
+        @media (max-width: 640px) {
+            .specialty-page {
+                padding-top: 20px;
+            }
+
+            .specialty-panel {
+                padding: 16px;
+            }
+
+            .specialty-form {
+                grid-template-columns: 1fr;
+            }
+
+            .specialty-wide {
+                grid-column: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<!-- ================= HEADER ================= -->
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="admin-dashboard.html" class="brand" aria-label="Clinic Booking - Trang chủ">
+      <div class="logo"><i class="fa-solid fa-stethoscope"></i></div>
+      <div>
+        <h1>Clinic Booking</h1>
+        <p>Quản trị hệ thống</p>
+      </div>
+    </a>
+   <nav class="nav" aria-label="Điều hướng chính">
+    <a href="admin-dashboard.html" class="active">Trang chủ</a>
+    <a href="admin-management.html">quản lý bác sĩ</a>
+    <a href="specialty-management.html">Quản lý chuyên khoa</a>
+    <a href="appointment-report.html">thống kê báo cáo</a>
+
+    <!-- Điều hướng hồ sơ theo vai trò đăng nhập -->
+    <a href="#"
+       id="myProfileLink"
+       style="display: none;">
+        Hồ sơ của tôi
+    </a>
+</nav>
+    <div class="header-actions" id="headerActions">
+      <a href="login.html" class="btn btn-outline" id="loginLink">Đăng nhập</a>
+      <a href="register.html" class="btn btn-primary" id="registerLink">Đăng ký</a>
+      <div id="userInfo" style="display:none;align-items:center;gap:10px;">
+        <span id="welcomeUser" style="font-size:14px;color:var(--text);font-weight:500;"></span>
+        <button type="button" class="btn btn-outline" id="logoutButton">Đăng xuất</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="admin-main specialty-page">
+    <div class="container">
+        <section class="specialty-header">
+            <div>
+                <span class="admin-eyebrow">
+                    <i class="fa-solid fa-list-check"></i>
+                    QUẢN TRỊ DANH MỤC
+                </span>
+
+                <h2>Quản lý chuyên khoa</h2>
+
+                <p>
+                    Thêm, chỉnh sửa và theo dõi danh sách chuyên khoa
+                    của phòng khám.
+                </p>
+            </div>
+
+            <button type="button"
+                    class="btn btn-outline"
+                    id="specialtyRefreshButton">
+                <i class="fa-solid fa-rotate"></i>
+                Làm mới
+            </button>
+        </section>
+
+        <div id="specialtyMessage"
+             class="specialty-message"
+             role="status"
+             aria-live="polite"></div>
+
+        <section class="admin-panel card specialty-panel">
+            <div class="panel-header">
+                <div>
+                    <span class="panel-kicker">THÔNG TIN DANH MỤC</span>
+                    <h3 id="specialtyFormTitle">Thêm chuyên khoa mới</h3>
+                    <p>Nhập tên chuyên khoa và mô tả nếu có.</p>
+                </div>
+            </div>
+
+            <form id="specialtyForm" class="specialty-form">
+                <input type="hidden" id="specialtyId">
+
+                <div class="form-group">
+                    <label for="specialtyName">Tên chuyên khoa *</label>
+                    <input type="text"
+                           id="specialtyName"
+                           class="form-control"
+                           maxlength="100"
+                           required
+                           placeholder="Ví dụ: Tim mạch">
+                </div>
+
+                <div class="form-group specialty-wide">
+                    <label for="specialtyDescription">Mô tả</label>
+                    <textarea id="specialtyDescription"
+                              class="form-control"
+                              maxlength="1000"
+                              rows="4"
+                              placeholder="Mô tả về chuyên khoa..."></textarea>
+                </div>
+
+                <div class="specialty-actions specialty-wide">
+                    <button type="submit"
+                            class="btn btn-primary"
+                            id="specialtySaveButton">
+                        <i class="fa-solid fa-plus"></i>
+                        Thêm chuyên khoa
+                    </button>
+
+                    <button type="button"
+                            class="btn btn-outline"
+                            id="specialtyCancelEdit"
+                            hidden>
+                        Hủy chỉnh sửa
+                    </button>
+
+                    <button type="reset"
+                            class="btn btn-outline">
+                        Nhập lại
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <section class="admin-panel card specialty-panel">
+            <div class="panel-header">
+                <div>
+                    <span class="panel-kicker">DANH SÁCH</span>
+                    <h3>Danh sách chuyên khoa</h3>
+                </div>
+            </div>
+
+            <div class="specialty-table-wrap">
+                <table class="specialty-table">
+                    <thead>
+                    <tr>
+                        <th>Tên chuyên khoa</th>
+                        <th>Mô tả</th>
+                        <th>Số bác sĩ</th>
+                        <th>Thao tác</th>
+                    </tr>
+                    </thead>
+
+                    <tbody id="specialtyTableBody">
+                    <tr>
+                        <td colspan="4" class="specialty-empty">
+                            Đang tải chuyên khoa...
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+</main>
+
+<script src="js/api.js"></script>
+<script src="js/home.js"></script>
+<script src="js/specialty-management.js"></script>
+</body>
+</html>

@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Thống kê lịch khám | Clinic Booking</title>
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+          rel="stylesheet">
+
+    <link rel="stylesheet" href="css/overall.css">
+    <link rel="stylesheet" href="css/admin-pages.css">
+
+    <style>
+        .report-page {
+            padding: 30px 0 50px;
+        }
+
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .report-header h2 {
+            margin: 8px 0;
+        }
+
+        .report-header p {
+            color: var(--muted, #64748b);
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        .report-panel {
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .report-form {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 16px;
+            align-items: end;
+        }
+
+        .report-form .form-group {
+            min-width: 0;
+            margin: 0;
+        }
+
+        .report-form .form-control {
+            box-sizing: border-box;
+            width: 100%;
+        }
+
+        .report-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            grid-column: 1 / -1;
+        }
+
+        .report-message {
+            display: none;
+            margin-bottom: 20px;
+            padding: 13px 16px;
+            border-radius: 10px;
+        }
+
+        .report-message.show {
+            display: block;
+        }
+
+        .report-message.success {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #166534;
+        }
+
+        .report-message.error {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+        }
+
+        .report-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+
+        .report-stat {
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 9px;
+        }
+
+        .report-stat span {
+            font-size: 13px;
+            color: var(--muted, #64748b);
+        }
+
+        .report-stat strong {
+            font-size: 27px;
+            color: var(--ink, #0b2a2e);
+        }
+
+        .report-table-wrap {
+            overflow-x: auto;
+            border: 1px solid var(--border, #e2e8f0);
+            border-radius: 12px;
+        }
+
+        .report-table {
+            width: 100%;
+            min-width: 1000px;
+            border-collapse: collapse;
+        }
+
+        .report-table th,
+        .report-table td {
+            padding: 13px 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border, #e2e8f0);
+            vertical-align: middle;
+        }
+
+        .report-table th {
+            background: #f8fafc;
+            color: #475569;
+            font-size: 12px;
+        }
+
+        .report-table tbody tr:last-child td {
+            border-bottom: 0;
+        }
+
+        .report-empty {
+            text-align: center !important;
+            color: var(--muted, #64748b);
+            padding: 28px 16px !important;
+        }
+
+        .report-status {
+            display: inline-block;
+            padding: 5px 8px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+            background: #f1f5f9;
+            color: #334155;
+        }
+
+        .report-status.confirmed {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .report-status.completed {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .report-status.pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .report-status.cancelled,
+        .report-status.no-show {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        @media (max-width: 900px) {
+            .report-form {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 640px) {
+            .report-page {
+                padding-top: 20px;
+            }
+
+            .report-panel {
+                padding: 16px;
+            }
+
+            .report-form {
+                grid-template-columns: 1fr;
+            }
+
+            .report-summary-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .report-actions {
+                grid-column: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<!-- ================= HEADER ================= -->
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="admin-dashboard.html" class="brand" aria-label="Clinic Booking - Trang chủ">
+      <div class="logo"><i class="fa-solid fa-stethoscope"></i></div>
+      <div>
+        <h1>Clinic Booking</h1>
+        <p>Quản trị hệ thống</p>
+      </div>
+    </a>
+   <nav class="nav" aria-label="Điều hướng chính">
+    <a href="admin-dashboard.html" class="active">Trang chủ</a>
+    <a href="admin-management.html">quản lý bác sĩ</a>
+    <a href="specialty-management.html">Quản lý chuyên khoa</a>
+    <a href="appointment-report.html">thống kê báo cáo</a>
+
+    <!-- Điều hướng hồ sơ theo vai trò đăng nhập -->
+    <a href="#"
+       id="myProfileLink"
+       style="display: none;">
+        Hồ sơ của tôi
+    </a>
+</nav>
+    <div class="header-actions" id="headerActions">
+      <a href="login.html" class="btn btn-outline" id="loginLink">Đăng nhập</a>
+      <a href="register.html" class="btn btn-primary" id="registerLink">Đăng ký</a>
+      <div id="userInfo" style="display:none;align-items:center;gap:10px;">
+        <span id="welcomeUser" style="font-size:14px;color:var(--text);font-weight:500;"></span>
+        <button type="button" class="btn btn-outline" id="logoutButton">Đăng xuất</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="admin-main report-page">
+    <div class="container">
+
+        <section class="report-header">
+            <div>
+                <span class="admin-eyebrow">
+                    <i class="fa-solid fa-chart-column"></i>
+                    THỐNG KÊ HỆ THỐNG
+                </span>
+
+                <h2>Thống kê và báo cáo lịch khám</h2>
+
+                <p>
+                    Theo dõi lịch khám theo thời gian, bác sĩ và trạng thái.
+                </p>
+            </div>
+        </section>
+
+        <div id="reportMessage"
+             class="report-message"
+             role="status"
+             aria-live="polite"></div>
+
+        <section class="admin-panel card report-panel">
+            <div class="panel-header">
+                <div>
+                    <span class="panel-kicker">BỘ LỌC BÁO CÁO</span>
+                    <h3>Điều kiện thống kê</h3>
+                </div>
+            </div>
+
+            <form id="reportForm" class="report-form">
+                <div class="form-group">
+                    <label for="reportDateFrom">Từ ngày *</label>
+                    <input type="date"
+                           id="reportDateFrom"
+                           class="form-control"
+                           required>
+                </div>
+
+                <div class="form-group">
+                    <label for="reportDateTo">Đến ngày *</label>
+                    <input type="date"
+                           id="reportDateTo"
+                           class="form-control"
+                           required>
+                </div>
+
+                <div class="form-group">
+                    <label for="reportDoctorId">Bác sĩ</label>
+                    <select id="reportDoctorId" class="form-control">
+                        <option value="">Tất cả bác sĩ</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="reportStatus">Trạng thái</label>
+                    <select id="reportStatus" class="form-control">
+                        <option value="">Tất cả trạng thái</option>
+                        <option value="PENDING">Chờ xác nhận</option>
+                        <option value="CONFIRMED">Đã xác nhận</option>
+                        <option value="COMPLETED">Đã hoàn thành</option>
+                        <option value="CANCELLED">Đã hủy</option>
+                        <option value="NO_SHOW">Không đến khám</option>
+                    </select>
+                </div>
+
+                <div class="report-actions">
+                    <button type="submit"
+                            class="btn btn-primary"
+                            id="reportSearchButton">
+                        <i class="fa-solid fa-filter"></i>
+                        Lọc báo cáo
+                    </button>
+
+                    <button type="button"
+                            class="btn btn-outline"
+                            id="reportExportButton">
+                        <i class="fa-solid fa-file-csv"></i>
+                        Xuất CSV
+                    </button>
+
+                    <button type="button"
+                            class="btn btn-outline"
+                            id="reportRefreshButton">
+                        <i class="fa-solid fa-rotate"></i>
+                        Làm mới
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <section class="report-summary-grid"
+                 aria-label="Thống kê theo trạng thái">
+
+            <article class="card report-stat">
+                <span>Tổng lịch trong khoảng ngày</span>
+                <strong id="reportStatTotal">0</strong>
+            </article>
+
+            <article class="card report-stat">
+                <span>Chờ xác nhận</span>
+                <strong id="reportStatPending">0</strong>
+            </article>
+
+            <article class="card report-stat">
+                <span>Đã xác nhận</span>
+                <strong id="reportStatConfirmed">0</strong>
+            </article>
+
+            <article class="card report-stat">
+                <span>Đã hoàn thành</span>
+                <strong id="reportStatCompleted">0</strong>
+            </article>
+
+            <article class="card report-stat">
+                <span>Đã hủy</span>
+                <strong id="reportStatCancelled">0</strong>
+            </article>
+
+            <article class="card report-stat">
+                <span>Không đến khám</span>
+                <strong id="reportStatNoShow">0</strong>
+            </article>
+        </section>
+
+        <section class="admin-panel card report-panel">
+            <div class="panel-header">
+                <div>
+                    <span class="panel-kicker">KẾT QUẢ</span>
+                    <h3>Danh sách lịch khám</h3>
+                    <p id="reportDescription">
+                        Chọn khoảng ngày để xem báo cáo.
+                    </p>
+                </div>
+            </div>
+
+            <div class="report-table-wrap">
+                <table class="report-table">
+                    <thead>
+                    <tr>
+                        <th>Mã lịch</th>
+                        <th>Ngày</th>
+                        <th>Giờ</th>
+                        <th>Bệnh nhân</th>
+                        <th>Số điện thoại</th>
+                        <th>Bác sĩ</th>
+                        <th>Chuyên khoa</th>
+                        <th>Trạng thái</th>
+                    </tr>
+                    </thead>
+
+                    <tbody id="reportTableBody">
+                    <tr>
+                        <td colspan="8" class="report-empty">
+                            Chưa có dữ liệu báo cáo.
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+</main>
+
+<script src="js/api.js"></script>
+<script src="js/home.js"></script>
+<script src="js/appointment-report.js"></script>
+</body>
+</html>

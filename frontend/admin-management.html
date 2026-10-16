@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Quản lý bác sĩ | Clinic Booking</title>
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+          rel="stylesheet">
+
+    <link rel="stylesheet" href="css/overall.css">
+    <link rel="stylesheet" href="css/admin-pages.css">
+
+    <style>
+        .doctor-page {
+            padding: 30px 0 50px;
+        }
+
+        .doctor-page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .doctor-page-header h2 {
+            margin: 0 0 8px;
+        }
+
+        .doctor-page-header p {
+            margin: 0;
+            color: var(--muted, #64748b);
+            line-height: 1.6;
+        }
+
+        .doctor-page-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .doctor-page-panel {
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .doctor-page-panel h3 {
+            margin-top: 0;
+        }
+
+        .doctor-form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .doctor-form-grid .form-group {
+            min-width: 0;
+            margin: 0;
+        }
+
+        .doctor-form-grid .form-control {
+            box-sizing: border-box;
+            width: 100%;
+        }
+
+        .doctor-form-wide {
+            grid-column: 1 / -1;
+        }
+
+        .doctor-form-hint {
+            display: block;
+            margin-top: 6px;
+            color: var(--muted, #64748b);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .doctor-form-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .doctor-page-message {
+            display: none;
+            margin-bottom: 20px;
+            padding: 13px 16px;
+            border-radius: 10px;
+            line-height: 1.6;
+        }
+
+        .doctor-page-message.show {
+            display: block;
+        }
+
+        .doctor-page-message.success {
+            color: #166534;
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+        }
+
+        .doctor-page-message.error {
+            color: #991b1b;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+        }
+
+        .doctor-table-wrap {
+            overflow-x: auto;
+            border: 1px solid var(--border, #e2e8f0);
+            border-radius: 12px;
+        }
+
+        .doctor-table {
+            width: 100%;
+            min-width: 900px;
+            border-collapse: collapse;
+        }
+
+        .doctor-table th,
+        .doctor-table td {
+            padding: 13px 14px;
+            border-bottom: 1px solid var(--border, #e2e8f0);
+            text-align: left;
+            vertical-align: middle;
+        }
+
+        .doctor-table th {
+            background: #f8fafc;
+            color: #475569;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .doctor-table tbody tr:last-child td {
+            border-bottom: 0;
+        }
+
+        .doctor-table .doctor-name {
+            font-weight: 700;
+            color: var(--ink, #0b2a2e);
+        }
+
+        .doctor-table .doctor-subtext {
+            display: block;
+            margin-top: 5px;
+            color: var(--muted, #64748b);
+            font-size: 12px;
+        }
+
+        .doctor-table-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px;
+        }
+
+        .doctor-table-actions button {
+            white-space: nowrap;
+        }
+
+        .doctor-empty {
+            padding: 28px 16px;
+            text-align: center !important;
+            color: var(--muted, #64748b);
+        }
+
+        @media (max-width: 640px) {
+            .doctor-page {
+                padding-top: 20px;
+            }
+
+            .doctor-page-panel {
+                padding: 16px;
+            }
+
+            .doctor-form-grid {
+                grid-template-columns: minmax(0, 1fr);
+            }
+
+            .doctor-form-wide {
+                grid-column: auto;
+            }
+
+            .doctor-page-header {
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+
+<body>
+ <!-- ================= HEADER ================= -->
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="admin-dashboard.html" class="brand" aria-label="Clinic Booking - Trang chủ">
+      <div class="logo"><i class="fa-solid fa-stethoscope"></i></div>
+      <div>
+        <h1>Clinic Booking</h1>
+        <p>Quản trị hệ thống</p>
+      </div>
+    </a>
+   <nav class="nav" aria-label="Điều hướng chính">
+    <a href="admin-dashboard.html" class="active">Trang chủ</a>
+    <a href="admin-management.html">quản lý bác sĩ</a>
+    <a href="specialty-management.html">Quản lý chuyên khoa</a>
+    <a href="appointment-report.html">Thống kê báo cáo</a>
+
+    <!-- Điều hướng hồ sơ theo vai trò đăng nhập -->
+    <a href="#"
+       id="myProfileLink"
+       style="display: none;">
+        Hồ sơ của tôi
+    </a>
+</nav>
+    <div class="header-actions" id="headerActions">
+      <a href="login.html" class="btn btn-outline" id="loginLink">Đăng nhập</a>
+      <a href="register.html" class="btn btn-primary" id="registerLink">Đăng ký</a>
+      <div id="userInfo" style="display:none;align-items:center;gap:10px;">
+        <span id="welcomeUser" style="font-size:14px;color:var(--text);font-weight:500;"></span>
+        <button type="button" class="btn btn-outline" id="logoutButton">Đăng xuất</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+    <main class="admin-main doctor-page">
+        <div class="container">
+
+            <!-- TIÊU ĐỀ TRANG -->
+            <section class="doctor-page-header">
+                <div>
+                    <span class="admin-eyebrow">
+                        <i class="fa-solid fa-user-doctor"></i>
+                        QUẢN TRỊ DANH MỤC
+                    </span>
+
+                    <h2>Quản lý bác sĩ</h2>
+
+                    <p>
+                        Thêm, chỉnh sửa và quản lý hồ sơ bác sĩ
+                        của hệ thống Clinic Booking.
+                    </p>
+                </div>
+
+                <div class="doctor-page-actions">
+                    <button
+                        type="button"
+                        class="btn btn-outline"
+                        id="doctorMgmtRefresh"
+                    >
+                        <i class="fa-solid fa-rotate"></i>
+                        Làm mới
+                    </button>
+                </div>
+            </section>
+
+            <!-- THÔNG BÁO -->
+            <div
+                id="doctorMgmtMessage"
+                class="doctor-page-message"
+                role="status"
+                aria-live="polite"
+            ></div>
+
+            <!-- FORM BÁC SĨ -->
+            <section class="admin-panel card doctor-page-panel"
+                     id="doctorMgmtFormSection">
+
+                <div class="panel-header">
+                    <div>
+                        <span class="panel-kicker">
+                            THÔNG TIN BÁC SĨ
+                        </span>
+
+                        <h3 id="doctorMgmtFormTitle">
+                            Thêm bác sĩ mới
+                        </h3>
+
+                        <p>
+                            Các trường có dấu * là bắt buộc.
+                        </p>
+                    </div>
+                </div>
+
+                <form id="doctorMgmtForm" class="doctor-form-grid">
+                    <input type="hidden" id="doctorMgmtId">
+
+                    <div class="form-group">
+                        <label for="doctorMgmtName">
+                            Họ và tên *
+                        </label>
+
+                        <input
+                            type="text"
+                            id="doctorMgmtName"
+                            class="form-control"
+                            maxlength="100"
+                            autocomplete="name"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="doctorMgmtEmail">
+                            Email đăng nhập *
+                        </label>
+
+                        <input
+                            type="email"
+                            id="doctorMgmtEmail"
+                            class="form-control"
+                            maxlength="254"
+                            autocomplete="email"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="doctorMgmtPhone">
+                            Số điện thoại
+                        </label>
+
+                        <input
+                            type="tel"
+                            id="doctorMgmtPhone"
+                            class="form-control"
+                            maxlength="20"
+                            autocomplete="tel"
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="doctorMgmtPassword">
+                            Mật khẩu ban đầu
+                        </label>
+
+                        <input
+                            type="password"
+                            id="doctorMgmtPassword"
+                            class="form-control"
+                            minlength="8"
+                            autocomplete="new-password"
+                        >
+
+                        <small
+                            id="doctorMgmtPasswordHint"
+                            class="doctor-form-hint"
+                        >
+                            Bắt buộc khi thêm bác sĩ; để trống khi sửa
+                            nếu không muốn đổi mật khẩu.
+                        </small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="doctorMgmtSpecialty">
+                            Chuyên khoa *
+                        </label>
+
+                        <select
+                            id="doctorMgmtSpecialty"
+                            class="form-control"
+                            required
+                        >
+                            <option value="">
+                                -- Chọn chuyên khoa --
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="doctorMgmtLicense">
+                            Số giấy phép hành nghề *
+                        </label>
+
+                        <input
+                            type="text"
+                            id="doctorMgmtLicense"
+                            class="form-control"
+                            maxlength="100"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="doctorMgmtExperience">
+                            Số năm kinh nghiệm
+                        </label>
+
+                        <input
+                            type="number"
+                            id="doctorMgmtExperience"
+                            class="form-control"
+                            min="0"
+                            max="70"
+                            value="0"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="doctorMgmtQualification">
+                            Trình độ chuyên môn
+                        </label>
+
+                        <input
+                            type="text"
+                            id="doctorMgmtQualification"
+                            class="form-control"
+                            maxlength="150"
+                        >
+                    </div>
+
+                    <div class="form-group doctor-form-wide">
+                        <label for="doctorMgmtAvatar">
+                            URL ảnh đại diện
+                        </label>
+
+                        <input
+                            type="url"
+                            id="doctorMgmtAvatar"
+                            class="form-control"
+                            maxlength="1000"
+                            placeholder="https://example.com/avatar.jpg"
+                        >
+                    </div>
+
+                    <div class="form-group doctor-form-wide">
+                        <label for="doctorMgmtIntroduction">
+                            Giới thiệu bác sĩ
+                        </label>
+
+                        <textarea
+                            id="doctorMgmtIntroduction"
+                            class="form-control"
+                            rows="4"
+                            maxlength="1000"
+                            placeholder="Thông tin về kinh nghiệm và chuyên môn..."
+                        ></textarea>
+                    </div>
+
+                    <div class="doctor-form-actions doctor-form-wide">
+                        <button
+                            type="submit"
+                            class="btn btn-primary"
+                            id="doctorMgmtSave"
+                        >
+                            <i class="fa-solid fa-user-plus"></i>
+                            Thêm bác sĩ
+                        </button>
+
+                        <button
+                            type="button"
+                            class="btn btn-outline"
+                            id="doctorMgmtCancel"
+                            hidden
+                        >
+                            Hủy chỉnh sửa
+                        </button>
+
+                        <button
+                            type="reset"
+                            class="btn btn-outline"
+                            id="doctorMgmtReset"
+                        >
+                            Nhập lại
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- DANH SÁCH BÁC SĨ -->
+            <section class="admin-panel card doctor-page-panel"
+                     id="doctorMgmtListSection">
+
+                <div class="panel-header">
+                    <div>
+                        <span class="panel-kicker">
+                            DANH SÁCH
+                        </span>
+
+                        <h3>Danh sách bác sĩ</h3>
+
+                        <p>
+                            Chọn Sửa để cập nhật hồ sơ hoặc Xóa để
+                            xóa hồ sơ không có lịch liên quan.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="doctor-table-wrap">
+                    <table class="doctor-table">
+                        <thead>
+                            <tr>
+                                <th>Bác sĩ</th>
+                                <th>Chuyên khoa</th>
+                                <th>Email</th>
+                                <th>Giấy phép</th>
+                                <th>Kinh nghiệm</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="doctorMgmtTableBody">
+                            <tr>
+                                <td colspan="6" class="doctor-empty">
+                                    <i class="fa-solid fa-spinner fa-spin"></i>
+                                    Đang tải danh sách bác sĩ...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script src="js/api.js"></script>
+    <script src="js/home.js"></script>
+    <script src="js/admin-management.js"></script>
+</body>
+</html>

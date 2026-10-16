@@ -85,6 +85,7 @@ app.use(
     "/api",
     appointmentRoutes
 );
+app.use("/api/admin", require("./routes/admin.routes"));
 /*
 =====================================================
 FRONTEND
