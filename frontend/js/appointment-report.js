@@ -6,6 +6,10 @@
     let reportRows = [];
     let loading = false;
 
+    let statusChart = null;
+    let timelineChart = null;
+
+
     document.addEventListener("DOMContentLoaded", init);
 
     async function init() {
@@ -154,12 +158,20 @@
 
             const data = result?.data || {};
 
-            reportRows = Array.isArray(data.rows)
-                ? data.rows
-                : [];
+           reportRows = Array.isArray(data.rows)
+           ? data.rows
+          : [];
 
-            renderSummary(data.summary || {});
-            renderRows();
+           renderSummary(data.summary || {});
+           renderRows();
+
+// Vẽ lại biểu đồ theo dữ liệu báo cáo mới.
+           renderCharts(
+               data.summary || {},
+               reportRows,
+               from,
+                to
+);
 
             $("#reportDescription").textContent =
                 `Từ ${formatDate(from)} đến ${formatDate(to)}. ` +
@@ -267,6 +279,313 @@
 
         return escapeHtml(labels[value] || value || "Chưa rõ");
     }
+
+
+
+/* =====================================================
+   BIỂU ĐỒ BÁO CÁO
+===================================================== */
+
+function renderCharts(summary, rows, from, to) {
+    if (typeof Chart === "undefined") {
+        showMessage(
+            "Không tải được Chart.js. Hãy kiểm tra kết nối Internet để hiển thị biểu đồ.",
+            "error"
+        );
+        return;
+    }
+
+    renderStatusChart(summary);
+    renderTimelineChart(rows, from, to);
+}
+
+/* =====================================================
+   1. BIỂU ĐỒ DONUT: PHÂN BỐ TRẠNG THÁI
+===================================================== */
+
+function renderStatusChart(summary) {
+    const canvas = $("#reportStatusChart");
+
+    if (!canvas) return;
+
+    if (statusChart) {
+        statusChart.destroy();
+        statusChart = null;
+    }
+
+    const values = [
+        Number(summary.pending || 0),
+        Number(summary.confirmed || 0),
+        Number(summary.completed || 0),
+        Number(summary.cancelled || 0),
+        Number(summary.no_show || 0)
+    ];
+
+    statusChart = new Chart(canvas, {
+        type: "doughnut",
+
+        data: {
+            labels: [
+                "Chờ xác nhận",
+                "Đã xác nhận",
+                "Đã hoàn thành",
+                "Đã hủy",
+                "Không đến khám"
+            ],
+
+            datasets: [{
+                data: values,
+
+                backgroundColor: [
+                    "#f59e0b",
+                    "#0ea5a4",
+                    "#3b82f6",
+                    "#ef4444",
+                    "#8b5cf6"
+                ],
+
+                borderColor: "#ffffff",
+                borderWidth: 3,
+                hoverOffset: 8
+            }]
+        },
+
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+
+            cutout: "62%",
+
+            plugins: {
+                legend: {
+                    position: "bottom",
+
+                    labels: {
+                        usePointStyle: true,
+                        pointStyle: "circle",
+                        padding: 16
+                    }
+                },
+
+                tooltip: {
+                    callbacks: {
+                        label(context) {
+                            const value = Number(context.raw || 0);
+
+                            const total = values.reduce(
+                                (sum, item) => sum + item,
+                                0
+                            );
+
+                            const percent = total
+                                ? (value / total * 100).toFixed(1)
+                                : "0.0";
+
+                            return (
+                                `${context.label}: ${value} lịch ` +
+                                `(${percent}%)`
+                            );
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+/* =====================================================
+   2. BIỂU ĐỒ CỘT: SỐ LỊCH THEO THỜI GIAN
+===================================================== */
+
+function renderTimelineChart(rows, from, to) {
+    const canvas = $("#reportTimelineChart");
+
+    if (!canvas) return;
+
+    if (timelineChart) {
+        timelineChart.destroy();
+        timelineChart = null;
+    }
+
+    const start = new Date(`${from}T00:00:00`);
+    const end = new Date(`${to}T00:00:00`);
+
+    const dayCount = Math.floor(
+        (end.getTime() - start.getTime()) / 86400000
+    ) + 1;
+
+    // Tối đa 31 ngày thì hiển thị theo từng ngày.
+    // Khoảng thời gian dài hơn thì tổng hợp theo tháng.
+    const groupByMonth = dayCount > 31;
+
+    const counts = new Map();
+
+    rows.forEach((item) => {
+        const dateKey = String(
+            item.appointment_date || ""
+        ).slice(0, 10);
+
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(dateKey)) {
+            return;
+        }
+
+        const key = groupByMonth
+            ? dateKey.slice(0, 7)
+            : dateKey;
+
+        counts.set(
+            key,
+            (counts.get(key) || 0) + 1
+        );
+    });
+
+    const labels = [];
+    const values = [];
+
+    if (groupByMonth) {
+        const current = new Date(
+            start.getFullYear(),
+            start.getMonth(),
+            1
+        );
+
+        const finalMonth = new Date(
+            end.getFullYear(),
+            end.getMonth(),
+            1
+        );
+
+        while (current <= finalMonth) {
+            const year = current.getFullYear();
+
+            const month = String(
+                current.getMonth() + 1
+            ).padStart(2, "0");
+
+            const key = `${year}-${month}`;
+
+            labels.push(`${month}/${year}`);
+            values.push(counts.get(key) || 0);
+
+            current.setMonth(current.getMonth() + 1);
+        }
+    } else {
+        const current = new Date(start);
+
+        while (current <= end) {
+            const key = localDateString(current);
+
+            const day = String(
+                current.getDate()
+            ).padStart(2, "0");
+
+            const month = String(
+                current.getMonth() + 1
+            ).padStart(2, "0");
+
+            labels.push(`${day}/${month}`);
+            values.push(counts.get(key) || 0);
+
+            current.setDate(current.getDate() + 1);
+        }
+    }
+
+    timelineChart = new Chart(canvas, {
+        type: "bar",
+
+        data: {
+            labels,
+
+            datasets: [{
+                label: groupByMonth
+                    ? "Số lịch theo tháng"
+                    : "Số lịch theo ngày",
+
+                data: values,
+
+                backgroundColor: "#0ea5a4",
+                borderColor: "#0f766e",
+                borderWidth: 1,
+                borderRadius: 5,
+
+                maxBarThickness: 36
+            }]
+        },
+
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+
+            interaction: {
+                intersect: false,
+                mode: "index"
+            },
+
+            plugins: {
+                legend: {
+                    display: false
+                },
+
+                tooltip: {
+                    callbacks: {
+                        label(context) {
+                            return ` ${context.raw} lịch khám`;
+                        }
+                    }
+                }
+            },
+
+            scales: {
+                x: {
+                    grid: {
+                        display: false
+                    },
+
+                    ticks: {
+                        maxRotation: 45,
+                        minRotation: 0,
+                        autoSkip: true,
+                        maxTicksLimit: 12
+                    }
+                },
+
+                y: {
+                    beginAtZero: true,
+
+                    ticks: {
+                        precision: 0
+                    },
+
+                    title: {
+                        display: true,
+                        text: "Số lịch khám"
+                    }
+                }
+            }
+        }
+    });
+}
+
+/* =====================================================
+   NGÀY THEO GIỜ ĐỊA PHƯƠNG
+===================================================== */
+
+function localDateString(date) {
+    const year = date.getFullYear();
+
+    const month = String(
+        date.getMonth() + 1
+    ).padStart(2, "0");
+
+    const day = String(
+        date.getDate()
+    ).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
+}
+
+
+
 
     function exportCSV() {
         if (!reportRows.length) {

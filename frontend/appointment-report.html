@@ -212,6 +212,64 @@
                 grid-column: auto;
             }
         }
+        /* =====================================================
+   BIỂU ĐỒ BÁO CÁO LỊCH KHÁM
+===================================================== */
+
+.report-chart-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+    margin-bottom: 24px;
+}
+
+.report-chart-card {
+    min-width: 0;
+    padding: 22px;
+}
+
+.report-chart-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.report-chart-heading h3 {
+    margin: 0 0 8px;
+    color: var(--ink, #0b2a2e);
+    font-size: 17px;
+}
+
+.report-chart-heading p {
+    margin: 0;
+    color: var(--muted, #64748b);
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.report-chart-heading > i {
+    color: var(--primary, #0ea5a4);
+    font-size: 21px;
+    flex-shrink: 0;
+}
+
+.report-chart-canvas-wrap {
+    position: relative;
+    width: 100%;
+    height: 300px;
+}
+
+@media (max-width: 850px) {
+    .report-chart-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .report-chart-card {
+        padding: 18px;
+    }
+}
     </style>
 </head>
 
@@ -412,11 +470,64 @@
                 </table>
             </div>
         </section>
+        <!-- =====================================================
+     BIỂU ĐỒ TRỰC QUAN HÓA
+===================================================== -->
+<section class="report-chart-grid">
+
+    <!-- BIỂU ĐỒ PHÂN BỐ TRẠNG THÁI -->
+    <article class="card report-chart-card">
+        <div class="report-chart-heading">
+            <div>
+                <h3>Phân bố lịch theo trạng thái</h3>
+                <p>
+                    Theo khoảng ngày và bác sĩ đã chọn,
+                    không áp dụng bộ lọc trạng thái.
+                </p>
+            </div>
+
+            <i class="fa-solid fa-chart-pie"></i>
+        </div>
+
+        <div class="report-chart-canvas-wrap">
+            <canvas
+                id="reportStatusChart"
+                role="img"
+                aria-label="Biểu đồ phân bố lịch khám theo trạng thái"
+            ></canvas>
+        </div>
+    </article>
+
+    <!-- BIỂU ĐỒ SỐ LỊCH THEO THỜI GIAN -->
+    <article class="card report-chart-card">
+        <div class="report-chart-heading">
+            <div>
+                <h3>Số lịch khám theo thời gian</h3>
+                <p>
+                    Biểu đồ tuân theo bộ lọc hiện tại,
+                    bao gồm trạng thái nếu được chọn.
+                </p>
+            </div>
+
+            <i class="fa-solid fa-chart-column"></i>
+        </div>
+
+        <div class="report-chart-canvas-wrap">
+            <canvas
+                id="reportTimelineChart"
+                role="img"
+                aria-label="Biểu đồ số lượng lịch khám theo thời gian"
+            ></canvas>
+        </div>
+    </article>
+
+</section>
     </div>
 </main>
 
 <script src="js/api.js"></script>
 <script src="js/home.js"></script>
 <script src="js/appointment-report.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </body>
 </html>
