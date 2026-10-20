@@ -946,33 +946,33 @@ document.addEventListener("DOMContentLoaded", async function () {
        ===================================================== */
     let allDoctors = [];
     let selectedDoctor = null;
-    /* =====================================================
-       1. ĐĂNG NHẬP / ĐĂNG XUẤT
-       ===================================================== */
-    const userData = localStorage.getItem("user");
-    if (userData) {
-        try {
-            const user = JSON.parse(userData);
-            loginLink.style.display = "none";
-            registerLink.style.display = "none";
-            userInfo.style.display = "flex";
-            welcomeUser.textContent =
-                "Xin chào, " + (user.full_name || user.fullName || "bạn");
-        } catch (error) {
-            console.error("Không thể đọc thông tin người dùng:", error);
-            localStorage.removeItem("user");
-            localStorage.removeItem("role");
-            localStorage.removeItem("vaiTro");
-        }
-    }
-    if (logoutButton) {
-        logoutButton.addEventListener("click", function () {
-            localStorage.removeItem("user");
-            localStorage.removeItem("role");
-            localStorage.removeItem("vaiTro");
-            window.location.href = "login.html";
-        });
-    }
+    // /* =====================================================
+    //    1. ĐĂNG NHẬP / ĐĂNG XUẤT
+    //    ===================================================== */
+    // const userData = localStorage.getItem("user");
+    // if (userData) {
+    //     try {
+    //         const user = JSON.parse(userData);
+    //         loginLink.style.display = "none";
+    //         registerLink.style.display = "none";
+    //         userInfo.style.display = "flex";
+    //         welcomeUser.textContent =
+    //             "Xin chào, " + (user.full_name || user.fullName || "bạn");
+    //     } catch (error) {
+    //         console.error("Không thể đọc thông tin người dùng:", error);
+    //         localStorage.removeItem("user");
+    //         localStorage.removeItem("role");
+    //         localStorage.removeItem("vaiTro");
+    //     }
+    // }
+    // if (logoutButton) {
+    //     logoutButton.addEventListener("click", function () {
+    //         localStorage.removeItem("user");
+    //         localStorage.removeItem("role");
+    //         localStorage.removeItem("vaiTro");
+    //         window.location.href = "login.html";
+    //     });
+    // }
     /* =====================================================
        2. TIỆN ÍCH
        ===================================================== */
@@ -1395,123 +1395,91 @@ document.addEventListener("DOMContentLoaded", async function () {
         if (result.data && Array.isArray(result.data.schedules)) return result.data.schedules;
         return [];
     }
-    async function fetchDoctorSchedules(doctorId, date) {
-        const urls = [
-            `/api/doctors/${encodeURIComponent(doctorId)}/schedules?date=${encodeURIComponent(date)}`,
-            `/api/schedules?doctor_id=${encodeURIComponent(doctorId)}&date=${encodeURIComponent(date)}`
-        ];
-        let lastError = null;
-        for (const url of urls) {
-            try {
-                return normalizeSchedules(await apiFetch(url));
-            } catch (error) {
-                lastError = error;
-                console.warn("Không tải được lịch từ", url, error);
-            }
-        }
-        throw lastError || new Error("Không thể tải lịch khám.");
-    }
-    /** Tạo danh sách khung giờ từ một ca làm việc (mỗi khung 30 phút). */
-    function createSlots(schedule) {
-        const existing =
-            schedule.slots || schedule.available_slots || schedule.availableTimes;
-        // API đã trả sẵn danh sách khung giờ
-        if (Array.isArray(existing) && existing.length) {
-            return existing
-                .map(function (slot) {
-                    if (typeof slot === "string") {
-                        return { scheduleId: schedule.id, time: timeText(slot), booked: false };
-                    }
-                    return {
-                        scheduleId: slot.schedule_id || schedule.id,
-                        time: timeText(slot.appointment_time || slot.time || slot.start_time),
-                        booked: Boolean(slot.booked || slot.is_booked || slot.status === "BOOKED")
-                    };
-                })
-                .filter(function (slot) {
-                    return slot.time;
-                });
-        }
-        // Tự chia khung giờ từ giờ bắt đầu / kết thúc
-        const start = timeText(schedule.start_time);
-        const end = timeText(schedule.end_time);
-        if (!start || !end) {
-            return [];
-        }
-        const startParts = start.split(":").map(Number);
-        const endParts = end.split(":").map(Number);
-        let current = startParts[0] * 60 + startParts[1];
-        const finish = endParts[0] * 60 + endParts[1];
-        const slots = [];
-        while (current < finish) {
-            const hours = String(Math.floor(current / 60)).padStart(2, "0");
-            const minutes = String(current % 60).padStart(2, "0");
-            slots.push({
-                scheduleId: schedule.id,
-                time: `${hours}:${minutes}`,
-                booked: false
-            });
-            current += 30;
-        }
-        return slots;
-    }
-    function renderAvailableSlots(schedules) {
-        if (!slotList) {
+   /* Lấy giờ khám từ API đã lọc lịch được duyệt và đang mở */
+async function fetchDoctorSchedules(doctorId, date) {
+    const result = await apiFetch(
+        `/api/doctors/${encodeURIComponent(doctorId)}/available-slots?date=${encodeURIComponent(date)}`
+    );
+
+    return Array.isArray(result?.data) ? result.data : [];
+}
+
+/* Hiển thị giờ khám do backend trả về */
+function renderAvailableSlots(rawSlots) {
+    if (!slotList) return;
+
+    resetSelectedTime();
+
+    const uniqueSlots = new Map();
+
+    (Array.isArray(rawSlots) ? rawSlots : []).forEach(function (slot) {
+        const scheduleId = Number(slot.schedule_id);
+        const time = timeText(slot.time);
+
+        if (
+            !Number.isInteger(scheduleId) ||
+            scheduleId <= 0 ||
+            !/^\d{2}:\d{2}$/.test(time)
+        ) {
             return;
         }
-        resetSelectedTime();
-        if (!schedules.length) {
-            showSlotPlaceholder("Ngày này chưa có lịch khám của bác sĩ.");
-            return;
-        }
-        // Các giờ đã có người đặt
-        const bookedTimes = new Set();
-        schedules.forEach(function (schedule) {
-            (schedule.booked_times || schedule.bookedTimes || []).forEach(function (value) {
-                bookedTimes.add(timeText(value));
+
+        const key = `${scheduleId}-${time}`;
+
+        uniqueSlots.set(key, {
+            scheduleId,
+            time,
+            available: slot.available === true
+        });
+    });
+
+    // Sắp xếp toàn bộ khung giờ theo thời gian
+    const slots = Array.from(uniqueSlots.values()).sort(
+        (a, b) =>
+            a.time.localeCompare(b.time) ||
+            a.scheduleId - b.scheduleId
+    );
+
+    if (!slots.length) {
+        showSlotPlaceholder(
+            "Ngày này chưa có lịch làm việc được duyệt của bác sĩ."
+        );
+        return;
+    }
+
+    slotList.innerHTML = slots.map(function (slot) {
+        const disabled = !slot.available;
+
+        return `
+            <button
+                type="button"
+                class="appointment-slot ${disabled ? "is-booked" : ""}"
+                data-schedule-id="${slot.scheduleId}"
+                data-time="${slot.time}"
+                ${disabled ? "disabled" : ""}
+            >${slot.time}</button>
+        `;
+    }).join("");
+
+    slotList
+        .querySelectorAll(".appointment-slot:not(:disabled)")
+        .forEach(function (button) {
+            button.addEventListener("click", function () {
+                slotList.querySelectorAll(".appointment-slot")
+                    .forEach(item => item.classList.remove("is-selected"));
+
+                button.classList.add("is-selected");
+
+                if (selectedScheduleId) {
+                    selectedScheduleId.value = button.dataset.scheduleId;
+                }
+
+                if (selectedAppointmentTime) {
+                    selectedAppointmentTime.value = button.dataset.time;
+                }
             });
         });
-        // Gộp khung giờ, loại trùng
-        const seen = new Set();
-        const slots = [];
-        schedules.flatMap(createSlots).forEach(function (slot) {
-            const key = `${slot.scheduleId}-${slot.time}`;
-            if (!seen.has(key)) {
-                seen.add(key);
-                slots.push(slot);
-            }
-        });
-        if (!slots.length) {
-            showSlotPlaceholder("Không có giờ khám phù hợp trong ngày này.");
-            return;
-        }
-        slotList.innerHTML = slots
-            .map(function (slot) {
-                const booked = slot.booked || bookedTimes.has(slot.time);
-                return `
-                    <button
-                        type="button"
-                        class="appointment-slot ${booked ? "is-booked" : ""}"
-                        data-schedule-id="${slot.scheduleId}"
-                        data-time="${slot.time}"
-                        ${booked ? "disabled" : ""}
-                    >${slot.time}</button>
-                `;
-            })
-            .join("");
-        slotList
-            .querySelectorAll(".appointment-slot:not(:disabled)")
-            .forEach(function (button) {
-                button.addEventListener("click", function () {
-                    slotList.querySelectorAll(".appointment-slot").forEach(function (item) {
-                        item.classList.remove("is-selected");
-                    });
-                    button.classList.add("is-selected");
-                    if (selectedScheduleId) selectedScheduleId.value = button.dataset.scheduleId || "";
-                    if (selectedAppointmentTime) selectedAppointmentTime.value = button.dataset.time || "";
-                });
-            });
-    }
+}
     async function loadAvailableSlots() {
         if (!appointmentDate || !slotList) {
             return;
