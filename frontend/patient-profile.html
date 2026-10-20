@@ -11,434 +11,616 @@
   <link rel="stylesheet" href="css/overall.css">
   <style>
     :root {
-      --primary-deep:#0b5f59;
-      --ink:#0b2a2e;
-      --ring:0 0 0 4px rgba(14,165,164,.16);
-      --line:rgba(15,23,42,.1);
-      --danger:#b42318;
+      --primary-deep: #0b5f59;
+      --ink: #0b2a2e;
+      --ring: 0 0 0 4px rgba(14,165,164,.16);
+      --line: rgba(15,23,42,.1);
+      --danger: #b42318;
     }
     body {
-      -webkit-font-smoothing:antialiased;
-      background:#f6fbfa;
+      -webkit-font-smoothing: antialiased;
+      background: #f6fbfa;
     }
     :focus-visible {
-      outline:3px solid rgba(14,165,164,.55);
-      outline-offset:2px;
+      outline: 3px solid rgba(14,165,164,.55);
+      outline-offset: 2px;
     }
     .btn {
-      cursor:pointer;
-      border:0;
+      cursor: pointer;
+      border: 0;
     }
     .btn-outline {
-      border:1px solid var(--line);
-      background:#fff;
-      color:var(--primary-deep);
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--primary-deep);
     }
     .btn:disabled {
-      opacity:.5;
-      cursor:not-allowed;
+      opacity: .5;
+      cursor: not-allowed;
     }
     .profile-head {
-      padding:36px 0 8px;
+      padding: 36px 0 8px;
     }
     .profile-id {
-      display:flex;
-      gap:20px;
-      align-items:center;
+      display: flex;
+      gap: 20px;
+      align-items: center;
     }
     .avatar-lg {
-      flex:none;
-      width:84px;
-      height:84px;
-      border-radius:50%;
-      display:grid;
-      place-items:center;
-      overflow:hidden;
-      background:#ccfbf1;
-      color:#0f766e;
-      font-size:30px;
-      font-weight:700;
+      flex: none;
+      width: 84px;
+      height: 84px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      background: #ccfbf1;
+      color: #0f766e;
+      font-size: 30px;
+      font-weight: 700;
     }
     .avatar-lg img {
-      width:100%;
-      height:100%;
-      object-fit:cover;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
     .profile-id h2 {
-      font-size:26px;
-      color:var(--ink);
-      line-height:1.2;
+      font-size: 26px;
+      color: var(--ink);
+      line-height: 1.2;
     }
     .role-badge {
-      display:inline-flex;
-      gap:6px;
-      align-items:center;
-      margin-top:8px;
-      padding:4px 12px;
-      border-radius:999px;
-      background:#ccfbf1;
-      color:#0f766e;
-      font-size:12.5px;
-      font-weight:600;
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+      margin-top: 8px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: #ccfbf1;
+      color: #0f766e;
+      font-size: 12.5px;
+      font-weight: 600;
     }
     .profile-layout {
-      display:grid;
-      grid-template-columns:240px 1fr;
-      gap:24px;
-      padding:20px 0 64px;
-      align-items:start;
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: 24px;
+      padding: 20px 0 64px;
+      align-items: start;
     }
     .side-nav {
-      position:sticky;
-      top:96px;
-      display:grid;
-      gap:4px;
-      padding:10px;
-      background:#fff;
-      border:1px solid var(--line);
-      border-radius:16px;
+      position: sticky;
+      top: 96px;
+      display: grid;
+      gap: 4px;
+      padding: 10px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 16px;
     }
     .side-nav a {
-      display:flex;
-      gap:10px;
-      align-items:center;
-      padding:11px 14px;
-      border-radius:10px;
-      font-size:14.5px;
-      font-weight:500;
-      color:var(--text);
-      transition:background .2s,color .2s;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      padding: 11px 14px;
+      border-radius: 10px;
+      font-size: 14.5px;
+      font-weight: 500;
+      color: var(--text);
+      transition: background .2s, color .2s;
     }
     .side-nav a i {
-      width:18px;
-      text-align:center;
-      color:#64748b;
+      width: 18px;
+      text-align: center;
+      color: #64748b;
     }
     .side-nav a:hover {
-      background:#f1faf9;
+      background: #f1faf9;
     }
     .side-nav a.active {
-      background:#ccfbf1;
-      color:var(--primary-deep);
+      background: #ccfbf1;
+      color: var(--primary-deep);
     }
     .side-nav a.active i {
-      color:var(--primary-deep);
+      color: var(--primary-deep);
     }
     .panel {
-      background:#fff;
-      border:1px solid var(--line);
-      border-radius:18px;
-      padding:26px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 26px;
     }
     .panel + .panel {
-      margin-top:20px;
+      margin-top: 20px;
     }
     .panel h3 {
-      font-size:18px;
-      color:var(--ink);
+      font-size: 18px;
+      color: var(--ink);
     }
     .panel-sub {
-      margin:6px 0 22px;
-      font-size:14px;
-      color:var(--muted);
+      margin: 6px 0 22px;
+      font-size: 14px;
+      color: var(--muted);
     }
     .form-grid {
-      display:grid;
-      grid-template-columns:repeat(2,1fr);
-      gap:16px 18px;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px 18px;
     }
     .field {
-      display:grid;
-      gap:6px;
-      align-content:start;
+      display: grid;
+      gap: 6px;
+      align-content: start;
     }
     .field.full {
-      grid-column:1/-1;
+      grid-column: 1 / -1;
     }
     .field label {
-      font-size:13.5px;
-      font-weight:600;
-      color:var(--ink);
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--ink);
     }
     .field input,
     .field select,
     .field textarea {
-      width:100%;
-      padding:11px 13px;
-      border:1px solid rgba(15,23,42,.18);
-      border-radius:10px;
-      font:inherit;
-      font-size:14.5px;
-      background:#fff;
-      color:var(--text);
-      transition:border-color .2s, box-shadow .2s;
+      width: 100%;
+      padding: 11px 13px;
+      border: 1px solid rgba(15,23,42,.18);
+      border-radius: 10px;
+      font: inherit;
+      font-size: 14.5px;
+      background: #fff;
+      color: var(--text);
+      transition: border-color .2s, box-shadow .2s;
     }
     .field textarea {
-      min-height:104px;
-      resize:vertical;
-      line-height:1.6;
+      min-height: 104px;
+      resize: vertical;
+      line-height: 1.6;
     }
     .field input:focus,
     .field select:focus,
     .field textarea:focus {
-      outline:none;
-      border-color:#0ea5a4;
-      box-shadow:var(--ring);
+      outline: none;
+      border-color: #0ea5a4;
+      box-shadow: var(--ring);
     }
     .field input[readonly] {
-      background:#f1f5f4;
-      color:#475569;
-      cursor:not-allowed;
+      background: #f1f5f4;
+      color: #475569;
+      cursor: not-allowed;
     }
     .field .hint {
-      font-size:12.5px;
-      color:var(--muted);
+      font-size: 12.5px;
+      color: var(--muted);
     }
     .field.has-error input,
     .field.has-error select,
     .field.has-error textarea {
-      border-color:var(--danger);
+      border-color: var(--danger);
     }
     .field-error {
-      min-height:0;
-      font-size:12.5px;
-      color:var(--danger);
+      min-height: 0;
+      font-size: 12.5px;
+      color: var(--danger);
     }
     .form-actions {
-      display:flex;
-      gap:12px;
-      justify-content:flex-end;
-      margin-top:22px;
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+      margin-top: 22px;
     }
     .pw-wrap {
-      position:relative;
+      position: relative;
     }
     .pw-wrap input {
-      padding-right:42px;
+      padding-right: 42px;
     }
     .pw-wrap button {
-      position:absolute;
-      right:4px;
-      top:50%;
-      transform:translateY(-50%);
-      width:36px;
-      height:36px;
-      border:0;
-      background:transparent;
-      color:#64748b;
-      cursor:pointer;
-      border-radius:8px;
+      position: absolute;
+      right: 4px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 36px;
+      height: 36px;
+      border: 0;
+      background: transparent;
+      color: #64748b;
+      cursor: pointer;
+      border-radius: 8px;
     }
     .banner {
-      display:flex;
-      gap:10px;
-      align-items:flex-start;
-      margin:0 0 18px;
-      padding:12px 16px;
-      border-radius:12px;
-      font-size:14px;
-      line-height:1.55;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      margin: 0 0 18px;
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-size: 14px;
+      line-height: 1.55;
     }
     .banner--info {
-      background:#eff6ff;
-      color:#1e40af;
+      background: #eff6ff;
+      color: #1e40af;
     }
     .banner--warn {
-      background:#fffbeb;
-      color:#92400e;
+      background: #fffbeb;
+      color: #92400e;
     }
     .banner[hidden] {
-      display:none;
+      display: none;
     }
     .list {
-      display:grid;
-      gap:12px;
+      display: grid;
+      gap: 12px;
     }
     .item {
-      display:flex;
-      gap:16px;
-      align-items:center;
-      padding:14px 16px;
-      border:1px solid var(--line);
-      border-radius:14px;
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      padding: 14px 16px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
     }
     .item-date {
-      flex:none;
-      width:64px;
-      text-align:center;
-      padding:8px 0;
-      border-radius:12px;
-      background:#f1faf9;
-      color:var(--primary-deep);
+      flex: none;
+      width: 64px;
+      text-align: center;
+      padding: 8px 0;
+      border-radius: 12px;
+      background: #f1faf9;
+      color: var(--primary-deep);
     }
     .item-date strong {
-      display:block;
-      font-size:22px;
-      line-height:1.1;
+      display: block;
+      font-size: 22px;
+      line-height: 1.1;
     }
     .item-date span {
-      font-size:12px;
+      font-size: 12px;
     }
     .item-main {
-      flex:1;
-      min-width:0;
+      flex: 1;
+      min-width: 0;
     }
     .item-main strong {
-      display:block;
-      color:var(--ink);
+      display: block;
+      color: var(--ink);
     }
     .item-main span {
-      display:block;
-      margin-top:3px;
-      font-size:13.5px;
-      color:var(--muted);
+      display: block;
+      margin-top: 3px;
+      font-size: 13.5px;
+      color: var(--muted);
     }
     .tag {
-      flex:none;
-      padding:4px 11px;
-      border-radius:999px;
-      font-size:12.5px;
-      font-weight:600;
-      background:#e2e8f0;
-      color:#334155;
+      flex: none;
+      padding: 4px 11px;
+      border-radius: 999px;
+      font-size: 12.5px;
+      font-weight: 600;
+      background: #e2e8f0;
+      color: #334155;
     }
     .tag--ok {
-      background:#dcfce7;
-      color:#166534;
+      background: #dcfce7;
+      color: #166534;
     }
     .tag--wait {
-      background:#fef3c7;
-      color:#92400e;
+      background: #fef3c7;
+      color: #92400e;
     }
     .tag--bad {
-      background:#fee2e2;
-      color:#991b1b;
+      background: #fee2e2;
+      color: #991b1b;
     }
     .empty {
-      text-align:center;
-      padding:36px 12px;
-      color:var(--muted);
+      text-align: center;
+      padding: 36px 12px;
+      color: var(--muted);
     }
     .empty i {
-      font-size:30px;
-      color:#94a3b8;
+      font-size: 30px;
+      color: #94a3b8;
     }
     .empty p {
-      margin-top:10px;
+      margin-top: 10px;
     }
     .tabs {
-      display:flex;
-      gap:8px;
-      margin-bottom:18px;
-      flex-wrap:wrap;
+      display: flex;
+      gap: 8px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
     }
     .tabs button {
-      padding:8px 16px;
-      border:1px solid var(--line);
-      background:#fff;
-      border-radius:999px;
-      font:inherit;
-      font-size:14px;
-      cursor:pointer;
+      padding: 8px 16px;
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 999px;
+      font: inherit;
+      font-size: 14px;
+      cursor: pointer;
     }
     .tabs button.active {
-      background:#ccfbf1;
-      border-color:transparent;
-      color:var(--primary-deep);
-      font-weight:600;
+      background: #ccfbf1;
+      border-color: transparent;
+      color: var(--primary-deep);
+      font-weight: 600;
     }
-    .prescription-medicines {
-      display:grid;
-      gap:9px;
-      margin-top:10px;
+    .avatar-preview {
+      display: flex;
+      gap: 14px;
+      align-items: center;
     }
-    .prescription-medicine {
-      padding:10px 12px;
-      border:1px solid var(--line);
-      border-radius:10px;
-      background:#f8fbfb;
-    }
-    .prescription-medicine strong {
-      display:block;
-      color:var(--ink);
-    }
-    .prescription-medicine span {
-      display:block;
-      margin-top:4px;
-      font-size:13px;
-      line-height:1.5;
-      color:var(--muted);
-    }
-    .prescription-card {
-      align-items:flex-start;
+    .avatar-preview .avatar-lg {
+      width: 64px;
+      height: 64px;
+      font-size: 22px;
     }
     .toast-box {
-      position:fixed;
-      right:20px;
-      bottom:20px;
-      display:grid;
-      gap:10px;
-      z-index:100;
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      display: grid;
+      gap: 10px;
+      z-index: 100;
     }
     .toast {
-      display:flex;
-      gap:10px;
-      align-items:center;
-      padding:12px 18px;
-      border-radius:12px;
-      color:#fff;
-      font-size:14px;
-      box-shadow:0 10px 30px rgba(15,23,42,.2);
-      animation:toast-in .25s ease;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      padding: 12px 18px;
+      border-radius: 12px;
+      color: #fff;
+      font-size: 14px;
+      box-shadow: 0 10px 30px rgba(15,23,42,.2);
+      animation: toast-in .25s ease;
     }
     .toast--success {
-      background:#0f766e;
+      background: #0f766e;
     }
     .toast--error {
-      background:#b42318;
+      background: #b42318;
     }
     @keyframes toast-in {
       from {
-        opacity:0;
-        transform:translateY(8px);
+        opacity: 0;
+        transform: translateY(8px);
       }
     }
-    @media (prefers-reduced-motion:reduce) {
+    @media (prefers-reduced-motion: reduce) {
       .toast {
-        animation:none;
+        animation: none;
       }
     }
-    @media (max-width:860px) {
+    .prescription-medicines {
+      display: grid;
+      gap: 9px;
+      margin-top: 10px;
+    }
+    .prescription-medicine {
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #f8fbfb;
+    }
+    .prescription-medicine strong {
+      display: block;
+      color: var(--ink);
+    }
+    .prescription-medicine span {
+      display: block;
+      margin-top: 4px;
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--muted);
+    }
+    .prescription-card {
+      align-items: flex-start;
+    }
+    /* Nút đổi lịch và hủy lịch */
+    .appointment-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .appointment-action {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 8px 12px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: #fff;
+      color: var(--primary-deep);
+      font: inherit;
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .2s, border-color .2s, color .2s;
+    }
+    .appointment-action:hover {
+      background: #f1faf9;
+      border-color: var(--primary-deep);
+    }
+    .appointment-action:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
+    .appointment-action--danger {
+      color: var(--danger);
+    }
+    .appointment-action--danger:hover {
+      background: #fef2f2;
+      border-color: #fca5a5;
+    }
+    /* Hộp thoại đổi lịch */
+    .profile-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: grid;
+      place-items: center;
+      padding: 16px;
+    }
+    .profile-modal[hidden] {
+      display: none !important;
+    }
+    .profile-modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(11,42,46,.55);
+    }
+    .profile-modal-dialog {
+      position: relative;
+      width: min(620px, 100%);
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 24px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: #fff;
+      box-shadow: 0 24px 70px rgba(15,23,42,.22);
+    }
+    .profile-modal-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .profile-modal-header h3 {
+      margin: 0;
+      color: var(--ink);
+      font-size: 20px;
+    }
+    .profile-modal-header p {
+      margin: 7px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .profile-modal-close {
+      display: grid;
+      place-items: center;
+      width: 36px;
+      height: 36px;
+      flex: 0 0 36px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      color: var(--text);
+      cursor: pointer;
+    }
+    .profile-modal-close:hover {
+      background: #f1faf9;
+    }
+    .reschedule-form {
+      display: grid;
+      gap: 18px;
+      margin-top: 20px;
+    }
+    .reschedule-form label {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--ink);
+      font-size: 13.5px;
+      font-weight: 600;
+    }
+    .reschedule-form input[type="date"] {
+      width: 100%;
+      min-height: 44px;
+      padding: 10px 12px;
+      border: 1px solid rgba(15,23,42,.18);
+      border-radius: 10px;
+      background: #fff;
+      color: var(--text);
+      font: inherit;
+    }
+    .reschedule-form input[type="date"]:focus {
+      outline: none;
+      border-color: #0ea5a4;
+      box-shadow: var(--ring);
+    }
+    .reschedule-slot-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+      max-height: 230px;
+      overflow-y: auto;
+    }
+    .reschedule-slot {
+      min-width: 86px;
+      padding: 10px 14px;
+      border: 1px solid #dbe7e7;
+      border-radius: 10px;
+      background: #fff;
+      color: var(--primary-deep);
+      font: inherit;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background .2s, border-color .2s;
+    }
+    .reschedule-slot:hover,
+    .reschedule-slot.is-selected {
+      border-color: var(--primary-deep);
+      background: #ccfbf1;
+    }
+    .reschedule-slot.is-selected {
+      font-weight: 700;
+    }
+    .reschedule-feedback {
+      padding: 11px 13px;
+      border-radius: 10px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .reschedule-feedback[hidden] {
+      display: none !important;
+    }
+    .reschedule-feedback.is-error {
+      border: 1px solid #fecaca;
+      background: #fef2f2;
+      color: #991b1b;
+    }
+    @media (max-width: 860px) {
       .profile-layout {
-        grid-template-columns:1fr;
+        grid-template-columns: 1fr;
       }
       .side-nav {
-        position:static;
-        grid-auto-flow:column;
-        overflow-x:auto;
+        position: static;
+        grid-auto-flow: column;
+        overflow-x: auto;
       }
       .side-nav a {
-        white-space:nowrap;
+        white-space: nowrap;
       }
     }
-    @media (max-width:600px) {
+    @media (max-width: 600px) {
       .form-grid {
-        grid-template-columns:1fr;
+        grid-template-columns: 1fr;
       }
       .panel {
-        padding:18px;
+        padding: 18px;
       }
       .profile-id {
-        align-items:flex-start;
+        align-items: flex-start;
       }
       .item {
-        flex-wrap:wrap;
+        flex-wrap: wrap;
+      }
+      .profile-modal-dialog {
+        padding: 18px;
+      }
+      .appointment-actions {
+        width: 100%;
       }
     }
   </style>
 </head>
 <body>
- <header class="site-header">
+<header class="site-header">
   <div class="container header-inner">
     <a href="home.html" class="brand" aria-label="Clinic Booking - Trang chủ">
       <div class="logo"><i class="fa-solid fa-stethoscope"></i></div>
@@ -447,328 +629,398 @@
         <p>Đặt lịch khám trực tuyến</p>
       </div>
     </a>
-   <nav class="nav" aria-label="Điều hướng chính">
-    <a href="home.html" class="active">Trang chủ</a>
-    <a href="#specialties">Chuyên khoa</a>
-    <a href="#doctors">Bác sĩ</a>
-    <a href="#how-it-works">Hướng dẫn</a>
-
-    <!-- Điều hướng hồ sơ theo vai trò đăng nhập -->
-    <a href="#"
-       id="myProfileLink"
-       style="display: none;">
-        Hồ sơ của tôi
-    </a>
-</nav>
-    <div class="header-actions" id="headerActions">
-      <a href="login.html" class="btn btn-outline" id="loginLink">Đăng nhập</a>
-      <a href="register.html" class="btn btn-primary" id="registerLink">Đăng ký</a>
-      <div id="userInfo" style="display:none;align-items:center;gap:10px;">
+    <nav class="nav" aria-label="Điều hướng chính">
+      <a href="home.html">Trang chủ</a>
+      <a href="home.html#specialties">Chuyên khoa</a>
+      <a href="home.html#doctors">Bác sĩ</a>
+      <a href="#" class="active">Hồ sơ của tôi</a>
+    </nav>
+    <div class="header-actions">
+      <div id="userInfo" style="display:flex;align-items:center;gap:10px;">
         <span id="welcomeUser" style="font-size:14px;color:var(--text);font-weight:500;"></span>
         <button type="button" class="btn btn-outline" id="logoutButton">Đăng xuất</button>
       </div>
     </div>
   </div>
 </header>
-  <main class="container">
-    <div class="profile-head">
-      <div class="profile-id">
-        <div class="avatar-lg" id="avatarBox">
-          <i class="fa-solid fa-user"></i>
-        </div>
-        <div>
-          <h2 id="displayName">Đang tải...</h2>
-          <span class="role-badge">
-            <i class="fa-solid fa-user"></i> Bệnh nhân
-          </span>
-        </div>
+<main class="container">
+  <div class="profile-head">
+    <div class="profile-id">
+      <div class="avatar-lg" id="avatarBox">
+        <i class="fa-solid fa-user"></i>
+      </div>
+      <div>
+        <h2 id="displayName">Đang tải...</h2>
+        <span class="role-badge">
+          <i class="fa-solid fa-user"></i> Bệnh nhân
+        </span>
       </div>
     </div>
-    <div class="profile-layout">
-      <nav class="side-nav" aria-label="Mục hồ sơ">
-        <a href="#personal" data-section-link="personal">
-          <i class="fa-solid fa-id-card"></i> Thông tin cá nhân
-        </a>
-        <a href="#medical" data-section-link="medical">
-          <i class="fa-solid fa-notes-medical"></i> Thông tin sức khỏe
-        </a>
-        <a href="#appointments" data-section-link="appointments">
-          <i class="fa-solid fa-calendar-check"></i> Lịch hẹn của tôi
-        </a>
-        <a href="#security" data-section-link="security">
-          <i class="fa-solid fa-lock"></i> Đổi mật khẩu
-        </a>
-      </nav>
-      <div>
-        <div id="profileBanner" class="banner" hidden></div>
-        <!-- THÔNG TIN CÁ NHÂN -->
-        <section data-section="personal">
-          <form class="panel" id="personalForm" novalidate>
-            <h3>Thông tin cá nhân</h3>
-            <p class="panel-sub">
-              Thông tin dùng để liên hệ và xác nhận lịch khám.
-            </p>
-            <div class="form-grid">
-              <div class="field full">
-                <label for="full_name">Họ và tên *</label>
-                <input
-                  id="full_name"
-                  name="full_name"
-                  autocomplete="name"
-                  maxlength="100"
-                >
-              </div>
-              <div class="field">
-                <label for="email">Email</label>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  readonly
-                >
-                <span class="hint">
-                  Email dùng để đăng nhập, không thể thay đổi.
-                </span>
-              </div>
-              <div class="field">
-                <label for="phone">Số điện thoại</label>
-                <input
-                  id="phone"
-                  name="phone"
-                  type="tel"
-                  autocomplete="tel"
-                  placeholder="0901234567"
-                >
-              </div>
-              <div class="field">
-                <label for="date_of_birth">Ngày sinh</label>
-                <input
-                  id="date_of_birth"
-                  name="date_of_birth"
-                  type="date"
-                >
-              </div>
-              <div class="field">
-                <label for="gender">Giới tính</label>
-                <select id="gender" name="gender">
-                  <option value="">Chưa chọn</option>
-                  <option value="MALE">Nam</option>
-                  <option value="FEMALE">Nữ</option>
-                  <option value="OTHER">Khác</option>
-                </select>
-              </div>
-              <div class="field full">
-                <label for="address">Địa chỉ</label>
-                <input
-                  id="address"
-                  name="address"
-                  autocomplete="street-address"
-                  maxlength="255"
-                >
-              </div>
-            </div>
-            <div class="form-actions">
-              <button type="submit" class="btn btn-primary">
-                <i class="fa-solid fa-floppy-disk"></i>
-                Lưu thay đổi
-              </button>
-            </div>
-          </form>
-        </section>
-        <!-- THÔNG TIN SỨC KHỎE -->
-        <section data-section="medical" hidden>
-          <form class="panel" id="medicalForm" novalidate>
-            <h3>Thông tin sức khỏe</h3>
-            <p class="panel-sub">
-              Giúp bác sĩ nắm tình trạng của bạn trước khi khám.
-              Chỉ bạn và bác sĩ phụ trách được xem.
-            </p>
-            <div class="form-grid">
-              <div class="field">
-                <label for="blood_type">Nhóm máu</label>
-                <select id="blood_type" name="blood_type">
-                  <option value="">Chưa biết</option>
-                  <option value="A">A</option>
-                  <option value="B">B</option>
-                  <option value="AB">AB</option>
-                  <option value="O">O</option>
-                </select>
-              </div>
-              <div class="field">
-                <label for="insurance_number">Số thẻ bảo hiểm y tế</label>
-                <input
-                  id="insurance_number"
-                  name="insurance_number"
-                  maxlength="30"
-                >
-              </div>
-              <div class="field full">
-                <label for="allergies">Dị ứng</label>
-                <textarea
-                  id="allergies"
-                  name="allergies"
-                  maxlength="500"
-                  placeholder="Thuốc, thực phẩm, thời tiết..."
-                ></textarea>
-              </div>
-              <div class="field full">
-                <label for="medical_history">Tiền sử bệnh</label>
-                <textarea
-                  id="medical_history"
-                  name="medical_history"
-                  maxlength="1000"
-                  placeholder="Bệnh mạn tính, phẫu thuật đã thực hiện, thuốc đang dùng..."
-                ></textarea>
-              </div>
-              <div class="field">
-                <label for="emergency_contact_name">Người liên hệ khẩn cấp</label>
-                <input
-                  id="emergency_contact_name"
-                  name="emergency_contact_name"
-                  maxlength="100"
-                >
-              </div>
-              <div class="field">
-                <label for="emergency_contact_phone">SĐT người liên hệ khẩn cấp</label>
-                <input
-                  id="emergency_contact_phone"
-                  name="emergency_contact_phone"
-                  type="tel"
-                >
-              </div>
-            </div>
-            <div class="form-actions">
-              <button type="submit" class="btn btn-primary">
-                <i class="fa-solid fa-floppy-disk"></i>
-                Lưu thay đổi
-              </button>
-            </div>
-          </form>
-        </section>
-        <!-- LỊCH HẸN VÀ ĐƠN THUỐC -->
-        <section data-section="appointments" hidden>
-          <div class="panel">
-            <h3>Lịch hẹn của tôi</h3>
-            <p class="panel-sub">Các lịch khám bạn đã đặt.</p>
-            <div class="tabs" role="tablist" aria-label="Loại thông tin">
-              <button
-                type="button"
-                class="active"
-                data-profile-view="appointments"
-                aria-selected="true"
+  </div>
+  <div class="profile-layout">
+    <nav class="side-nav" aria-label="Mục hồ sơ">
+      <a href="#personal" data-section-link="personal">
+        <i class="fa-solid fa-id-card"></i> Thông tin cá nhân
+      </a>
+      <a href="#medical" data-section-link="medical">
+        <i class="fa-solid fa-notes-medical"></i> Thông tin sức khỏe
+      </a>
+      <a href="#appointments" data-section-link="appointments">
+        <i class="fa-solid fa-calendar-check"></i> Lịch hẹn của tôi
+      </a>
+      <a href="#security" data-section-link="security">
+        <i class="fa-solid fa-lock"></i> Đổi mật khẩu
+      </a>
+    </nav>
+    <div>
+      <div id="profileBanner" class="banner" hidden></div>
+      <!-- THÔNG TIN CÁ NHÂN -->
+      <section data-section="personal">
+        <form class="panel" id="personalForm" novalidate>
+          <h3>Thông tin cá nhân</h3>
+          <p class="panel-sub">
+            Thông tin dùng để liên hệ và xác nhận lịch khám.
+          </p>
+          <div class="form-grid">
+            <div class="field full">
+              <label for="full_name">Họ và tên *</label>
+              <input
+                id="full_name"
+                name="full_name"
+                autocomplete="name"
+                maxlength="100"
               >
-                Lịch hẹn
-              </button>
-              <button
-                type="button"
-                data-profile-view="prescriptions"
-                aria-selected="false"
+            </div>
+            <div class="field">
+              <label for="email">Email</label>
+              <input id="email" name="email" type="email" readonly>
+              <span class="hint">
+                Email dùng để đăng nhập, không thể thay đổi.
+              </span>
+            </div>
+            <div class="field">
+              <label for="phone">Số điện thoại</label>
+              <input
+                id="phone"
+                name="phone"
+                type="tel"
+                autocomplete="tel"
+                placeholder="0901234567"
               >
-                Đơn thuốc
-              </button>
             </div>
-            <div id="appointmentFilters">
-              <div class="tabs" role="tablist" aria-label="Lọc lịch hẹn">
-                <button
-                  type="button"
-                  class="active"
-                  data-filter="upcoming"
-                >
-                  Sắp tới
-                </button>
-                <button
-                  type="button"
-                  data-filter="past"
-                >
-                  Đã qua
-                </button>
-              </div>
+            <div class="field">
+              <label for="date_of_birth">Ngày sinh</label>
+              <input id="date_of_birth" name="date_of_birth" type="date">
             </div>
-            <div id="appointmentsView">
-              <div class="list" id="appointmentList"></div>
+            <div class="field">
+              <label for="gender">Giới tính</label>
+              <select id="gender" name="gender">
+                <option value="">Chưa chọn</option>
+                <option value="MALE">Nam</option>
+                <option value="FEMALE">Nữ</option>
+                <option value="OTHER">Khác</option>
+              </select>
             </div>
-            <div id="prescriptionsView" hidden>
-              <div class="list" id="prescriptionList"></div>
+            <div class="field full">
+              <label for="address">Địa chỉ</label>
+              <input
+                id="address"
+                name="address"
+                autocomplete="street-address"
+                maxlength="255"
+              >
             </div>
           </div>
-        </section>
-        <!-- ĐỔI MẬT KHẨU -->
-        <section data-section="security" hidden>
-          <form class="panel" id="passwordForm" novalidate>
-            <h3>Đổi mật khẩu</h3>
-            <p class="panel-sub">
-              Mật khẩu mới tối thiểu 8 ký tự, gồm cả chữ và số.
-            </p>
-            <div class="form-grid">
-              <div class="field full">
-                <label for="current_password">Mật khẩu hiện tại</label>
-                <div class="pw-wrap">
-                  <input
-                    type="password"
-                    id="current_password"
-                    name="current_password"
-                    autocomplete="current-password"
-                  >
-                  <button
-                    type="button"
-                    data-toggle-password
-                    aria-label="Hiện mật khẩu"
-                  >
-                    <i class="fa-solid fa-eye"></i>
-                  </button>
-                </div>
-              </div>
-              <div class="field full">
-                <label for="new_password">Mật khẩu mới</label>
-                <div class="pw-wrap">
-                  <input
-                    type="password"
-                    id="new_password"
-                    name="new_password"
-                    autocomplete="new-password"
-                  >
-                  <button
-                    type="button"
-                    data-toggle-password
-                    aria-label="Hiện mật khẩu"
-                  >
-                    <i class="fa-solid fa-eye"></i>
-                  </button>
-                </div>
-              </div>
-              <div class="field full">
-                <label for="confirm_password">Nhập lại mật khẩu mới</label>
-                <div class="pw-wrap">
-                  <input
-                    type="password"
-                    id="confirm_password"
-                    name="confirm_password"
-                    autocomplete="new-password"
-                  >
-                  <button
-                    type="button"
-                    data-toggle-password
-                    aria-label="Hiện mật khẩu"
-                  >
-                    <i class="fa-solid fa-eye"></i>
-                  </button>
-                </div>
-              </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+              <i class="fa-solid fa-floppy-disk"></i>
+              Lưu thay đổi
+            </button>
+          </div>
+        </form>
+      </section>
+      <!-- THÔNG TIN SỨC KHỎE -->
+      <section data-section="medical" hidden>
+        <form class="panel" id="medicalForm" novalidate>
+          <h3>Thông tin sức khỏe</h3>
+          <p class="panel-sub">
+            Giúp bác sĩ nắm tình trạng của bạn trước khi khám.
+            Chỉ bạn và bác sĩ phụ trách được xem.
+          </p>
+          <div class="form-grid">
+            <div class="field">
+              <label for="blood_type">Nhóm máu</label>
+              <select id="blood_type" name="blood_type">
+                <option value="">Chưa biết</option>
+                <option value="A">A</option>
+                <option value="B">B</option>
+                <option value="AB">AB</option>
+                <option value="O">O</option>
+              </select>
             </div>
-            <div class="form-actions">
-              <button type="submit" class="btn btn-primary">
-                <i class="fa-solid fa-key"></i>
-                Đổi mật khẩu
+            <div class="field">
+              <label for="insurance_number">Số thẻ bảo hiểm y tế</label>
+              <input id="insurance_number" name="insurance_number" maxlength="30">
+            </div>
+            <div class="field full">
+              <label for="allergies">Dị ứng</label>
+              <textarea
+                id="allergies"
+                name="allergies"
+                maxlength="500"
+                placeholder="Thuốc, thực phẩm, thời tiết..."
+              ></textarea>
+            </div>
+            <div class="field full">
+              <label for="medical_history">Tiền sử bệnh</label>
+              <textarea
+                id="medical_history"
+                name="medical_history"
+                maxlength="1000"
+                placeholder="Bệnh mạn tính, phẫu thuật đã thực hiện, thuốc đang dùng..."
+              ></textarea>
+            </div>
+            <div class="field">
+              <label for="emergency_contact_name">Người liên hệ khẩn cấp</label>
+              <input
+                id="emergency_contact_name"
+                name="emergency_contact_name"
+                maxlength="100"
+              >
+            </div>
+            <div class="field">
+              <label for="emergency_contact_phone">SĐT người liên hệ khẩn cấp</label>
+              <input
+                id="emergency_contact_phone"
+                name="emergency_contact_phone"
+                type="tel"
+              >
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+              <i class="fa-solid fa-floppy-disk"></i>
+              Lưu thay đổi
+            </button>
+          </div>
+        </form>
+      </section>
+      <!-- LỊCH HẸN VÀ ĐƠN THUỐC -->
+      <section data-section="appointments" hidden>
+        <div class="panel">
+          <h3>Lịch hẹn của tôi</h3>
+          <p class="panel-sub">Các lịch khám bạn đã đặt.</p>
+          <div class="tabs" role="tablist" aria-label="Loại thông tin">
+            <button
+              type="button"
+              role="tab"
+              class="active"
+              data-profile-view="appointments"
+              aria-selected="true"
+            >
+              Lịch hẹn
+            </button>
+            <button
+              type="button"
+              role="tab"
+              data-profile-view="prescriptions"
+              aria-selected="false"
+            >
+              Đơn thuốc
+            </button>
+          </div>
+          <div id="appointmentFilters">
+            <div class="tabs" role="tablist" aria-label="Lọc lịch hẹn">
+              <button
+                type="button"
+                role="tab"
+                class="active"
+                data-filter="upcoming"
+                aria-selected="true"
+              >
+                Sắp tới
+              </button>
+              <button
+                type="button"
+                role="tab"
+                data-filter="past"
+                aria-selected="false"
+              >
+                Đã qua
               </button>
             </div>
-          </form>
-        </section>
-      </div>
+          </div>
+          <div id="appointmentsView">
+            <div class="list" id="appointmentList"></div>
+          </div>
+          <div id="prescriptionsView" hidden>
+            <div class="list" id="prescriptionList"></div>
+          </div>
+        </div>
+      </section>
+      <!-- ĐỔI MẬT KHẨU -->
+      <section data-section="security" hidden>
+        <form class="panel" id="passwordForm" novalidate>
+          <h3>Đổi mật khẩu</h3>
+          <p class="panel-sub">
+            Mật khẩu mới tối thiểu 8 ký tự, gồm cả chữ và số.
+          </p>
+          <div class="form-grid">
+            <div class="field full">
+              <label for="current_password">Mật khẩu hiện tại</label>
+              <div class="pw-wrap">
+                <input
+                  type="password"
+                  id="current_password"
+                  name="current_password"
+                  autocomplete="current-password"
+                >
+                <button
+                  type="button"
+                  data-toggle-password
+                  aria-label="Hiện mật khẩu"
+                >
+                  <i class="fa-solid fa-eye"></i>
+                </button>
+              </div>
+            </div>
+            <div class="field full">
+              <label for="new_password">Mật khẩu mới</label>
+              <div class="pw-wrap">
+                <input
+                  type="password"
+                  id="new_password"
+                  name="new_password"
+                  autocomplete="new-password"
+                >
+                <button
+                  type="button"
+                  data-toggle-password
+                  aria-label="Hiện mật khẩu"
+                >
+                  <i class="fa-solid fa-eye"></i>
+                </button>
+              </div>
+            </div>
+            <div class="field full">
+              <label for="confirm_password">Nhập lại mật khẩu mới</label>
+              <div class="pw-wrap">
+                <input
+                  type="password"
+                  id="confirm_password"
+                  name="confirm_password"
+                  autocomplete="new-password"
+                >
+                <button
+                  type="button"
+                  data-toggle-password
+                  aria-label="Hiện mật khẩu"
+                >
+                  <i class="fa-solid fa-eye"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+              <i class="fa-solid fa-key"></i>
+              Đổi mật khẩu
+            </button>
+          </div>
+        </form>
+      </section>
     </div>
-  </main>
-  <script src="js/api.js"></script>
-  <script src="js/home.js"></script>
-  <script src="js/profile-common.js"></script>
-  <script src="js/patient-profile.js"></script>
+  </div>
+</main>
+<!-- =====================================================
+     HỘP THOẠI ĐỔI LỊCH KHÁM
+     ===================================================== -->
+<div
+  id="rescheduleModal"
+  class="profile-modal"
+  hidden
+  aria-hidden="true"
+>
+  <div class="profile-modal-backdrop" data-close-reschedule></div>
+  <section
+    class="profile-modal-dialog"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="rescheduleTitle"
+  >
+    <div class="profile-modal-header">
+      <div>
+        <h3 id="rescheduleTitle">
+          <i class="fa-solid fa-calendar-days"></i>
+          Đổi lịch khám
+        </h3>
+        <p id="rescheduleAppointmentInfo">
+          Chọn ngày và giờ khám mới.
+        </p>
+      </div>
+      <button
+        type="button"
+        class="profile-modal-close"
+        data-close-reschedule
+        aria-label="Đóng hộp thoại"
+      >
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <form id="rescheduleForm" class="reschedule-form">
+      <div>
+        <label for="rescheduleDate">Ngày khám mới</label>
+        <input
+          type="date"
+          id="rescheduleDate"
+          required
+        >
+      </div>
+      <div>
+        <label id="rescheduleSlotLabel">Chọn giờ khám còn trống</label>
+        <div
+          id="rescheduleSlotList"
+          class="reschedule-slot-list"
+          role="group"
+          aria-labelledby="rescheduleSlotLabel"
+        >
+          <div class="empty">
+            <p>Chọn ngày để xem giờ khám.</p>
+          </div>
+        </div>
+      </div>
+      <input type="hidden" id="rescheduleScheduleId">
+      <input type="hidden" id="rescheduleAppointmentTime">
+      <p
+        id="rescheduleFeedback"
+        class="reschedule-feedback"
+        role="status"
+        aria-live="polite"
+        hidden
+      ></p>
+      <div class="form-actions">
+        <button
+          type="button"
+          class="btn btn-outline"
+          data-close-reschedule
+        >
+          Đóng
+        </button>
+        <button
+          type="submit"
+          class="btn btn-primary"
+          id="rescheduleSubmit"
+        >
+          <i class="fa-solid fa-calendar-check"></i>
+          Xác nhận đổi lịch
+        </button>
+      </div>
+    </form>
+  </section>
+</div>
+<script src="js/api.js"></script>
+<script src="js/profile-common.js"></script>
+<script src="js/patient-profile.js"></script>
+<script src="js/home.js"></script>
 </body>
 </html>
