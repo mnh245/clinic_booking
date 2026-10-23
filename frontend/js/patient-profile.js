@@ -710,17 +710,17 @@ CLINIC BOOKING - HỒ SƠ BỆNH NHÂN
                 ? result.data
                 : [];
             const seen = new Set();
+            // Giữ cả giờ đã có người đặt để hiển thị khác màu.
             const slots = rawSlots
-                .filter((slot) =>
-                    slot.available === true ||
-                    slot.available === 1 ||
-                    slot.available === "1"
-                )
                 .map((slot) => ({
                     scheduleId: Number(slot.schedule_id),
                     time: String(
                         slot.time || slot.appointment_time || ""
-                    ).slice(0, 5)
+                    ).slice(0, 5),
+                    available:
+                        slot.available === true ||
+                        slot.available === 1 ||
+                        slot.available === "1"
                 }))
                 .filter((slot) =>
                     Number.isInteger(slot.scheduleId) &&
@@ -743,24 +743,57 @@ CLINIC BOOKING - HỒ SƠ BỆNH NHÂN
                 slotList.innerHTML = `
                     <div class="empty">
                         <i class="fa-regular fa-calendar-xmark"></i>
-                        <p>Ngày này không còn giờ khám phù hợp.</p>
+                        <p>Bác sĩ không có lịch khám trong ngày này.</p>
                         <p>Vui lòng chọn ngày khác.</p>
                     </div>
                 `;
                 return;
             }
-            slotList.innerHTML = slots.map((slot) => `
-                <button
-                    type="button"
-                    class="reschedule-slot"
-                    data-schedule-id="${slot.scheduleId}"
-                    data-time="${slot.time}"
-                >
-                    ${slot.time}
-                </button>
-            `).join("");
+            // Giờ của chính lịch đang được đổi (nếu có trong dữ liệu).
+            const currentScheduleId = Number(item.schedule_id);
+            const currentTime = String(
+                item.appointment_time || ""
+            ).slice(0, 5);
+            slotList.innerHTML = slots.map((slot) => {
+                const isCurrent =
+                    !slot.available &&
+                    currentScheduleId === slot.scheduleId &&
+                    currentTime === slot.time;
+                const stateClass = slot.available
+                    ? ""
+                    : isCurrent
+                        ? "is-booked is-current"
+                        : "is-booked";
+                const stateLabel = slot.available
+                    ? ""
+                    : isCurrent
+                        ? "Lịch hiện tại"
+                        : "Đã đặt";
+                return `
+                    <button
+                        type="button"
+                        class="reschedule-slot ${stateClass}"
+                        data-schedule-id="${slot.scheduleId}"
+                        data-time="${slot.time}"
+                        ${slot.available ? "" : "disabled"}
+                    >
+                        <span class="slot-time">${slot.time}</span>
+                        ${
+                            stateLabel
+                                ? `<span class="slot-state">${stateLabel}</span>`
+                                : ""
+                        }
+                    </button>
+                `;
+            }).join("");
+            if (!slots.some((slot) => slot.available)) {
+                showRescheduleFeedback(
+                    "Ngày này đã hết giờ trống. Vui lòng chọn ngày khác.",
+                    true
+                );
+            }
             slotList
-                .querySelectorAll(".reschedule-slot")
+                .querySelectorAll(".reschedule-slot:not(:disabled)")
                 .forEach((button) => {
                     button.addEventListener("click", () => {
                         slotList

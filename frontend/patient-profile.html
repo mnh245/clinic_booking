@@ -550,25 +550,79 @@
       max-height: 230px;
       overflow-y: auto;
     }
+    .reschedule-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 16px;
+      margin: 0 0 10px;
+      color: #475569;
+      font-size: 12.5px;
+    }
+    .reschedule-legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .reschedule-legend i {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 1px solid;
+      border-radius: 4px;
+    }
+    .reschedule-legend .is-free { background: #ecfdf5; border-color: #6ee7b7; }
+    .reschedule-legend .is-selected { background: #0b5f59; border-color: #0b5f59; }
+    .reschedule-legend .is-booked { background: #fee2e2; border-color: #fca5a5; }
+    .reschedule-legend .is-current { background: #dbeafe; border-color: #93c5fd; }
     .reschedule-slot {
       min-width: 86px;
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
       padding: 10px 14px;
-      border: 1px solid #dbe7e7;
+      border: 1px solid #6ee7b7;
       border-radius: 10px;
-      background: #fff;
-      color: var(--primary-deep);
+      background: #ecfdf5;
+      color: #065f46;
       font: inherit;
       font-size: 14px;
+      font-weight: 600;
       cursor: pointer;
-      transition: background .2s, border-color .2s;
+      transition: background .2s, border-color .2s, color .2s;
     }
-    .reschedule-slot:hover,
+    .reschedule-slot:hover:not(:disabled):not(.is-selected) {
+      border-color: #10b981;
+      background: #d1fae5;
+    }
     .reschedule-slot.is-selected {
       border-color: var(--primary-deep);
-      background: #ccfbf1;
+      background: var(--primary-deep);
+      color: #fff;
     }
-    .reschedule-slot.is-selected {
-      font-weight: 700;
+    .reschedule-slot.is-booked,
+    .reschedule-slot:disabled {
+      cursor: not-allowed;
+      border-color: #fca5a5;
+      background: #fef2f2;
+      color: #b91c1c;
+    }
+    .reschedule-slot.is-booked .slot-time {
+      text-decoration: line-through;
+      opacity: .8;
+    }
+    .reschedule-slot.is-current {
+      border-color: #93c5fd;
+      background: #eff6ff;
+      color: #1d4ed8;
+    }
+    .reschedule-slot.is-current .slot-time {
+      text-decoration: none;
+      opacity: 1;
+    }
+    .reschedule-slot .slot-state {
+      font-size: 11px;
+      font-weight: 600;
     }
     .reschedule-feedback {
       padding: 11px 13px;
@@ -978,6 +1032,12 @@
       </div>
       <div>
         <label id="rescheduleSlotLabel">Chọn giờ khám còn trống</label>
+        <div class="reschedule-legend" aria-label="Chú thích màu khung giờ">
+          <span><i class="is-free"></i>Còn trống</span>
+          <span><i class="is-selected"></i>Đang chọn</span>
+          <span><i class="is-booked"></i>Đã có người đặt</span>
+          <span><i class="is-current"></i>Lịch hiện tại của bạn</span>
+        </div>
         <div
           id="rescheduleSlotList"
           class="reschedule-slot-list"
