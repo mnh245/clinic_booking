@@ -979,7 +979,12 @@ async function loadAvailableSlotsUI(doctorId, date) {
                         data-time="${slot.time}"
                         ${disabled ? "disabled" : ""}
                     >
-                        ${formatTime(slot.time)}
+                        <span class="slot-time">${formatTime(slot.time)}</span>
+                        ${
+                            disabled
+                                ? '<span class="slot-state">Đã đặt</span>'
+                                : ""
+                        }
                     </button>
                 `;
             })
@@ -1350,5 +1355,3 @@ function escapeHtml(value) {
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#039;");
 }
-
-
