@@ -11,10 +11,10 @@
         rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
     >
-    <link rel="stylesheet" href="css/overall.css">
+    <link rel="stylesheet" href="../css/overall.css">
     <link
         rel="stylesheet"
-        href="css/doctor-pages.css"
+        href="../css/doctor-pages.css"
     >
 </head>
 <body>
@@ -93,8 +93,8 @@
         </div>
     </section>
 </main>
-<script src="js/api.js"></script>
-<script src="js/doctor-detail.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/doctor-detail.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
     const loginLink = document.getElementById("loginLink");
@@ -104,9 +104,7 @@
     const logoutButton = document.getElementById("logoutButton");
     // Lấy thông tin người dùng đã đăng nhập
     const user = JSON.parse(localStorage.getItem("user"));
-    // =========================
-    // CHƯA ĐĂNG NHẬP
-    // =========================
+  
     if (!user) {
         if (loginLink) {
             loginLink.style.display = "inline-flex";
@@ -119,9 +117,7 @@
         }
         return;
     }
-    // =========================
-    // ĐÃ ĐĂNG NHẬP
-    // =========================
+  
     if (loginLink) {
         loginLink.style.display = "none";
     }

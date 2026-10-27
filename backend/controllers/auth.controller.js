@@ -217,8 +217,8 @@ async function login(req, res) {
             }
             // Lưu thông tin user vào session
             req.session.user = sessionUser;
-            console.log("SESSION ID AFTER LOGIN:", req.sessionID);
-            console.log("SESSION USER AFTER LOGIN:", req.session.user);
+            // console.log("SESSION ID AFTER LOGIN:", req.sessionID);
+            // console.log("SESSION USER AFTER LOGIN:", req.session.user);
             // Lưu session
             req.session.save((saveError) => {
                 if (saveError) {
@@ -232,9 +232,9 @@ async function login(req, res) {
                             "Không thể lưu phiên đăng nhập."
                     });
                 }
-                console.log(
-                    `SESSION LOGIN: ${sessionUser.email} | ROLE: ${sessionUser.role}`
-                );
+                // console.log(
+                //     `SESSION LOGIN: ${sessionUser.email} | ROLE: ${sessionUser.role}`
+                // );
                 return res.status(200).json({
                     success: true,
                     message:
