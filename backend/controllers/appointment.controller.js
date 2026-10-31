@@ -301,6 +301,7 @@ async function createAppointment(req, res) {
             });
         }
         const {
+            appointment_type = "SPECIALTY",
             doctor_id,
             schedule_id,
             appointment_time,
@@ -311,6 +312,15 @@ async function createAppointment(req, res) {
             contact_address,
             sms_opt_in
         } = req.body || {};
+
+        const appointmentType = String(appointment_type).trim().toUpperCase();
+
+        if (!["GENERAL", "SPECIALTY"].includes(appointmentType)) {
+            return res.status(400).json({
+                success: false,
+                message: "Loại khám không hợp lệ."
+            });
+        }
         const contactName = String(contact_name ?? "").trim();
         const contactEmail = String(contact_email ?? "")
             .trim()
@@ -383,18 +393,56 @@ async function createAppointment(req, res) {
         // =================================================
         const [doctors] = await connection.query(
             `
-            SELECT id
-            FROM doctors
-            WHERE id = ?
+            SELECT
+                d.id,
+                sp.name AS specialty_name
+            FROM doctors d
+            LEFT JOIN specialties sp
+                ON sp.id = d.specialty_id
+            WHERE d.id = ?
             LIMIT 1
             `,
             [Number(doctor_id)]
         );
+
         if (doctors.length === 0) {
             await connection.rollback();
             return res.status(404).json({
                 success: false,
                 message: "Không tìm thấy bác sĩ."
+            });
+        }
+
+        // Không cho phép gửi loại khám GENERAL đến bác sĩ chuyên khoa khác
+        // hoặc gửi SPECIALTY đến bác sĩ thuộc chuyên khoa Khám tổng quát.
+        const isGeneralCheckupDoctor =
+            String(doctors[0].specialty_name || "")
+                .trim()
+                .localeCompare("Khám tổng quát", "vi", {
+                    sensitivity: "base"
+                }) === 0;
+
+        if (
+            appointmentType === "GENERAL" &&
+            !isGeneralCheckupDoctor
+        ) {
+            await connection.rollback();
+            return res.status(400).json({
+                success: false,
+                message:
+                    "Bạn đã chọn khám tổng quát. Vui lòng chọn bác sĩ thuộc chuyên khoa Khám tổng quát."
+            });
+        }
+
+        if (
+            appointmentType === "SPECIALTY" &&
+            isGeneralCheckupDoctor
+        ) {
+            await connection.rollback();
+            return res.status(400).json({
+                success: false,
+                message:
+                    "Bác sĩ này thuộc chuyên khoa Khám tổng quát. Vui lòng chọn loại khám phù hợp."
             });
         }
         // =================================================
@@ -541,6 +589,7 @@ async function createAppointment(req, res) {
             `
             INSERT INTO appointments (
                 patient_id,
+                appointment_type,
                 doctor_id,
                 schedule_id,
                 appointment_time,
@@ -552,10 +601,11 @@ async function createAppointment(req, res) {
                 sms_opt_in,
                 status
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING')
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING')
             `,
             [
                 patient_id,
+                appointmentType,
                 Number(doctor_id),
                 Number(schedule_id),
                 appointment_time,
@@ -621,6 +671,7 @@ async function createAppointment(req, res) {
             data: {
                 id: appointmentId,
                 patient_id,
+                appointment_type: appointmentType,
                 doctor_id: Number(doctor_id),
                 schedule_id: Number(schedule_id),
                 appointment_time,
@@ -690,6 +741,7 @@ async function getPatientAppointments(req, res) {
             SELECT
                 a.id,
                 a.patient_id,
+                a.appointment_type,
                 a.doctor_id,
                 a.schedule_id,
                 a.appointment_time,

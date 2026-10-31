@@ -669,6 +669,18 @@
           </button>
         </div>
         <form id="appointmentForm" class="appointment-form">
+          <!-- CHỌN LOẠI KHÁM: BỔ SUNG, GIỮ NGUYÊN CÁC PHẦN CÒN LẠI -->
+          <div class="form-group appointment-type-group">
+            <label for="appointmentType">Bạn muốn đăng ký hình thức khám nào?</label>
+            <select id="appointmentType" name="appointment_type" required>
+              <option value="GENERAL" selected>Khám sức khỏe tổng quát (đề xuất)</option>
+              <option value="SPECIALTY">Khám theo chuyên khoa</option>
+            </select>
+            <small id="appointmentTypeHint" class="booking-contact-hint">
+              Dành cho người khám lần đầu hoặc chưa xác định được chuyên khoa.
+              Bác sĩ sẽ đánh giá sức khỏe ban đầu và tư vấn bước tiếp theo.
+            </small>
+          </div>
           <!-- Thông tin bác sĩ được chọn -->
           <div class="selected-doctor-box" id="selectedDoctorBox">
             <div class="selected-doctor-main">
