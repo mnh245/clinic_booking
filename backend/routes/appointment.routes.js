@@ -41,6 +41,15 @@ router.patch(
     appointmentController.cancelAppointment
 );
 // =====================================================
+// ĐỔI LỊCH KHÁM
+// PATCH /api/appointments/:id/reschedule
+// =====================================================
+
+router.patch(
+    "/appointments/:id/reschedule",
+    appointmentController.rescheduleAppointment
+);
+// =====================================================
 // BÁC SĨ XÁC NHẬN
 // POST /api/appointments/:id/confirm
 // =====================================================
@@ -76,6 +85,15 @@ router.post(
     "/appointments/:id/complete",
     appointmentController.completeAppointment
 );
+// =====================================================
+// BÁC SĨ HỦY LỊCH
+// POST /api/appointments/:id/doctor-cancel
+// Body: { "reason": "..." }
+// =====================================================
 
+router.post(
+    "/appointments/:id/doctor-cancel",
+    appointmentController.doctorCancelAppointment
+);
 
 module.exports = router;
