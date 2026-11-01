@@ -4,6 +4,9 @@ const router = express.Router();
 
 const appointmentController =
     require("../controllers/appointment.controller");
+
+const prescriptionController =
+    require("../controllers/prescription.controller");
 // =====================================================
 // GIỜ KHÁM CÒN TRỐNG
 // GET /api/doctors/:doctorId/available-slots?date=YYYY-MM-DD
@@ -104,6 +107,27 @@ router.post(
 router.post(
     "/appointments/:id/review",
     appointmentController.createAppointmentReview
+);
+// =====================================================
+// ĐƠN THUỐC
+// GET  /api/appointments/:id/prescription  (bệnh nhân/bác sĩ/admin)
+// POST /api/appointments/:id/prescription  (bác sĩ kê đơn mới)
+// PUT  /api/appointments/:id/prescription  (bác sĩ sửa đơn)
+// =====================================================
+
+router.get(
+    "/appointments/:id/prescription",
+    prescriptionController.getAppointmentPrescription
+);
+
+router.post(
+    "/appointments/:id/prescription",
+    prescriptionController.createPrescription
+);
+
+router.put(
+    "/appointments/:id/prescription",
+    prescriptionController.updatePrescription
 );
 
 module.exports = router;

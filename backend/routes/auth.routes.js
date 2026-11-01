@@ -27,13 +27,13 @@ router.post(
 // KIỂM TRA SESSION
 // ================================
 router.get("/session", (req, res) => {
-    console.log("======================================");
-    console.log("CHECK SESSION");
-    console.log("Session ID:", req.sessionID);
-    console.log("Session:", req.session);
-    console.log("Cookie:", req.headers.cookie);
-    console.log("User:", req.session?.user);
-    console.log("======================================");
+    // console.log("======================================");
+    // console.log("CHECK SESSION");
+    // console.log("Session ID:", req.sessionID);
+    // console.log("Session:", req.session);
+    // console.log("Cookie:", req.headers.cookie);
+    // console.log("User:", req.session?.user);
+    // console.log("======================================");
     if (!req.session?.user) {
         return res.status(401).json({
             success: false,

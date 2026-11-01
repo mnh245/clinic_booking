@@ -7,7 +7,6 @@
         content="width=device-width, initial-scale=1.0"
     >
     <title>Dashboard bác sĩ | Clinic Booking</title>
-
     <link
         rel="stylesheet"
         href="../css/overall.css"
@@ -169,6 +168,238 @@
                 grid-template-columns: 1fr;
             }
         }
+        /* =====================================================
+           BỘ LỌC LỊCH HẸN
+        ===================================================== */
+        .appt-filter {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+        .appt-filter-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .appt-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 7px 13px;
+            border: 1px solid var(--border, #e2e8f0);
+            border-radius: 999px;
+            background: #ffffff;
+            color: var(--text, #0f172a);
+            font: inherit;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background .2s ease, border-color .2s ease;
+        }
+        .appt-chip:hover {
+            border-color: var(--primary, #0ea5a4);
+        }
+        .appt-chip.active {
+            border-color: var(--primary, #0ea5a4);
+            background: var(--primary-light, #ccfbf1);
+            color: var(--primary-deep, #0b5f59);
+        }
+        .appt-chip .filter-count {
+            min-width: 20px;
+            padding: 1px 7px;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, .07);
+            font-size: 12px;
+            text-align: center;
+        }
+        .appt-chip.active .filter-count {
+            background: rgba(11, 95, 89, .15);
+        }
+        .appt-filter-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+        }
+        .appt-filter-field input {
+            padding: 9px 11px;
+            border: 1px solid var(--border, #e2e8f0);
+            border-radius: 10px;
+            font: inherit;
+            font-size: 14px;
+        }
+        .appt-filter-field input:focus {
+            outline: none;
+            border-color: var(--primary, #0ea5a4);
+            box-shadow: 0 0 0 3px rgba(14, 165, 164, .12);
+        }
+        .appt-filter-search {
+            position: relative;
+            flex: 1 1 260px;
+        }
+        .appt-filter-search i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--muted, #64748b);
+            font-size: 13px;
+            pointer-events: none;
+        }
+        .appt-filter-search input {
+            width: 100%;
+            box-sizing: border-box;
+            padding-left: 34px;
+        }
+        .appt-filter-summary {
+            font-size: 12px;
+            color: var(--muted, #64748b);
+        }
+        /* =====================================================
+           MODAL KÊ ĐƠN THUỐC
+        ===================================================== */
+        .rx-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            display: none;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 32px 16px;
+            overflow-y: auto;
+            background: rgba(15, 23, 42, .55);
+        }
+        .rx-modal.open {
+            display: flex;
+        }
+        .rx-dialog {
+            width: 100%;
+            max-width: 820px;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 24px 60px rgba(15, 23, 42, .25);
+        }
+        .rx-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 20px 24px 14px;
+            border-bottom: 1px solid var(--border, #e2e8f0);
+        }
+        .rx-header h3 {
+            margin: 0 0 4px;
+            font-size: 20px;
+            color: var(--text, #0f172a);
+        }
+        .rx-header p {
+            margin: 0;
+            font-size: 13px;
+            color: var(--muted, #64748b);
+        }
+        .rx-close {
+            border: 0;
+            background: transparent;
+            font-size: 20px;
+            cursor: pointer;
+            color: var(--muted, #64748b);
+        }
+        .rx-body {
+            padding: 20px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .rx-section-title {
+            margin: 6px 0 0;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--primary-deep, #0b5f59);
+            text-transform: uppercase;
+            letter-spacing: .04em;
+        }
+        .rx-field label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text, #0f172a);
+        }
+        .rx-field input,
+        .rx-field textarea {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 9px 11px;
+            border: 1px solid var(--border, #e2e8f0);
+            border-radius: 10px;
+            font: inherit;
+            font-size: 14px;
+        }
+        .rx-field textarea {
+            resize: vertical;
+            min-height: 64px;
+        }
+        .rx-field input:focus,
+        .rx-field textarea:focus {
+            outline: none;
+            border-color: var(--primary, #0ea5a4);
+            box-shadow: 0 0 0 3px rgba(14, 165, 164, .12);
+        }
+        .rx-items {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .rx-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 14px;
+            border: 1px solid var(--border, #e2e8f0);
+            border-radius: 12px;
+            background: #f8fafc;
+        }
+        .rx-item-grid {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 10px;
+        }
+        .rx-field-wide {
+            grid-column: span 2;
+        }
+        .rx-remove {
+            margin-top: 22px;
+            padding: 8px 11px;
+        }
+        .rx-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding: 14px 24px 20px;
+            border-top: 1px solid var(--border, #e2e8f0);
+        }
+        .rx-message {
+            font-size: 13px;
+            min-height: 0;
+        }
+        .rx-message.error {
+            color: #b91c1c;
+        }
+        @media (max-width: 700px) {
+            .rx-item-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        @media (max-width: 480px) {
+            .rx-item-grid {
+                grid-template-columns: 1fr;
+            }
+            .rx-field-wide {
+                grid-column: auto;
+            }
+        }
     </style>
 </head>
 <body data-role="DOCTOR">
@@ -190,7 +421,6 @@
     <a href="#schedule-section">Đăng ký ca</a>
     <a href="#refreshSchedules">Ca làm</a>
     <a href="#appointment-section">Lịch hẹn</a>
-
     <a href="doctor-profile.html"
        id="myProfileLink">
         Hồ sơ của tôi
@@ -551,6 +781,58 @@
                     Làm mới
                 </button>
             </div>
+            <!-- BỘ LỌC LỊCH HẸN -->
+            <div class="appt-filter">
+                <div class="appt-filter-chips" id="appointmentStatusChips">
+                    <button type="button" class="appt-chip active"
+                            data-status-filter="ALL">
+                        Tất cả <span class="filter-count">0</span>
+                    </button>
+                    <button type="button" class="appt-chip"
+                            data-status-filter="PENDING">
+                        Chờ xác nhận <span class="filter-count">0</span>
+                    </button>
+                    <button type="button" class="appt-chip"
+                            data-status-filter="CONFIRMED">
+                        Đã xác nhận <span class="filter-count">0</span>
+                    </button>
+                    <button type="button" class="appt-chip"
+                            data-status-filter="COMPLETED">
+                        Đã hoàn thành <span class="filter-count">0</span>
+                    </button>
+                    <button type="button" class="appt-chip"
+                            data-status-filter="CANCELLED">
+                        Đã hủy <span class="filter-count">0</span>
+                    </button>
+                    <button type="button" class="appt-chip"
+                            data-status-filter="NO_SHOW">
+                        Không đến <span class="filter-count">0</span>
+                    </button>
+                </div>
+                <div class="appt-filter-row">
+                    <div class="appt-filter-field appt-filter-search">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="search" id="filterAppointmentSearch"
+                               placeholder="Tìm theo tên, số điện thoại, lý do khám..."
+                               autocomplete="off">
+                    </div>
+                    <div class="appt-filter-field">
+                        <input type="date" id="filterAppointmentDate"
+                               aria-label="Lọc theo ngày khám">
+                    </div>
+                    <button type="button" class="btn btn-outline"
+                            id="filterAppointmentToday">
+                        Hôm nay
+                    </button>
+                    <button type="button" class="btn btn-outline"
+                            id="filterAppointmentReset">
+                        <i class="fa-solid fa-filter-circle-xmark"></i>
+                        Xóa lọc
+                    </button>
+                </div>
+                <div class="appt-filter-summary"
+                     id="appointmentFilterSummary"></div>
+            </div>
             <div class="dashboard-table-wrapper">
                 <table class="dashboard-table">
                     <thead>
@@ -590,6 +872,66 @@
         </section>
     </div>
 </main>
+<!-- =========================================================
+     MODAL KÊ ĐƠN THUỐC
+========================================================= -->
+<div class="rx-modal" id="prescriptionModal" role="dialog"
+     aria-modal="true" aria-labelledby="rxModalTitle">
+    <form class="rx-dialog" id="prescriptionForm" novalidate>
+        <div class="rx-header">
+            <div>
+                <h3 id="rxModalTitle">Kê đơn thuốc</h3>
+                <p id="rxPatientInfo"></p>
+            </div>
+            <button type="button" class="rx-close" data-rx-close
+                    aria-label="Đóng">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <div class="rx-body">
+            <div class="rx-section-title">Thông tin khám</div>
+            <div class="rx-field">
+                <label for="rxDiagnosis">Chẩn đoán *</label>
+                <input type="text" id="rxDiagnosis" maxlength="500"
+                       placeholder="VD: Viêm họng cấp">
+            </div>
+            <div class="rx-field">
+                <label for="rxSymptoms">Triệu chứng</label>
+                <textarea id="rxSymptoms" maxlength="5000"></textarea>
+            </div>
+            <div class="rx-field">
+                <label for="rxExamNotes">Ghi chú khám</label>
+                <textarea id="rxExamNotes" maxlength="5000"></textarea>
+            </div>
+            <div class="rx-field">
+                <label for="rxTreatmentPlan">Hướng điều trị</label>
+                <textarea id="rxTreatmentPlan" maxlength="5000"></textarea>
+            </div>
+            <div class="rx-section-title">Danh sách thuốc</div>
+            <div class="rx-items" id="rxItems"></div>
+            <div>
+                <button type="button" class="btn btn-outline"
+                        id="rxAddItem">
+                    <i class="fa-solid fa-plus"></i> Thêm thuốc
+                </button>
+            </div>
+            <div class="rx-field">
+                <label for="rxNote">Lời dặn chung</label>
+                <textarea id="rxNote" maxlength="2000"
+                          placeholder="VD: Tái khám sau 5 ngày nếu chưa đỡ"></textarea>
+            </div>
+            <div class="rx-message" id="rxMessage"></div>
+        </div>
+        <div class="rx-footer">
+            <button type="button" class="btn btn-outline" data-rx-close>
+                Hủy
+            </button>
+            <button type="submit" class="btn btn-primary" id="rxSubmit">
+                <i class="fa-solid fa-floppy-disk"></i> Lưu đơn thuốc
+            </button>
+        </div>
+    </form>
+</div>
 <!-- =========================================================
      SCRIPT
 ========================================================= -->
@@ -646,11 +988,12 @@
                 if (
                     result.user.role !== "DOCTOR"
                 ) {
-                    alert(
-                        "Bạn không có quyền truy cập trang bác sĩ."
-                    );
-                    window.location.href =
-                        "home.html";
+                    // Thông báo đã được doctor-dashboard.js hiển thị
+                    // bằng toast; chờ một chút để kịp đọc rồi chuyển trang.
+                    setTimeout(function () {
+                        window.location.href =
+                            "home.html";
+                    }, 1500);
                     return;
                 }
                 // ======================================
@@ -668,10 +1011,6 @@
                         `BS. ${fullName}`;
                 }
             } catch (error) {
-                console.error(
-                    "SESSION CHECK ERROR:",
-                    error
-                );
                 window.location.href =
                     "login.html";
                 return;
@@ -684,8 +1023,12 @@
                     "click",
                     async function () {
                         const confirmed =
-                            window.confirm(
-                                "Bạn có chắc chắn muốn đăng xuất?"
+                            await window.confirmDialog(
+                                "Bạn có chắc chắn muốn đăng xuất?",
+                                {
+                                    title: "Đăng xuất",
+                                    confirmText: "Đăng xuất"
+                                }
                             );
                         if (!confirmed) {
                             return;
@@ -703,10 +1046,8 @@
                                 }
                             );
                         } catch (error) {
-                            console.error(
-                                "LOGOUT ERROR:",
-                                error
-                            );
+                            // Lỗi mạng khi đăng xuất: vẫn xóa dữ liệu
+                            // phía trình duyệt rồi quay về trang đăng nhập.
                         }
                         // Xóa dữ liệu frontend nếu có
                         localStorage.removeItem(

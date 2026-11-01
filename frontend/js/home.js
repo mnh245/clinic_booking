@@ -141,12 +141,15 @@ async function prefillBookingContact() {
 // =====================================================
 
 async function handleLogout() {
-    const confirmed = window.confirm(
-        "Bạn có chắc chắn muốn đăng xuất?"
-    );
+    const confirmed = await window.confirmDialog?.(
+        "Bạn có chắc chắn muốn  xuất?",
+        { title: "Đăng xuất", confirmText: "Đăng xuất" }
+    ) ?? window.confirm("Bạn có chắc chắn muốn  xuất?");
+
     if (!confirmed) {
         return;
     }
+
     try {
         await fetch("/api/logout", {
             method: "POST",
@@ -156,11 +159,9 @@ async function handleLogout() {
             }
         });
     } catch (error) {
-        console.warn(
-            "Không thể gọi API logout:",
-            error
-        );
+        // Lỗi mạng: vẫn xóa dữ liệu phía trình duyệt rồi chuyển trang
     }
+
     localStorage.removeItem("user");
     localStorage.removeItem("role");
     localStorage.removeItem("vaiTro");
@@ -733,7 +734,7 @@ function openBookingPanel(doctorId = null) {
     const user = getCurrentUser();
     if (!user) {
         alert(
-            "Bạn cần đăng nhập trước khi đặt lịch."
+            "Bạn cần  nhập trước khi đặt lịch."
         );
         window.location.href = "login.html";
         return;
@@ -1178,7 +1179,7 @@ async function submitAppointment(event) {
     event.preventDefault();
     const user = getCurrentUser();
     if (!user) {
-        alert("Bạn cần đăng nhập để đặt lịch.");
+        alert("Bạn cần  nhập để đặt lịch.");
         window.location.href = "login.html";
         return;
     }
