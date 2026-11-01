@@ -671,6 +671,89 @@
         width: 100%;
       }
     }
+    /* =====================================================
+   ĐÁNH GIÁ BÁC SĨ
+   ===================================================== */
+
+.review-dialog {
+    max-width: 520px;
+}
+
+.review-form {
+    display: grid;
+    gap: 13px;
+    margin-top: 18px;
+}
+
+.review-form label {
+    font-size: 13px;
+    font-weight: 700;
+    color: #24464a;
+}
+
+.review-form textarea {
+    width: 100%;
+    min-height: 110px;
+    padding: 12px;
+    border: 1px solid #d6e3e2;
+    border-radius: 10px;
+    resize: vertical;
+    font: inherit;
+    outline: none;
+}
+
+.review-form textarea:focus {
+    border-color: #0f766e;
+    box-shadow: 0 0 0 3px rgba(15, 118, 110, .1);
+}
+
+.review-stars {
+    display: flex;
+    gap: 9px;
+}
+
+.review-stars button {
+    border: none;
+    background: transparent;
+    color: #cbd5e1;
+    font-size: 35px;
+    cursor: pointer;
+    padding: 0;
+    transition: color .15s, transform .15s;
+}
+
+.review-stars button.active {
+    color: #f5a623;
+}
+
+.review-stars button:hover {
+    transform: scale(1.12);
+}
+
+#reviewRatingText {
+    margin: -5px 0 5px;
+    color: #64748b;
+    font-size: 12px;
+}
+
+.review-completed {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #0f766e;
+    font-size: 12px;
+    font-weight: 700;
+    margin-top: 10px;
+}
+
+.appointment-action--review {
+    color: #0f766e;
+    border-color: #b9ded9;
+}
+
+.appointment-action--review:hover {
+    background: #effaf8;
+}
   </style>
 </head>
 <body>
@@ -1078,6 +1161,74 @@
     </form>
   </section>
 </div>
+<!-- =====================================================
+     HỘP THOẠI ĐÁNH GIÁ BÁC SĨ
+     ===================================================== -->
+<div id="reviewModal" class="profile-modal" hidden aria-hidden="true">
+  <div class="profile-modal-backdrop" data-close-review></div>
+
+  <section
+    class="profile-modal-dialog review-dialog"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="reviewTitle"
+  >
+    <div class="profile-modal-header">
+      <div>
+        <h3 id="reviewTitle">
+          <i class="fa-solid fa-star"></i>
+          Đánh giá bác sĩ
+        </h3>
+        <p id="reviewDoctorInfo">Chia sẻ trải nghiệm khám bệnh của bạn.</p>
+      </div>
+
+      <button
+        type="button"
+        class="profile-modal-close"
+        data-close-review
+        aria-label="Đóng"
+      >
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <form id="reviewForm" class="review-form">
+      <label>Chất lượng dịch vụ</label>
+
+      <div class="review-stars" id="reviewStars">
+        <button type="button" data-rating="1" aria-label="1 sao">★</button>
+        <button type="button" data-rating="2" aria-label="2 sao">★</button>
+        <button type="button" data-rating="3" aria-label="3 sao">★</button>
+        <button type="button" data-rating="4" aria-label="4 sao">★</button>
+        <button type="button" data-rating="5" aria-label="5 sao">★</button>
+      </div>
+
+      <p id="reviewRatingText">Vui lòng chọn số sao.</p>
+
+      <label for="reviewComment">Nhận xét của bạn</label>
+      <textarea
+        id="reviewComment"
+        rows="4"
+        maxlength="1000"
+        placeholder="Chia sẻ cảm nhận về bác sĩ..."
+      ></textarea>
+
+      <p id="reviewFeedback" class="reschedule-feedback" hidden></p>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-outline" data-close-review>
+          Đóng
+        </button>
+
+        <button type="submit" class="btn btn-primary" id="reviewSubmit">
+          <i class="fa-solid fa-paper-plane"></i>
+          Gửi đánh giá
+        </button>
+      </div>
+    </form>
+  </section>
+</div>
+
 <script src="../js/api.js"></script>
 <script src="../js/profile-common.js"></script>
 <script src="../js/patient-profile.js"></script>

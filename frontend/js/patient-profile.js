@@ -30,6 +30,9 @@ CLINIC BOOKING - HỒ SƠ BỆNH NHÂN
     let appointments = [];
     let prescriptions = [];
     let appointmentFilter = "upcoming";
+    let reviewingAppointment = null;
+    let selectedRating = 0;
+
     let prescriptionsLoaded = false;
     // Trạng thái chức năng đổi lịch
     let reschedulingAppointment = null;
@@ -103,6 +106,7 @@ CLINIC BOOKING - HỒ SƠ BỆNH NHÂN
         setupAppointmentViews();
         // Gắn sự kiện đổi lịch, hủy lịch
         setupAppointmentActions();
+        setupReviewActions();
         await loadAppointments();
     }
     /* =====================================================
@@ -331,152 +335,418 @@ CLINIC BOOKING - HỒ SƠ BỆNH NHÂN
         }
         return false;
     }
-    /* =====================================================
-       HIỂN THỊ DANH SÁCH LỊCH HẸN
-       ===================================================== */
-    function renderAppointments() {
-        const list = $("appointmentList");
-        if (!list) return;
-        const today = C.todayString();
-        const rows = appointments
-            .filter((item) =>
-                appointmentFilter === "upcoming"
-                    ? appointmentDate(item) >= today &&
-                      !isPastAppointment(item, today)
-                    : isPastAppointment(item, today)
-            )
-            .sort((a, b) =>
-                appointmentFilter === "upcoming"
-                    ? appointmentDate(a).localeCompare(
-                          appointmentDate(b)
-                      ) ||
-                      C.formatTime(a.appointment_time).localeCompare(
-                          C.formatTime(b.appointment_time)
-                      )
-                    : appointmentDate(b).localeCompare(
-                          appointmentDate(a)
-                      ) ||
-                      C.formatTime(b.appointment_time).localeCompare(
-                          C.formatTime(a.appointment_time)
-                      )
-            );
-        if (!rows.length) {
-            list.innerHTML = `
-                <div class="empty">
-                    <i class="fa-regular fa-calendar"></i>
-                    <p>
-                        ${
-                            appointmentFilter === "upcoming"
-                                ? "Bạn chưa có lịch hẹn sắp tới."
-                                : "Chưa có lịch hẹn nào đã qua."
-                        }
-                    </p>
+   /* =====================================================
+   HIỂN THỊ DANH SÁCH LỊCH HẸN
+   ===================================================== */
+function renderAppointments() {
+    const list = $("appointmentList");
+    if (!list) return;
+
+    const today = C.todayString();
+
+    const rows = appointments
+        .filter((item) =>
+            appointmentFilter === "upcoming"
+                ? appointmentDate(item) >= today &&
+                  !isPastAppointment(item, today)
+                : isPastAppointment(item, today)
+        )
+        .sort((a, b) =>
+            appointmentFilter === "upcoming"
+                ? appointmentDate(a).localeCompare(
+                      appointmentDate(b)
+                  ) ||
+                  C.formatTime(a.appointment_time).localeCompare(
+                      C.formatTime(b.appointment_time)
+                  )
+                : appointmentDate(b).localeCompare(
+                      appointmentDate(a)
+                  ) ||
+                  C.formatTime(b.appointment_time).localeCompare(
+                      C.formatTime(a.appointment_time)
+                  )
+        );
+
+    if (!rows.length) {
+        list.innerHTML = `
+            <div class="empty">
+                <i class="fa-regular fa-calendar"></i>
+                <p>
                     ${
                         appointmentFilter === "upcoming"
-                            ? '<a href="home.html#doctors" class="btn btn-primary">Đặt lịch khám</a>'
-                            : ""
+                            ? "Bạn chưa có lịch hẹn sắp tới."
+                            : "Chưa có lịch hẹn nào đã qua."
                     }
+                </p>
+                ${
+                    appointmentFilter === "upcoming"
+                        ? '<a href="home.html#doctors" class="btn btn-primary">Đặt lịch khám</a>'
+                        : ""
+                }
+            </div>
+        `;
+        return;
+    }
+
+    list.innerHTML = rows.map((item) => {
+        const date = appointmentDate(item);
+
+        const [year, month, day] = date
+            ? date.split("-")
+            : ["", "", ""];
+
+        const status = statusInfo(item.status);
+
+        const time = C.formatTime(
+            item.appointment_time || item.start_time
+        );
+
+        const rawDoctor =
+            item.doctor_name ||
+            item.full_name ||
+            "Bác sĩ";
+
+        const doctor = /^bs\.?\s/i.test(rawDoctor)
+            ? rawDoctor
+            : `BS. ${rawDoctor}`;
+
+        const detail = [
+            item.specialty_name,
+            time
+        ].filter(Boolean).join(" • ");
+
+        const arrival = item.actual_arrival_time
+            ? `Đến khám: ${C.formatTime(item.actual_arrival_time)}`
+            : "";
+
+        const late = Number(item.late_minutes) > 0
+            ? `Đến muộn ${Number(item.late_minutes)} phút`
+            : "";
+
+        // Đổi lịch / hủy lịch
+        const canManageAppointment =
+            ["PENDING", "CONFIRMED"].includes(
+                normalizedStatus(item)
+            ) &&
+            !isPastAppointment(item, today) &&
+            Number(item.id) > 0;
+
+        const actionButtons = canManageAppointment
+            ? `
+                <div class="appointment-actions">
+                    <button
+                        type="button"
+                        class="appointment-action"
+                        data-reschedule-appointment="${Number(item.id)}"
+                    >
+                        <i class="fa-solid fa-calendar-days"></i>
+                        Đổi lịch
+                    </button>
+
+                    <button
+                        type="button"
+                        class="appointment-action appointment-action--danger"
+                        data-cancel-appointment="${Number(item.id)}"
+                    >
+                        <i class="fa-solid fa-calendar-xmark"></i>
+                        Hủy lịch
+                    </button>
                 </div>
-            `;
-            return;
-        }
-        list.innerHTML = rows.map((item) => {
-            const date = appointmentDate(item);
-            const [year, month, day] = date
-                ? date.split("-")
-                : ["", "", ""];
-            const status = statusInfo(item.status);
-            const time = C.formatTime(
-                item.appointment_time || item.start_time
-            );
-            const rawDoctor =
-                item.doctor_name ||
-                item.full_name ||
-                "Bác sĩ";
-            const doctor = /^bs\.?\s/i.test(rawDoctor)
-                ? rawDoctor
-                : `BS. ${rawDoctor}`;
-            const detail = [
-                item.specialty_name,
-                time
-            ].filter(Boolean).join(" • ");
-            const arrival = item.actual_arrival_time
-                ? `Đến khám: ${C.formatTime(item.actual_arrival_time)}`
-                : "";
-            const late = Number(item.late_minutes) > 0
-                ? `Đến muộn ${Number(item.late_minutes)} phút`
-                : "";
-            // Chỉ cho đổi/hủy lịch tương lai thuộc trạng thái hợp lệ.
-            const canManageAppointment =
-                ["PENDING", "CONFIRMED"].includes(
-                    normalizedStatus(item)
-                ) &&
-                !isPastAppointment(item, today) &&
-                Number(item.id) > 0;
-            const actionButtons = canManageAppointment
+            `
+            : "";
+
+        // Đánh giá bác sĩ sau khi hoàn thành khám
+        const isCompleted =
+            normalizedStatus(item) === "COMPLETED";
+
+        const hasReview =
+            Number(item.has_review) === 1 ||
+            item.has_review === true;
+
+        const reviewButton = isCompleted
+            ? hasReview
                 ? `
+                    <span class="review-completed">
+                        <i class="fa-solid fa-circle-check"></i>
+                        Đã đánh giá
+                    </span>
+                `
+                : `
                     <div class="appointment-actions">
                         <button
                             type="button"
-                            class="appointment-action"
-                            data-reschedule-appointment="${Number(item.id)}"
+                            class="appointment-action appointment-action--review"
+                            data-review-appointment="${Number(item.id)}"
                         >
-                            <i class="fa-solid fa-calendar-days"></i>
-                            Đổi lịch
-                        </button>
-                        <button
-                            type="button"
-                            class="appointment-action appointment-action--danger"
-                            data-cancel-appointment="${Number(item.id)}"
-                        >
-                            <i class="fa-solid fa-calendar-xmark"></i>
-                            Hủy lịch
+                            <i class="fa-solid fa-star"></i>
+                            Đánh giá bác sĩ
                         </button>
                     </div>
                 `
-                : "";
-            return `
-                <div class="item">
-                    <div class="item-date">
-                        <strong>${escapeHtml(day || "--")}</strong>
-                        <span>
-                            Th${escapeHtml(month || "--")}/${escapeHtml(year || "")}
-                        </span>
-                    </div>
-                    <div class="item-main">
-                        <strong>${escapeHtml(doctor)}</strong>
-                        <span>
-                            ${escapeHtml(detail || "Chưa có giờ khám")}
-                        </span>
-                        ${
-                            item.reason
-                                ? `<span>Lý do: ${escapeHtml(item.reason)}</span>`
-                                : ""
-                        }
-                        ${
-                            arrival
-                                ? `
-                                    <span>
-                                        ${escapeHtml(arrival)}
-                                        ${late ? ` • ${escapeHtml(late)}` : ""}
-                                    </span>
-                                `
-                                : ""
-                        }
-                        ${
-                            item.note
-                                ? `<span>Ghi chú: ${escapeHtml(item.note)}</span>`
-                                : ""
-                        }
-                        ${actionButtons}
-                    </div>
-                    <span class="tag ${status.cls}">
-                        ${status.label}
+            : "";
+
+        return `
+            <div class="item">
+                <div class="item-date">
+                    <strong>${escapeHtml(day || "--")}</strong>
+                    <span>
+                        Th${escapeHtml(month || "--")}/${escapeHtml(year || "")}
                     </span>
                 </div>
-            `;
-        }).join("");
+
+                <div class="item-main">
+                    <strong>${escapeHtml(doctor)}</strong>
+
+                    <span>
+                        ${escapeHtml(detail || "Chưa có giờ khám")}
+                    </span>
+
+                    ${
+                        item.reason
+                            ? `<span>Lý do: ${escapeHtml(item.reason)}</span>`
+                            : ""
+                    }
+
+                    ${
+                        arrival
+                            ? `
+                                <span>
+                                    ${escapeHtml(arrival)}
+                                    ${late ? ` • ${escapeHtml(late)}` : ""}
+                                </span>
+                            `
+                            : ""
+                    }
+
+                    ${
+                        item.note
+                            ? `<span>Ghi chú: ${escapeHtml(item.note)}</span>`
+                            : ""
+                    }
+
+                    ${actionButtons}
+
+                    ${reviewButton}
+                </div>
+
+                <span class="tag ${status.cls}">
+                    ${status.label}
+                </span>
+            </div>
+        `;
+    }).join("");
+}
+/* =====================================================
+   ĐÁNH GIÁ BÁC SĨ
+   ===================================================== */
+
+function openReviewModal(item) {
+    if (
+        !item ||
+        normalizedStatus(item) !== "COMPLETED"
+    ) {
+        C.toast(
+            "Chỉ có thể đánh giá sau khi hoàn thành khám.",
+            "error"
+        );
+        return;
     }
+
+    if (item.has_review) {
+        C.toast("Lịch hẹn này đã được đánh giá.", "error");
+        return;
+    }
+
+    reviewingAppointment = item;
+    selectedRating = 0;
+
+    const modal = $("reviewModal");
+    const doctorInfo = $("reviewDoctorInfo");
+    const comment = $("reviewComment");
+    const feedback = $("reviewFeedback");
+
+    if (!modal) {
+        C.toast("Không tìm thấy hộp thoại đánh giá.", "error");
+        return;
+    }
+
+    if (doctorInfo) {
+        doctorInfo.textContent =
+            `Đánh giá bác sĩ ${item.doctor_name || "Bác sĩ"} · ` +
+            `${C.formatDate(appointmentDate(item))}`;
+    }
+
+    if (comment) comment.value = "";
+
+    if (feedback) {
+        feedback.hidden = true;
+        feedback.textContent = "";
+    }
+
+    updateReviewStars();
+
+    modal.hidden = false;
+    modal.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+}
+
+function closeReviewModal() {
+    const modal = $("reviewModal");
+
+    reviewingAppointment = null;
+    selectedRating = 0;
+
+    if (modal) {
+        modal.hidden = true;
+        modal.setAttribute("aria-hidden", "true");
+    }
+
+    document.body.style.overflow = "";
+}
+
+function updateReviewStars() {
+    const stars = document.querySelectorAll(
+        "#reviewStars [data-rating]"
+    );
+
+    stars.forEach((star) => {
+        const rating = Number(star.dataset.rating);
+
+        star.classList.toggle(
+            "active",
+            rating <= selectedRating
+        );
+    });
+
+    const ratingText = $("reviewRatingText");
+
+    if (ratingText) {
+        const labels = {
+            0: "Vui lòng chọn số sao.",
+            1: "Rất không hài lòng",
+            2: "Không hài lòng",
+            3: "Bình thường",
+            4: "Hài lòng",
+            5: "Rất hài lòng"
+        };
+
+        ratingText.textContent = labels[selectedRating];
+    }
+}
+
+function showReviewFeedback(message, isError = true) {
+    const feedback = $("reviewFeedback");
+    if (!feedback) return;
+
+    feedback.textContent = message;
+    feedback.hidden = false;
+
+    feedback.className = "reschedule-feedback";
+
+    if (isError) {
+        feedback.classList.add("is-error");
+    }
+}
+
+async function submitDoctorReview(event) {
+    event.preventDefault();
+
+    if (!reviewingAppointment) {
+        showReviewFeedback("Không tìm thấy lịch hẹn cần đánh giá.");
+        return;
+    }
+
+    if (selectedRating < 1 || selectedRating > 5) {
+        showReviewFeedback("Vui lòng chọn số sao đánh giá.");
+        return;
+    }
+
+    const submitButton = $("reviewSubmit");
+    const comment = $("reviewComment")?.value.trim() || "";
+
+    if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.innerHTML = `
+            <i class="fa-solid fa-spinner fa-spin"></i>
+            Đang gửi...
+        `;
+    }
+
+    try {
+        const result = await apiFetch(
+            `/api/appointments/${encodeURIComponent(reviewingAppointment.id)}/review`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    rating: selectedRating,
+                    comment
+                })
+            }
+        );
+
+        C.toast(
+            result?.message || "Đánh giá bác sĩ thành công."
+        );
+
+        closeReviewModal();
+
+        // Tải lại danh sách để cập nhật trạng thái Đã đánh giá
+        await loadAppointments();
+
+    } catch (error) {
+        showReviewFeedback(
+            error.message || "Không thể gửi đánh giá."
+        );
+    } finally {
+        if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.innerHTML = `
+                <i class="fa-solid fa-paper-plane"></i>
+                Gửi đánh giá
+            `;
+        }
+    }
+}
+
+function setupReviewActions() {
+    const form = $("reviewForm");
+
+    document.querySelectorAll("[data-close-review]").forEach(
+        (button) => {
+            if (button.dataset.closeReviewBound === "1") return;
+
+            button.dataset.closeReviewBound = "1";
+            button.addEventListener("click", closeReviewModal);
+        }
+    );
+
+    document.querySelectorAll("#reviewStars [data-rating]").forEach(
+        (star) => {
+            if (star.dataset.ratingBound === "1") return;
+
+            star.dataset.ratingBound = "1";
+
+            star.addEventListener("click", () => {
+                selectedRating = Number(star.dataset.rating);
+                updateReviewStars();
+            });
+        }
+    );
+
+    if (form && form.dataset.reviewBound !== "1") {
+        form.dataset.reviewBound = "1";
+        form.addEventListener("submit", submitDoctorReview);
+    }
+
+    $("reviewModal")?.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+            closeReviewModal();
+        }
+    });
+}
     /* =====================================================
        ĐỔI LỊCH / HỦY LỊCH KHÁM
        ===================================================== */
@@ -490,33 +760,43 @@ CLINIC BOOKING - HỒ SƠ BỆNH NHÂN
             list.dataset.actionsBound = "1";
             list.addEventListener("click", async (event) => {
                 const changeButton = event.target.closest(
-                    "[data-reschedule-appointment]"
-                );
+                                   "[data-reschedule-appointment]");
+
                 const cancelButton = event.target.closest(
-                    "[data-cancel-appointment]"
-                );
-                const button = changeButton || cancelButton;
-                if (!button) return;
+                                   "[data-cancel-appointment]");
+
+                const reviewButton = event.target.closest(
+                       "[data-review-appointment]");
+
+                const button = changeButton || cancelButton || reviewButton;
+                    if (!button) return;
                 const id = Number(
-                    changeButton
-                        ? changeButton.dataset.rescheduleAppointment
-                        : cancelButton.dataset.cancelAppointment
-                );
-                const item = appointments.find(
-                    (appointment) => Number(appointment.id) === id
-                );
-                if (!item) {
-                    C.toast(
-                        "Không tìm thấy thông tin lịch hẹn.",
-                        "error"
-                    );
-                    return;
-                }
-                if (changeButton) {
-                    openRescheduleModal(item);
-                } else {
-                    await cancelPatientAppointment(item);
-                }
+                      changeButton
+                     ? changeButton.dataset.rescheduleAppointment
+                     : cancelButton
+                      ? cancelButton.dataset.cancelAppointment
+                     : reviewButton.dataset.reviewAppointment
+                   );
+
+             const item = appointments.find(
+                         (appointment) => Number(appointment.id) === id
+                                           );
+
+                  if (!item) {
+                      C.toast(
+                      "Không tìm thấy thông tin lịch hẹn.",
+                          "error"
+                 );
+    return;
+}
+
+if (changeButton) {
+    openRescheduleModal(item);
+} else if (cancelButton) {
+    await cancelPatientAppointment(item);
+} else if (reviewButton) {
+    openReviewModal(item);
+}
             });
         }
         dateInput?.addEventListener(

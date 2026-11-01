@@ -750,6 +750,12 @@ async function getPatientAppointments(req, res) {
                 a.actual_arrival_time,
                 a.late_minutes,
                 a.note,
+                 EXISTS (
+                 SELECT 1
+                FROM doctor_reviews dr
+                   WHERE dr.appointment_id = a.id
+               ) AS has_review,
+                
                 s.schedule_date,
                 s.shift_type,
                 s.start_time,
@@ -1892,6 +1898,155 @@ async function doctorCancelAppointment(req, res) {
     }
 }
 // =====================================================
+// 10. ĐÁNH GIÁ BÁC SĨ SAU KHI KHÁM
+//
+// POST /api/appointments/:id/review
+// =====================================================
+
+async function createAppointmentReview(req, res) {
+    try {
+        const user = getCurrentUser(req);
+
+        // 1. Kiểm tra đăng nhập
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: "Bạn cần đăng nhập để đánh giá bác sĩ."
+            });
+        }
+
+        // 2. Chỉ bệnh nhân được đánh giá
+        if (user.role !== "PATIENT") {
+            return res.status(403).json({
+                success: false,
+                message: "Chỉ bệnh nhân mới được đánh giá bác sĩ."
+            });
+        }
+
+        // 3. Kiểm tra ID lịch khám
+        const appointmentId = Number(req.params.id);
+
+        if (!Number.isInteger(appointmentId) || appointmentId <= 0) {
+            return res.status(400).json({
+                success: false,
+                message: "ID lịch khám không hợp lệ."
+            });
+        }
+
+        // 4. Lấy dữ liệu đánh giá
+        const rating = Number(req.body?.rating);
+        const comment = String(req.body?.comment ?? "").trim();
+
+        if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+            return res.status(400).json({
+                success: false,
+                message: "Số sao đánh giá phải từ 1 đến 5."
+            });
+        }
+
+        if (comment.length > 1000) {
+            return res.status(400).json({
+                success: false,
+                message: "Nội dung nhận xét không được vượt quá 1000 ký tự."
+            });
+        }
+
+        // 5. Kiểm tra lịch khám thuộc bệnh nhân
+        const [appointments] = await pool.query(
+            `
+            SELECT
+                id,
+                patient_id,
+                doctor_id,
+                status
+            FROM appointments
+            WHERE id = ?
+              AND patient_id = ?
+            LIMIT 1
+            `,
+            [appointmentId, user.id]
+        );
+
+        if (appointments.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Không tìm thấy lịch khám của bạn."
+            });
+        }
+
+        const appointment = appointments[0];
+
+        // 6. Chỉ được đánh giá sau khi khám hoàn thành
+        if (appointment.status !== "COMPLETED") {
+            return res.status(400).json({
+                success: false,
+                message: "Bạn chỉ có thể đánh giá sau khi hoàn thành khám."
+            });
+        }
+
+        // 7. Kiểm tra lịch khám đã được đánh giá chưa
+        const [existingReviews] = await pool.query(
+            `
+            SELECT id
+            FROM doctor_reviews
+            WHERE appointment_id = ?
+            LIMIT 1
+            `,
+            [appointmentId]
+        );
+
+        if (existingReviews.length > 0) {
+            return res.status(409).json({
+                success: false,
+                message: "Lịch khám này đã được đánh giá."
+            });
+        }
+
+        // 8. Lưu đánh giá
+        await pool.query(
+            `
+            INSERT INTO doctor_reviews (
+                appointment_id,
+                patient_id,
+                doctor_id,
+                rating,
+                comment
+            )
+            VALUES (?, ?, ?, ?, ?)
+            `,
+            [
+                appointmentId,
+                user.id,
+                appointment.doctor_id,
+                rating,
+                comment || null
+            ]
+        );
+
+        return res.status(201).json({
+            success: true,
+            message: "Đánh giá bác sĩ thành công."
+        });
+
+    } catch (error) {
+        // Phòng trường hợp hai yêu cầu đánh giá
+        // cùng được gửi gần như đồng thời.
+        if (error.code === "ER_DUP_ENTRY") {
+            return res.status(409).json({
+                success: false,
+                message: "Lịch khám này đã được đánh giá."
+            });
+        }
+
+        console.error("CREATE APPOINTMENT REVIEW ERROR:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Không thể gửi đánh giá bác sĩ."
+        });
+    }
+}
+// =====================================================
 // EXPORT
 // =====================================================
 
@@ -1905,6 +2060,7 @@ module.exports = {
     recordArrival,
     markNoShow,
     completeAppointment,
+    createAppointmentReview,
     doctorCancelAppointment,
     autoCancelExpiredAppointments
 };

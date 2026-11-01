@@ -1270,7 +1270,7 @@ async function submitAppointment(event) {
             "/api/appointments",
             {
                 method: "POST",
-                body: payload
+                body: JSON.stringify(payload)
             }
         );
         if (!result || !result.success) {

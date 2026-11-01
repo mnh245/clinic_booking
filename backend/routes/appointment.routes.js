@@ -95,5 +95,15 @@ router.post(
     "/appointments/:id/doctor-cancel",
     appointmentController.doctorCancelAppointment
 );
+// =====================================================
+// BỆNH NHÂN ĐÁNH GIÁ BÁC SĨ
+// POST /api/appointments/:id/review
+// Body: { "rating": 5, "comment": "Bác sĩ tư vấn nhiệt tình" }
+// =====================================================
+
+router.post(
+    "/appointments/:id/review",
+    appointmentController.createAppointmentReview
+);
 
 module.exports = router;

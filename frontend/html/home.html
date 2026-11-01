@@ -1143,9 +1143,11 @@ document.addEventListener("DOMContentLoaded", async function () {
                 const introduction =
                     doctor.introduction ||
                     "Bác sĩ đang cập nhật thông tin giới thiệu.";
-                const rating = doctor.rating
-                    ? Number(doctor.rating).toFixed(1)
-                    : "Chưa có đánh giá";
+                const rating = doctor.rating !== null && doctor.rating !== undefined
+               ? Number(doctor.rating).toFixed(1)
+                : "Chưa có đánh giá";
+
+                  const reviewCount = Number(doctor.review_count || 0);
                 return `
                     <article class="card doctor-card">
                         <div class="doctor-cover"></div>
@@ -1162,9 +1164,15 @@ document.addEventListener("DOMContentLoaded", async function () {
                             </span>
                             <div class="doctor-card-footer">
                                 <span class="rating">
-                                    <i class="fa-solid fa-star"></i>
+                                  <i class="fa-solid fa-star"></i>
                                     <span>${rating}</span>
-                                </span>
+                                   <small style="
+                                   color: #64748b;
+                                     font-size: 12px;
+                                  font-weight: 400;">
+                                (${reviewCount} lượt đánh giá)
+                              </small>
+                               </span>
                                 <button
                                     type="button"
                                     class="btn btn-primary doctor-book-button"
@@ -1211,10 +1219,20 @@ document.addEventListener("DOMContentLoaded", async function () {
                         <div class="doctor-info">
                             <strong>BS. ${doctor.full_name}</strong>
                             <span>
-                                ${doctor.specialty_name || "Chưa cập nhật chuyên khoa"}
-                                •
-                                ${formatExperience(doctor.experience_years)}
-                            </span>
+                              ${doctor.specialty_name || "Chưa cập nhật chuyên khoa"}
+     •
+                                   ${formatExperience(doctor.experience_years)}
+                              </span>
+
+                              <span style="color: #d97706;">
+                           <i class="fa-solid fa-star"></i>
+                             ${
+                           doctor.rating !== null && doctor.rating !== undefined
+                              ? Number(doctor.rating).toFixed(1)
+                           : "Chưa có đánh giá"
+                       }
+                         (${Number(doctor.review_count || 0)} lượt)
+                          </span>
                         </div>
                         <i class="fa-solid fa-chevron-right"></i>
                     </button>

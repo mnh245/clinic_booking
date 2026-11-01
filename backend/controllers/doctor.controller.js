@@ -38,46 +38,70 @@ async function getDoctorIdFromUser(user) {
 // GET /api/doctors
 // =====================================================
 
+// =====================================================
+// 1. LẤY DANH SÁCH BÁC SĨ KÈM ĐÁNH GIÁ
+// GET /api/doctors
+// =====================================================
+
 async function getDoctors(req, res) {
     try {
-        const [doctors] =
-            await pool.query(
-                `
-                SELECT
-                    d.id,
-                    u.full_name,
-                    u.email,
-                    u.phone,
-                    u.gender,
-                    d.specialty_id,
-                    s.name AS specialty_name,
-                    d.license_number,
-                    d.experience_years,
-                    d.qualification,
-                    d.introduction,
-                    d.avatar
-                FROM doctors d
-                INNER JOIN users u
-                    ON d.user_id = u.id
-                INNER JOIN specialties s
-                    ON d.specialty_id = s.id
-                ORDER BY
-                    u.full_name ASC
-                `
-            );
+        const [doctors] = await pool.query(`
+            SELECT
+                d.id,
+                u.full_name,
+                u.email,
+                u.phone,
+                u.gender,
+                d.specialty_id,
+                s.name AS specialty_name,
+                d.license_number,
+                d.experience_years,
+                d.qualification,
+                d.introduction,
+                d.avatar,
+
+                ROUND(AVG(dr.rating), 1) AS rating,
+                COUNT(dr.id) AS review_count
+
+            FROM doctors d
+
+            INNER JOIN users u
+                ON d.user_id = u.id
+
+            INNER JOIN specialties s
+                ON d.specialty_id = s.id
+
+            LEFT JOIN doctor_reviews dr
+                ON dr.doctor_id = d.id
+
+            GROUP BY
+                d.id,
+                u.full_name,
+                u.email,
+                u.phone,
+                u.gender,
+                d.specialty_id,
+                s.name,
+                d.license_number,
+                d.experience_years,
+                d.qualification,
+                d.introduction,
+                d.avatar
+
+            ORDER BY u.full_name ASC
+        `);
+
         return res.status(200).json({
             success: true,
             data: doctors
         });
+
     } catch (error) {
-        console.error(
-            "GET DOCTORS ERROR:",
-            error
-        );
+        console.error("GET DOCTORS ERROR:", error);
+
         return res.status(500).json({
             success: false,
-            message:
-                "Không thể lấy danh sách bác sĩ."
+            message: "Không thể lấy danh sách bác sĩ."
         });
     }
 }
@@ -121,6 +145,17 @@ async function getDoctorById(
                     d.qualification,
                     d.introduction,
                     d.avatar
+                    (
+                    SELECT ROUND(AVG(dr.rating), 1)
+                    FROM doctor_reviews dr
+                    WHERE dr.doctor_id = d.id
+                   ) AS rating,
+
+(
+    SELECT COUNT(*)
+    FROM doctor_reviews dr
+    WHERE dr.doctor_id = d.id
+) AS review_count
                 FROM doctors d
                 INNER JOIN users u
                     ON d.user_id = u.id
