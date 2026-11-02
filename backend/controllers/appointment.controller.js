@@ -84,6 +84,34 @@ function isFutureSlot(dateValue, timeValue) {
     const slot = new Date(`${dateKey}T${time}`);
     return slot.getTime() > Date.now();
 }
+// Số ngày được chỉnh sửa đánh giá, tính từ thời điểm khám
+const REVIEW_EDIT_DAYS = 3;
+
+/**
+ * Hạn chỉnh sửa đánh giá = giờ hẹn khám + REVIEW_EDIT_DAYS ngày.
+ * Trả về Date, hoặc null nếu không xác định được giờ khám.
+ */
+function getReviewEditDeadline(scheduleDate, appointmentTime) {
+    const dateKey = getDateKey(scheduleDate);
+    const time = normalizeTime(
+        String(appointmentTime ?? "").slice(0, 8)
+    );
+
+    if (!dateKey || !time) {
+        return null;
+    }
+
+    const visit = new Date(`${dateKey}T${time}`);
+
+    if (Number.isNaN(visit.getTime())) {
+        return null;
+    }
+
+    return new Date(
+        visit.getTime() + REVIEW_EDIT_DAYS * 24 * 60 * 60 * 1000
+    );
+}
+
 // YYYY-MM-DD -> DD/MM/YYYY
 function formatDateDisplay(dateValue) {
     const [y, m, d] = getDateKey(dateValue).split("-");
@@ -750,12 +778,10 @@ async function getPatientAppointments(req, res) {
                 a.actual_arrival_time,
                 a.late_minutes,
                 a.note,
-                 EXISTS (
-                 SELECT 1
-                FROM doctor_reviews dr
-                   WHERE dr.appointment_id = a.id
-               ) AS has_review,
-                
+                (dr.id IS NOT NULL) AS has_review,
+                dr.rating AS review_rating,
+                dr.comment AS review_comment,
+                dr.created_at AS review_created_at,
                 s.schedule_date,
                 s.shift_type,
                 s.start_time,
@@ -771,6 +797,8 @@ async function getPatientAppointments(req, res) {
                 ON d.user_id = u.id
             LEFT JOIN specialties sp
                 ON d.specialty_id = sp.id
+            LEFT JOIN doctor_reviews dr
+                ON dr.appointment_id = a.id
             WHERE a.patient_id = ?
             ORDER BY
                 s.schedule_date DESC,
@@ -778,9 +806,37 @@ async function getPatientAppointments(req, res) {
             `,
             [patientId]
         );
+
+        // Bổ sung hạn chỉnh sửa đánh giá cho từng lịch đã có đánh giá
+        const nowMs = Date.now();
+
+        const data = rows.map((row) => {
+            if (!Number(row.has_review)) {
+                return {
+                    ...row,
+                    review_editable: false,
+                    review_edit_deadline: null
+                };
+            }
+
+            const deadline = getReviewEditDeadline(
+                row.schedule_date,
+                row.appointment_time
+            );
+
+            return {
+                ...row,
+                review_edit_deadline: deadline
+                    ? deadline.toISOString()
+                    : null,
+                review_editable:
+                    Boolean(deadline) && nowMs <= deadline.getTime()
+            };
+        });
+
         return res.json({
             success: true,
-            data: rows
+            data
         });
     } catch (error) {
         console.error("GET PATIENT APPOINTMENTS ERROR:", error);
@@ -2047,6 +2103,154 @@ async function createAppointmentReview(req, res) {
     }
 }
 // =====================================================
+// 11. CHỈNH SỬA ĐÁNH GIÁ BÁC SĨ
+//
+// PUT /api/appointments/:id/review
+// Body: { "rating": 4, "comment": "..." }
+//
+// Chỉ bệnh nhân đã đánh giá lịch khám đó mới được sửa,
+// và chỉ trong vòng REVIEW_EDIT_DAYS (3) ngày kể từ
+// thời điểm khám.
+// =====================================================
+
+async function updateAppointmentReview(req, res) {
+    try {
+        const user = getCurrentUser(req);
+
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: "Bạn cần đăng nhập để chỉnh sửa đánh giá."
+            });
+        }
+
+        if (user.role !== "PATIENT") {
+            return res.status(403).json({
+                success: false,
+                message: "Chỉ bệnh nhân mới được chỉnh sửa đánh giá."
+            });
+        }
+
+        const appointmentId = Number(req.params.id);
+
+        if (!Number.isInteger(appointmentId) || appointmentId <= 0) {
+            return res.status(400).json({
+                success: false,
+                message: "ID lịch khám không hợp lệ."
+            });
+        }
+
+        const rating = Number(req.body?.rating);
+        const comment = String(req.body?.comment ?? "").trim();
+
+        if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+            return res.status(400).json({
+                success: false,
+                message: "Số sao đánh giá phải từ 1 đến 5."
+            });
+        }
+
+        if (comment.length > 1000) {
+            return res.status(400).json({
+                success: false,
+                message: "Nội dung nhận xét không được vượt quá 1000 ký tự."
+            });
+        }
+
+        const [rows] = await pool.query(
+            `
+            SELECT
+                a.id,
+                a.status,
+                a.appointment_time,
+                s.schedule_date,
+                dr.id AS review_id
+            FROM appointments a
+            INNER JOIN schedules s
+                ON s.id = a.schedule_id
+            LEFT JOIN doctor_reviews dr
+                ON dr.appointment_id = a.id
+            WHERE a.id = ?
+              AND a.patient_id = ?
+            LIMIT 1
+            `,
+            [appointmentId, user.id]
+        );
+
+        if (rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Không tìm thấy lịch khám của bạn."
+            });
+        }
+
+        const appointment = rows[0];
+
+        if (appointment.status !== "COMPLETED") {
+            return res.status(400).json({
+                success: false,
+                message: "Chỉ có thể đánh giá sau khi hoàn thành khám."
+            });
+        }
+
+        if (!appointment.review_id) {
+            return res.status(404).json({
+                success: false,
+                message: "Lịch khám này chưa được đánh giá."
+            });
+        }
+
+        const deadline = getReviewEditDeadline(
+            appointment.schedule_date,
+            appointment.appointment_time
+        );
+
+        if (!deadline || Date.now() > deadline.getTime()) {
+            return res.status(403).json({
+                success: false,
+                message:
+                    `Đã quá ${REVIEW_EDIT_DAYS} ngày kể từ ngày khám ` +
+                    "nên không thể chỉnh sửa đánh giá."
+            });
+        }
+
+        await pool.query(
+            `
+            UPDATE doctor_reviews
+            SET
+                rating = ?,
+                comment = ?
+            WHERE id = ?
+              AND appointment_id = ?
+            `,
+            [
+                rating,
+                comment || null,
+                appointment.review_id,
+                appointmentId
+            ]
+        );
+
+        return res.json({
+            success: true,
+            message: "Đã cập nhật đánh giá.",
+            data: {
+                appointment_id: appointmentId,
+                rating,
+                comment: comment || null,
+                review_edit_deadline: deadline.toISOString()
+            }
+        });
+    } catch (error) {
+        console.error("UPDATE APPOINTMENT REVIEW ERROR:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Không thể cập nhật đánh giá."
+        });
+    }
+}
+// =====================================================
 // EXPORT
 // =====================================================
 
@@ -2061,6 +2265,7 @@ module.exports = {
     markNoShow,
     completeAppointment,
     createAppointmentReview,
+    updateAppointmentReview,
     doctorCancelAppointment,
     autoCancelExpiredAppointments
 };

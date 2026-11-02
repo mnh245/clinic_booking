@@ -140,7 +140,7 @@ CLINIC BOOKING - HỒ SƠ BỆNH NHÂN
                     active ? "true" : "false"
                 );
             });
-            if (!showAppointments && !prescriptionsLoaded) {
+            if (!showAppointments) {
                 loadPrescriptions();
             }
         };
@@ -455,35 +455,13 @@ function renderAppointments() {
             `
             : "";
 
-        // Đánh giá bác sĩ sau khi hoàn thành khám
-        const isCompleted =
-            normalizedStatus(item) === "COMPLETED";
+        // Đánh giá bác sĩ: xem lại / chỉnh sửa sau khi hoàn thành khám
+        const reviewButton = renderReviewBlock(item);
 
-        const hasReview =
-            Number(item.has_review) === 1 ||
-            item.has_review === true;
-
-        const reviewButton = isCompleted
-            ? hasReview
-                ? `
-                    <span class="review-completed">
-                        <i class="fa-solid fa-circle-check"></i>
-                        Đã đánh giá
-                    </span>
-                `
-                : `
-                    <div class="appointment-actions">
-                        <button
-                            type="button"
-                            class="appointment-action appointment-action--review"
-                            data-review-appointment="${Number(item.id)}"
-                        >
-                            <i class="fa-solid fa-star"></i>
-                            Đánh giá bác sĩ
-                        </button>
-                    </div>
-                `
-            : "";
+        const statusLabel =
+            normalizedStatus(item) === "COMPLETED" && hasReview(item)
+                ? `${status.label} • Đã đánh giá`
+                : status.label;
 
         return `
             <div class="item">
@@ -530,7 +508,7 @@ function renderAppointments() {
                 </div>
 
                 <span class="tag ${status.cls}">
-                    ${status.label}
+                    ${escapeHtml(statusLabel)}
                 </span>
             </div>
         `;
@@ -539,6 +517,156 @@ function renderAppointments() {
 /* =====================================================
    ĐÁNH GIÁ BÁC SĨ
    ===================================================== */
+
+// Số ngày được chỉnh sửa đánh giá sau khi khám (backend cũng kiểm tra)
+const REVIEW_EDIT_DAYS = 3;
+
+// "create" = đánh giá lần đầu, "edit" = chỉnh sửa đánh giá cũ
+let reviewMode = "create";
+
+function hasReview(item) {
+    return Number(item?.has_review) === 1 || item?.has_review === true;
+}
+
+function canEditReview(item) {
+    if (!hasReview(item) || !item.review_editable) {
+        return false;
+    }
+
+    // Kiểm tra lại theo giờ máy để nút tự ẩn nếu trang mở lâu quá hạn
+    if (item.review_edit_deadline) {
+        const deadline = new Date(item.review_edit_deadline).getTime();
+
+        if (!Number.isNaN(deadline)) {
+            return Date.now() <= deadline;
+        }
+    }
+
+    return true;
+}
+
+function formatDateTimeVN(value) {
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+        return "";
+    }
+
+    const pad = (number) => String(number).padStart(2, "0");
+
+    return (
+        `${pad(date.getHours())}:${pad(date.getMinutes())} ` +
+        `${pad(date.getDate())}/${pad(date.getMonth() + 1)}/` +
+        `${date.getFullYear()}`
+    );
+}
+
+function renderStars(rating) {
+    const value = Math.max(0, Math.min(5, Number(rating) || 0));
+
+    const stars = [1, 2, 3, 4, 5]
+        .map((number) =>
+            `<i class="fa-${number <= value ? "solid" : "regular"} fa-star"></i>`
+        )
+        .join("");
+
+    return `<span class="review-stars-static" role="img" aria-label="${value} trên 5 sao">${stars}</span>`;
+}
+
+/*
+ * Khối đánh giá hiển thị dưới mỗi lịch hẹn đã khám:
+ * - Chưa đánh giá: nút "Đánh giá bác sĩ"
+ * - Đã đánh giá: nhãn "Đã đánh giá", số sao, nhận xét,
+ *   hạn chỉnh sửa và nút "Chỉnh sửa đánh giá" (nếu còn hạn)
+ */
+function renderReviewBlock(item) {
+    if (normalizedStatus(item) !== "COMPLETED") {
+        return "";
+    }
+
+    const id = Number(item.id);
+
+    if (!hasReview(item)) {
+        return `
+            <div class="appointment-actions">
+                <button
+                    type="button"
+                    class="appointment-action appointment-action--review"
+                    data-review-appointment="${id}"
+                >
+                    <i class="fa-solid fa-star"></i>
+                    Đánh giá bác sĩ
+                </button>
+            </div>
+        `;
+    }
+
+    const editable = canEditReview(item);
+
+    const deadlineText = item.review_edit_deadline
+        ? formatDateTimeVN(item.review_edit_deadline)
+        : "";
+
+    const note = editable
+        ? (
+            deadlineText
+                ? `Bạn có thể chỉnh sửa đánh giá đến ${deadlineText}.`
+                : "Bạn có thể chỉnh sửa đánh giá."
+        )
+        : `Đã quá ${REVIEW_EDIT_DAYS} ngày kể từ ngày khám nên không thể chỉnh sửa.`;
+
+    const reviewedAt = item.review_created_at
+        ? formatDateTimeVN(item.review_created_at)
+        : "";
+
+    const comment = String(item.review_comment ?? "").trim();
+
+    return `
+        <div class="review-summary">
+            <div class="review-summary-head">
+                <span class="review-completed">
+                    <i class="fa-solid fa-circle-check"></i>
+                    Đã đánh giá
+                </span>
+                ${renderStars(item.review_rating)}
+                ${
+                    reviewedAt
+                        ? `<span class="review-summary-time">${escapeHtml(reviewedAt)}</span>`
+                        : ""
+                }
+            </div>
+
+            <p class="review-summary-comment${comment ? "" : " is-empty"}">
+                ${
+                    comment
+                        ? escapeHtml(comment)
+                        : "Bạn không để lại nhận xét."
+                }
+            </p>
+
+            <div class="review-summary-foot">
+                <span class="review-summary-note">
+                    ${escapeHtml(note)}
+                </span>
+
+                ${
+                    editable
+                        ? `
+                            <button
+                                type="button"
+                                class="appointment-action appointment-action--review"
+                                data-edit-review-appointment="${id}"
+                            >
+                                <i class="fa-solid fa-pen"></i>
+                                Chỉnh sửa đánh giá
+                            </button>
+                        `
+                        : ""
+                }
+            </div>
+        </div>
+    `;
+}
 
 function openReviewModal(item) {
     if (
@@ -552,31 +680,58 @@ function openReviewModal(item) {
         return;
     }
 
-    if (item.has_review) {
-        C.toast("Lịch hẹn này đã được đánh giá.", "error");
+    const editing = hasReview(item);
+
+    if (editing && !canEditReview(item)) {
+        C.toast(
+            `Đã quá ${REVIEW_EDIT_DAYS} ngày kể từ ngày khám ` +
+            "nên không thể chỉnh sửa đánh giá.",
+            "error"
+        );
         return;
     }
-
-    reviewingAppointment = item;
-    selectedRating = 0;
 
     const modal = $("reviewModal");
     const doctorInfo = $("reviewDoctorInfo");
     const comment = $("reviewComment");
     const feedback = $("reviewFeedback");
+    const title = $("reviewTitle");
 
     if (!modal) {
         C.toast("Không tìm thấy hộp thoại đánh giá.", "error");
         return;
     }
 
-    if (doctorInfo) {
-        doctorInfo.textContent =
-            `Đánh giá bác sĩ ${item.doctor_name || "Bác sĩ"} · ` +
-            `${C.formatDate(appointmentDate(item))}`;
+    reviewMode = editing ? "edit" : "create";
+    reviewingAppointment = item;
+    selectedRating = editing
+        ? Number(item.review_rating) || 0
+        : 0;
+
+    if (title) {
+        title.innerHTML = `
+            <i class="fa-solid fa-star"></i>
+            ${editing ? "Chỉnh sửa đánh giá" : "Đánh giá bác sĩ"}
+        `;
     }
 
-    if (comment) comment.value = "";
+    if (doctorInfo) {
+        const deadlineText = editing && item.review_edit_deadline
+            ? ` Bạn có thể chỉnh sửa đến ${formatDateTimeVN(item.review_edit_deadline)}.`
+            : "";
+
+        doctorInfo.textContent =
+            `${editing ? "Chỉnh sửa đánh giá cho" : "Đánh giá"} bác sĩ ` +
+            `${item.doctor_name || "Bác sĩ"} · ` +
+            `${C.formatDate(appointmentDate(item))}.` +
+            deadlineText;
+    }
+
+    if (comment) {
+        comment.value = editing
+            ? String(item.review_comment ?? "")
+            : "";
+    }
 
     if (feedback) {
         feedback.hidden = true;
@@ -584,6 +739,7 @@ function openReviewModal(item) {
     }
 
     updateReviewStars();
+    setReviewSubmitBusy(false);
 
     modal.hidden = false;
     modal.setAttribute("aria-hidden", "false");
@@ -648,10 +804,33 @@ function showReviewFeedback(message, isError = true) {
     }
 }
 
+// Trạng thái nút gửi: đang gửi / sẵn sàng (nhãn đổi theo chế độ)
+function setReviewSubmitBusy(busy) {
+    const button = $("reviewSubmit");
+
+    if (!button) return;
+
+    button.disabled = busy;
+
+    if (busy) {
+        button.innerHTML = `
+            <i class="fa-solid fa-spinner fa-spin"></i>
+            Đang gửi...
+        `;
+        return;
+    }
+
+    button.innerHTML = reviewMode === "edit"
+        ? `<i class="fa-solid fa-floppy-disk"></i> Lưu thay đổi`
+        : `<i class="fa-solid fa-paper-plane"></i> Gửi đánh giá`;
+}
+
 async function submitDoctorReview(event) {
     event.preventDefault();
 
-    if (!reviewingAppointment) {
+    const item = reviewingAppointment;
+
+    if (!item) {
         showReviewFeedback("Không tìm thấy lịch hẹn cần đánh giá.");
         return;
     }
@@ -661,22 +840,16 @@ async function submitDoctorReview(event) {
         return;
     }
 
-    const submitButton = $("reviewSubmit");
     const comment = $("reviewComment")?.value.trim() || "";
+    const isEdit = reviewMode === "edit";
 
-    if (submitButton) {
-        submitButton.disabled = true;
-        submitButton.innerHTML = `
-            <i class="fa-solid fa-spinner fa-spin"></i>
-            Đang gửi...
-        `;
-    }
+    setReviewSubmitBusy(true);
 
     try {
         const result = await apiFetch(
-            `/api/appointments/${encodeURIComponent(reviewingAppointment.id)}/review`,
+            `/api/appointments/${encodeURIComponent(item.id)}/review`,
             {
-                method: "POST",
+                method: isEdit ? "PUT" : "POST",
                 headers: {
                     "Content-Type": "application/json"
                 },
@@ -688,26 +861,25 @@ async function submitDoctorReview(event) {
         );
 
         C.toast(
-            result?.message || "Đánh giá bác sĩ thành công."
+            result?.message ||
+            (isEdit
+                ? "Đã cập nhật đánh giá."
+                : "Đánh giá bác sĩ thành công.")
         );
 
         closeReviewModal();
 
-        // Tải lại danh sách để cập nhật trạng thái Đã đánh giá
+        // Tải lại để thẻ lịch hẹn chuyển sang trạng thái "Đã đánh giá"
         await loadAppointments();
-
     } catch (error) {
         showReviewFeedback(
             error.message || "Không thể gửi đánh giá."
         );
+
+        // Đồng bộ lại danh sách (ví dụ đã quá hạn hoặc đã được đánh giá)
+        loadAppointments();
     } finally {
-        if (submitButton) {
-            submitButton.disabled = false;
-            submitButton.innerHTML = `
-                <i class="fa-solid fa-paper-plane"></i>
-                Gửi đánh giá
-            `;
-        }
+        setReviewSubmitBusy(false);
     }
 }
 
@@ -760,43 +932,53 @@ function setupReviewActions() {
             list.dataset.actionsBound = "1";
             list.addEventListener("click", async (event) => {
                 const changeButton = event.target.closest(
-                                   "[data-reschedule-appointment]");
-
+                    "[data-reschedule-appointment]"
+                );
                 const cancelButton = event.target.closest(
-                                   "[data-cancel-appointment]");
-
+                    "[data-cancel-appointment]"
+                );
                 const reviewButton = event.target.closest(
-                       "[data-review-appointment]");
+                    "[data-review-appointment]"
+                );
+                const editReviewButton = event.target.closest(
+                    "[data-edit-review-appointment]"
+                );
 
-                const button = changeButton || cancelButton || reviewButton;
-                    if (!button) return;
+                const button =
+                    changeButton ||
+                    cancelButton ||
+                    reviewButton ||
+                    editReviewButton;
+
+                if (!button) return;
+
                 const id = Number(
-                      changeButton
-                     ? changeButton.dataset.rescheduleAppointment
-                     : cancelButton
-                      ? cancelButton.dataset.cancelAppointment
-                     : reviewButton.dataset.reviewAppointment
-                   );
+                    button.dataset.rescheduleAppointment ??
+                    button.dataset.cancelAppointment ??
+                    button.dataset.reviewAppointment ??
+                    button.dataset.editReviewAppointment
+                );
 
-             const item = appointments.find(
-                         (appointment) => Number(appointment.id) === id
-                                           );
+                const item = appointments.find(
+                    (appointment) => Number(appointment.id) === id
+                );
 
-                  if (!item) {
-                      C.toast(
-                      "Không tìm thấy thông tin lịch hẹn.",
-                          "error"
-                 );
-    return;
-}
+                if (!item) {
+                    C.toast(
+                        "Không tìm thấy thông tin lịch hẹn.",
+                        "error"
+                    );
+                    return;
+                }
 
-if (changeButton) {
-    openRescheduleModal(item);
-} else if (cancelButton) {
-    await cancelPatientAppointment(item);
-} else if (reviewButton) {
-    openReviewModal(item);
-}
+                if (changeButton) {
+                    openRescheduleModal(item);
+                } else if (cancelButton) {
+                    await cancelPatientAppointment(item);
+                } else {
+                    // Đánh giá mới hoặc chỉnh sửa đánh giá cũ
+                    openReviewModal(item);
+                }
             });
         }
         dateInput?.addEventListener(
@@ -1182,10 +1364,10 @@ if (changeButton) {
             </div>
         `;
         try {
-            const response = await C.requestFirst(
-                C.ENDPOINTS.prescriptions
-            );
-            prescriptions = C.extractArray(response);
+            const response = await apiFetch("/api/prescriptions/my");
+            prescriptions = Array.isArray(response?.data)
+                ? response.data
+                : [];
             prescriptionsLoaded = true;
             renderPrescriptions();
         } catch (error) {
@@ -1210,9 +1392,53 @@ if (changeButton) {
             );
         }
     }
+    // Trường trống hiển thị mờ thay vì bỏ trống
+    function rxValue(value, emptyText = "Không có") {
+        const text = String(value ?? "").trim();
+
+        return text
+            ? escapeHtml(text)
+            : `<span class="rx-none">${escapeHtml(emptyText)}</span>`;
+    }
+
+    function renderMedicine(medicine, index) {
+        const fields = [
+            ["Liều dùng", medicine.dosage],
+            ["Tần suất", medicine.frequency],
+            ["Thời gian dùng", medicine.duration],
+            ["Số lượng", medicine.quantity]
+        ];
+
+        return `
+            <div class="rx-medicine">
+                <div class="rx-medicine-head">
+                    <span class="rx-medicine-no">${index + 1}</span>
+                    <strong>
+                        ${escapeHtml(medicine.medicine_name || "Thuốc")}
+                    </strong>
+                </div>
+
+                <dl class="rx-medicine-grid">
+                    ${fields.map(([label, value]) => `
+                        <div>
+                            <dt>${label}</dt>
+                            <dd>${rxValue(value, "Chưa ghi")}</dd>
+                        </div>
+                    `).join("")}
+                </dl>
+
+                <p class="rx-medicine-note">
+                    <b>Hướng dẫn sử dụng:</b>
+                    ${rxValue(medicine.instructions, "Không có hướng dẫn thêm")}
+                </p>
+            </div>
+        `;
+    }
+
     function renderPrescriptions() {
         const list = $("prescriptionList");
         if (!list) return;
+
         if (!prescriptions.length) {
             list.innerHTML = `
                 <div class="empty">
@@ -1222,144 +1448,104 @@ if (changeButton) {
             `;
             return;
         }
-        const grouped = new Map();
-        prescriptions.forEach((item) => {
-            const key = String(
-                item.prescription_id ??
-                item.id ??
-                "unknown"
-            );
-            if (!grouped.has(key)) {
-                grouped.set(key, {
-                    ...item,
-                    medicines: []
-                });
-            }
-            if (
-                item.item_id != null ||
-                item.medicine_name
-            ) {
-                grouped.get(key).medicines.push(item);
-            }
-        });
-        list.innerHTML = Array.from(grouped.values())
-            .map((prescription) => {
-                const date = C.toDateInput(
-                    prescription.prescription_date ||
-                    prescription.schedule_date
-                );
-                const [year, month, day] = date
-                    ? date.split("-")
-                    : ["", "", ""];
-                const rawDoctor =
-                    prescription.doctor_name || "Bác sĩ";
-                const doctor = /^bs\.?\s/i.test(rawDoctor)
-                    ? rawDoctor
-                    : `BS. ${rawDoctor}`;
-                const medicines = prescription.medicines.length
-                    ? `
-                        <div class="prescription-medicines">
-                            ${prescription.medicines.map((medicine) => `
-                                <div class="prescription-medicine">
-                                    <strong>
-                                        ${escapeHtml(
-                                            medicine.medicine_name || "Thuốc"
-                                        )}
-                                    </strong>
-                                    <span>
-                                        ${escapeHtml(
-                                            medicine.dosage ||
-                                            "Chưa cập nhật liều dùng"
-                                        )}
-                                        ${
-                                            medicine.frequency
-                                                ? ` • ${escapeHtml(medicine.frequency)}`
-                                                : ""
-                                        }
-                                        ${
-                                            medicine.duration
-                                                ? ` • ${escapeHtml(medicine.duration)}`
-                                                : ""
-                                        }
-                                    </span>
-                                    ${
-                                        medicine.quantity
-                                            ? `<span>Số lượng: ${escapeHtml(medicine.quantity)}</span>`
-                                            : ""
-                                    }
-                                    ${
-                                        medicine.instructions
-                                            ? `<span>Hướng dẫn: ${escapeHtml(medicine.instructions)}</span>`
-                                            : ""
-                                    }
-                                </div>
-                            `).join("")}
-                        </div>
-                    `
-                    : `
-                        <p class="panel-sub">
-                            Đơn thuốc chưa có thuốc chi tiết.
-                        </p>
-                    `;
-                return `
-                    <article class="item prescription-card">
+
+        list.innerHTML = prescriptions.map((rx) => {
+            const visitDate = C.toDateInput(rx.schedule_date);
+            const rxDate = C.toDateInput(rx.prescription_date);
+
+            const [year, month, day] = (visitDate || rxDate)
+                ? (visitDate || rxDate).split("-")
+                : ["", "", ""];
+
+            const rawDoctor = rx.doctor_name || "Bác sĩ";
+
+            const doctor = /^bs\.?\s/i.test(rawDoctor)
+                ? rawDoctor
+                : `BS. ${rawDoctor}`;
+
+            const items = Array.isArray(rx.items) ? rx.items : [];
+
+            const code =
+                "DT-" + String(rx.prescription_id).padStart(6, "0");
+
+            const meta = [
+                rx.specialty_name,
+                visitDate ? `Ngày khám: ${C.formatDate(visitDate)}` : "",
+                rx.appointment_time
+                    ? `Giờ khám: ${C.formatTime(rx.appointment_time)}`
+                    : "",
+                rxDate ? `Kê đơn: ${C.formatDate(rxDate)}` : ""
+            ].filter(Boolean).join(" • ");
+
+            const clinical = [
+                ["Chẩn đoán", rx.diagnosis],
+                ["Triệu chứng", rx.symptoms],
+                ["Ghi chú khám", rx.examination_notes],
+                ["Hướng điều trị", rx.treatment_plan]
+            ];
+
+            return `
+                <article class="rx-card">
+                    <header class="rx-head">
                         <div class="item-date">
-                            <strong>
-                                ${escapeHtml(day || "--")}
-                            </strong>
+                            <strong>${escapeHtml(day || "--")}</strong>
                             <span>
                                 Th${escapeHtml(month || "--")}/${escapeHtml(year || "")}
                             </span>
                         </div>
-                        <div class="item-main">
-                            <strong>${escapeHtml(doctor)}</strong>
-                            <span>
-                                ${escapeHtml(prescription.specialty_name || "")}
-                                ${
-                                    prescription.appointment_time
-                                        ? ` • Giờ khám ${escapeHtml(
-                                              C.formatTime(
-                                                  prescription.appointment_time
-                                              )
-                                          )}`
-                                        : ""
-                                }
-                            </span>
-                            ${
-                                prescription.diagnosis
-                                    ? `
-                                        <span>
-                                            <b>Chẩn đoán:</b>
-                                            ${escapeHtml(prescription.diagnosis)}
-                                        </span>
-                                    `
-                                    : ""
-                            }
-                            ${
-                                prescription.treatment_plan
-                                    ? `
-                                        <span>
-                                            <b>Hướng điều trị:</b>
-                                            ${escapeHtml(prescription.treatment_plan)}
-                                        </span>
-                                    `
-                                    : ""
-                            }
-                            ${
-                                prescription.prescription_note
-                                    ? `
-                                        <span>
-                                            <b>Ghi chú đơn thuốc:</b>
-                                            ${escapeHtml(prescription.prescription_note)}
-                                        </span>
-                                    `
-                                    : ""
-                            }
-                            ${medicines}
+
+                        <div class="rx-head-main">
+                            <strong>
+                                Đơn thuốc
+                                <span class="rx-code">${escapeHtml(code)}</span>
+                            </strong>
+                            <span>${escapeHtml(doctor)}</span>
+                            <span>${escapeHtml(meta)}</span>
                         </div>
-                    </article>
-                `;
-            })
-            .join("");
+
+                        <span class="tag tag--ok">
+                            ${items.length} loại thuốc
+                        </span>
+                    </header>
+
+                    <section class="rx-section">
+                        <h4>
+                            <i class="fa-solid fa-notes-medical"></i>
+                            Thông tin khám bệnh
+                        </h4>
+                        <dl class="rx-clinical">
+                            ${clinical.map(([label, value]) => `
+                                <div>
+                                    <dt>${label}</dt>
+                                    <dd>${rxValue(value, "Không ghi nhận")}</dd>
+                                </div>
+                            `).join("")}
+                        </dl>
+                    </section>
+
+                    <section class="rx-section">
+                        <h4>
+                            <i class="fa-solid fa-pills"></i>
+                            Danh sách thuốc
+                        </h4>
+                        ${
+                            items.length
+                                ? items.map(renderMedicine).join("")
+                                : `<p class="rx-none">Đơn thuốc chưa có thuốc chi tiết.</p>`
+                        }
+                    </section>
+
+                    <section class="rx-section">
+                        <h4>
+                            <i class="fa-solid fa-comment-medical"></i>
+                            Lời dặn của bác sĩ
+                        </h4>
+                        <p class="rx-advice">
+                            ${rxValue(rx.prescription_note, "Không có lời dặn thêm")}
+                        </p>
+                    </section>
+                </article>
+            `;
+        }).join("");
     }
 })();

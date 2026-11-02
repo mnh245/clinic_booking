@@ -136,38 +136,166 @@ async function prefillBookingContact() {
         );
     }
 }
-// =====================================================
-// 3. ĐĂNG XUẤT
-// =====================================================
+/* ============================================================
+   ĐĂNG XUẤT - thông báo bằng toast, không dùng console/alert/confirm
+   ============================================================ */
+(function () {
+    "use strict";
 
-async function handleLogout() {
-    const confirmed = await window.confirmDialog?.(
-        "Bạn có chắc chắn muốn  xuất?",
-        { title: "Đăng xuất", confirmText: "Đăng xuất" }
-    ) ?? window.confirm("Bạn có chắc chắn muốn  xuất?");
+    let busy = false;
 
-    if (!confirmed) {
-        return;
+    function toast(message, type, duration) {
+        let host = document.getElementById("logoutToastHost");
+
+        if (!host) {
+            host = document.createElement("div");
+            host.id = "logoutToastHost";
+            host.style.cssText =
+                "position:fixed;top:20px;right:20px;z-index:3000;" +
+                "display:flex;flex-direction:column;gap:10px;" +
+                "width:min(360px,calc(100vw - 32px));";
+            document.body.appendChild(host);
+        }
+
+        const colors = { success: "#16a34a", warning: "#d97706" };
+        const item = document.createElement("div");
+
+        item.setAttribute("role", "status");
+        item.style.cssText =
+            "padding:13px 16px;border-radius:12px;background:#fff;" +
+            "border:1px solid #e2e8f0;border-left:4px solid " +
+            (colors[type] || colors.success) + ";" +
+            "box-shadow:0 12px 30px rgba(15,23,42,.16);" +
+            "font-size:14px;line-height:1.45;color:#0f172a;";
+        item.textContent = message;
+        host.appendChild(item);
+
+        setTimeout(function () {
+            item.remove();
+        }, duration);
     }
 
-    try {
-        await fetch("/api/logout", {
-            method: "POST",
-            credentials: "include",
-            headers: {
-                "Content-Type": "application/json"
+    function confirmLogout() {
+        return new Promise(function (resolve) {
+            const overlay = document.createElement("div");
+
+            overlay.style.cssText =
+                "position:fixed;inset:0;z-index:2000;display:flex;" +
+                "align-items:center;justify-content:center;padding:16px;" +
+                "background:rgba(15,23,42,.55);";
+
+            overlay.innerHTML =
+                '<div role="alertdialog" aria-modal="true" style="' +
+                "width:100%;max-width:400px;padding:22px;border-radius:16px;" +
+                'background:#fff;box-shadow:0 24px 60px rgba(15,23,42,.28);">' +
+                '<h4 style="margin:0 0 8px;font-size:17px;color:#0f172a;">' +
+                "Đăng xuất</h4>" +
+                '<p style="margin:0 0 18px;font-size:14px;color:#64748b;">' +
+                "Bạn có chắc chắn muốn đăng xuất?</p>" +
+                '<div style="display:flex;justify-content:flex-end;gap:10px;">' +
+                '<button type="button" class="btn btn-outline" data-act="cancel">' +
+                "Hủy bỏ</button>" +
+                '<button type="button" class="btn btn-primary" data-act="ok">' +
+                "Đăng xuất</button>" +
+                "</div></div>";
+
+            function finish(result) {
+                document.removeEventListener("keydown", onKey, true);
+                overlay.remove();
+                resolve(result);
             }
+
+            function onKey(event) {
+                if (event.key === "Escape") finish(false);
+            }
+
+            overlay.addEventListener("click", function (event) {
+                if (event.target === overlay) {
+                    finish(false);
+                    return;
+                }
+
+                const button = event.target.closest("[data-act]");
+
+                if (button) finish(button.dataset.act === "ok");
+            });
+
+            document.addEventListener("keydown", onKey, true);
+            document.body.appendChild(overlay);
+            overlay.querySelector('[data-act="ok"]').focus();
         });
-    } catch (error) {
-        // Lỗi mạng: vẫn xóa dữ liệu phía trình duyệt rồi chuyển trang
     }
 
-    localStorage.removeItem("user");
-    localStorage.removeItem("role");
-    localStorage.removeItem("vaiTro");
-    sessionStorage.clear();
-    window.location.href = "login.html";
-}
+    async function handleLogout() {
+        if (busy) return;
+
+        if (!(await confirmLogout())) return;
+
+        busy = true;
+
+        let serverOk = true;
+
+        try {
+            const response = await fetch("/api/logout", {
+                method: "POST",
+                credentials: "include",
+                headers: { "Content-Type": "application/json" }
+            });
+
+            serverOk = response.ok;
+        } catch (error) {
+            serverOk = false;
+        }
+
+        // Luôn xóa dữ liệu đăng nhập phía trình duyệt
+        try {
+            localStorage.removeItem("user");
+            localStorage.removeItem("role");
+            localStorage.removeItem("vaiTro");
+            sessionStorage.clear();
+        } catch (error) {
+            // Trình duyệt chặn storage: bỏ qua
+        }
+
+        if (serverOk) {
+            toast("Đã đăng xuất thành công.", "success", 1200);
+        } else {
+            toast(
+                "Không kết nối được máy chủ để hủy phiên. " +
+                "Dữ liệu đăng nhập trên máy này đã được xóa.",
+                "warning",
+                2500
+            );
+        }
+
+        setTimeout(function () {
+            window.location.href = "login.html";
+        }, serverOk ? 900 : 2500);
+    }
+
+    window.handleLogout = handleLogout;
+
+    /*
+     * Bắt click ở giai đoạn capture để chạy TRƯỚC mọi hàm đăng xuất
+     * riêng của từng trang (admin-dashboard.js, specialty.js...),
+     * nên các trang chỉ cần nạp home.js là dùng được luồng này.
+     */
+    document.addEventListener(
+        "click",
+        function (event) {
+            const trigger = event.target.closest
+                ? event.target.closest("#logoutButton, #logoutBtn, [data-logout]")
+                : null;
+
+            if (!trigger) return;
+
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            handleLogout();
+        },
+        true
+    );
+})();
 // =====================================================
 // 4. LẤY BÁC SĨ TỪ DATABASE
 // =====================================================

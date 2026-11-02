@@ -109,6 +109,16 @@ router.post(
     appointmentController.createAppointmentReview
 );
 // =====================================================
+// BỆNH NHÂN SỬA ĐÁNH GIÁ (trong vòng 3 ngày sau khi khám)
+// PUT /api/appointments/:id/review
+// Body: { "rating": 4, "comment": "..." }
+// =====================================================
+
+router.put(
+    "/appointments/:id/review",
+    appointmentController.updateAppointmentReview
+);
+// =====================================================
 // ĐƠN THUỐC
 // GET  /api/appointments/:id/prescription  (bệnh nhân/bác sĩ/admin)
 // POST /api/appointments/:id/prescription  (bác sĩ kê đơn mới)
@@ -118,6 +128,16 @@ router.post(
 router.get(
     "/appointments/:id/prescription",
     prescriptionController.getAppointmentPrescription
+);
+
+// =====================================================
+// TẤT CẢ ĐƠN THUỐC CỦA BỆNH NHÂN ĐANG ĐĂNG NHẬP (đầy đủ chi tiết)
+// GET /api/prescriptions/my
+// =====================================================
+
+router.get(
+    "/prescriptions/my",
+    prescriptionController.getMyPrescriptions
 );
 
 router.post(

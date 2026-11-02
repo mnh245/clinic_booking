@@ -754,6 +754,256 @@
 .appointment-action--review:hover {
     background: #effaf8;
 }
+
+/* =====================================================
+   XEM LẠI / CHỈNH SỬA ĐÁNH GIÁ TRÊN THẺ LỊCH HẸN
+   ===================================================== */
+
+.review-summary {
+    margin-top: 12px;
+    padding: 12px 14px;
+    border: 1px solid #cdeae6;
+    border-radius: 12px;
+    background: #f3fbfa;
+}
+
+.review-summary-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 12px;
+}
+
+.review-summary .review-completed {
+    margin-top: 0;
+}
+
+.review-stars-static {
+    display: inline-flex;
+    gap: 2px;
+    color: #f5a623;
+    font-size: 14px;
+}
+
+.review-stars-static .fa-regular {
+    color: #cbd5e1;
+}
+
+.review-summary-time {
+    margin-left: auto;
+    font-size: 12px;
+    color: #64748b;
+}
+
+.review-summary-comment {
+    margin: 8px 0 0;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--ink);
+    white-space: pre-line;
+    word-break: break-word;
+}
+
+.review-summary-comment.is-empty {
+    color: #94a3b8;
+    font-style: italic;
+}
+
+.review-summary-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 12px;
+    margin-top: 10px;
+}
+
+.review-summary-note {
+    font-size: 12.5px;
+    color: #64748b;
+}
+
+/* =====================================================
+   ĐƠN THUỐC CHI TIẾT
+   ===================================================== */
+
+.rx-card {
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: #fff;
+    overflow: hidden;
+}
+
+.rx-head {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 18px;
+    background: #f1faf9;
+    border-bottom: 1px solid var(--line);
+}
+
+.rx-head-main {
+    flex: 1;
+    min-width: 0;
+}
+
+.rx-head-main strong {
+    display: block;
+    color: var(--ink);
+    font-size: 16px;
+}
+
+.rx-head-main span {
+    display: block;
+    margin-top: 3px;
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+}
+
+.rx-head-main .rx-code {
+    display: inline;
+    margin-left: 6px;
+    padding: 2px 8px;
+    border-radius: 6px;
+    background: #fff;
+    border: 1px solid var(--line);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--primary-deep);
+}
+
+.rx-section {
+    padding: 16px 18px;
+}
+
+.rx-section + .rx-section {
+    border-top: 1px dashed var(--line);
+}
+
+.rx-section h4 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 12px;
+    font-size: 14px;
+    color: var(--primary-deep);
+    text-transform: uppercase;
+    letter-spacing: .03em;
+}
+
+.rx-clinical {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+}
+
+.rx-clinical > div {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 12px;
+}
+
+.rx-clinical dt {
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
+}
+
+.rx-clinical dd,
+.rx-advice {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--ink);
+    white-space: pre-line;
+    word-break: break-word;
+}
+
+.rx-none {
+    color: #94a3b8;
+    font-style: italic;
+    font-size: 13.5px;
+}
+
+.rx-medicine {
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #f8fbfb;
+}
+
+.rx-medicine + .rx-medicine {
+    margin-top: 10px;
+}
+
+.rx-medicine-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--ink);
+    font-size: 15px;
+}
+
+.rx-medicine-no {
+    flex: none;
+    width: 24px;
+    height: 24px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: #ccfbf1;
+    color: var(--primary-deep);
+    font-size: 12.5px;
+    font-weight: 700;
+}
+
+.rx-medicine-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px 14px;
+    margin: 10px 0 0;
+}
+
+.rx-medicine-grid dt {
+    font-size: 12px;
+    color: #64748b;
+}
+
+.rx-medicine-grid dd {
+    margin: 2px 0 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+}
+
+.rx-medicine-note {
+    margin: 10px 0 0;
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: #334155;
+    white-space: pre-line;
+}
+
+@media (max-width: 700px) {
+    .rx-head {
+        flex-wrap: wrap;
+    }
+
+    .rx-clinical > div {
+        grid-template-columns: 1fr;
+        gap: 2px;
+    }
+
+    .rx-medicine-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .review-summary-time {
+        margin-left: 0;
+    }
+}
   </style>
 </head>
 <body>
