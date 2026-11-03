@@ -71,7 +71,7 @@ async function getDoctors(req, res) {
             INNER JOIN specialties s
                 ON d.specialty_id = s.id
 
-            LEFT JOIN doctor_reviews dr
+            LEFT JOIN reviews dr
                 ON dr.doctor_id = d.id
 
             GROUP BY
@@ -129,43 +129,44 @@ async function getDoctorById(
                     "ID bác sĩ không hợp lệ."
             });
         }
-        const [doctors] =
-            await pool.query(
-                `
-                SELECT
-                    d.id,
-                    u.full_name,
-                    u.email,
-                    u.phone,
-                    u.gender,
-                    d.specialty_id,
-                    s.name AS specialty_name,
-                    d.license_number,
-                    d.experience_years,
-                    d.qualification,
-                    d.introduction,
-                    d.avatar
-                    (
-                    SELECT ROUND(AVG(dr.rating), 1)
-                    FROM doctor_reviews dr
-                    WHERE dr.doctor_id = d.id
-                   ) AS rating,
+const [doctors] = await pool.query(
+    `
+    SELECT
+        d.id,
+        u.full_name,
+        u.email,
+        u.phone,
+        u.gender,
+        d.specialty_id,
+        s.name AS specialty_name,
+        d.license_number,
+        d.experience_years,
+        d.qualification,
+        d.introduction,
+        d.avatar,
 
-(
-    SELECT COUNT(*)
-    FROM doctor_reviews dr
-    WHERE dr.doctor_id = d.id
-) AS review_count
-                FROM doctors d
-                INNER JOIN users u
-                    ON d.user_id = u.id
-                INNER JOIN specialties s
-                    ON d.specialty_id = s.id
-                WHERE d.id = ?
-                LIMIT 1
-                `,
-                [doctorId]
-            );
+        (
+            SELECT ROUND(AVG(r.rating), 1)
+            FROM reviews r
+            WHERE r.doctor_id = d.id
+        ) AS rating,
+
+        (
+            SELECT COUNT(*)
+            FROM reviews r
+            WHERE r.doctor_id = d.id
+        ) AS review_count
+
+    FROM doctors d
+    INNER JOIN users u
+        ON d.user_id = u.id
+    INNER JOIN specialties s
+        ON d.specialty_id = s.id
+    WHERE d.id = ?
+    LIMIT 1
+    `,
+    [doctorId]
+);
         if (
             doctors.length === 0
         ) {

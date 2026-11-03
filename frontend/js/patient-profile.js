@@ -252,6 +252,7 @@ CLINIC BOOKING - HỒ SƠ BỆNH NHÂN
             );
         }
     }
+    
     function appointmentDate(item) {
         return C.toDateInput(
             item.schedule_date ||
@@ -525,32 +526,72 @@ const REVIEW_EDIT_DAYS = 3;
 let reviewMode = "create";
 
 function hasReview(item) {
-    return Number(item?.has_review) === 1 || item?.has_review === true;
+    return (
+        Number(item?.has_review) === 1 ||
+        item?.has_review === true ||
+        Number(item?.review_id) > 0
+    );
+}
+
+// Chuyển ngày giờ từ API thành Date
+function parseReviewDateTime(value) {
+    if (!value) return null;
+
+    const normalized = String(value).trim().replace(" ", "T");
+    const date = new Date(normalized);
+
+    return Number.isNaN(date.getTime()) ? null : date;
+}
+
+// Tính hạn chỉnh sửa: 3 ngày kể từ thời điểm khám
+function getReviewDeadline(item) {
+    // Ưu tiên thời hạn do backend trả về
+    if (item?.review_edit_deadline) {
+        const serverDeadline = parseReviewDateTime(
+            item.review_edit_deadline
+        );
+
+        if (serverDeadline) return serverDeadline;
+    }
+
+    // Nếu API chưa trả thời hạn, tự tính từ lịch khám
+    const date = appointmentDate(item);
+    const time = C.formatTime(item?.appointment_time);
+
+    if (!date || !time) return null;
+
+    const visitDate = parseReviewDateTime(`${date}T${time}`);
+
+    if (!visitDate) return null;
+
+    return new Date(
+        visitDate.getTime() + REVIEW_EDIT_DAYS * 24 * 60 * 60 * 1000
+    );
 }
 
 function canEditReview(item) {
-    if (!hasReview(item) || !item.review_editable) {
+    if (!hasReview(item)) return false;
+
+    // Nếu backend đã xác định không được sửa thì phải tôn trọng.
+    if (
+        item.review_editable === false ||
+        item.review_editable === 0 ||
+        item.review_editable === "0"
+    ) {
         return false;
     }
 
-    // Kiểm tra lại theo giờ máy để nút tự ẩn nếu trang mở lâu quá hạn
-    if (item.review_edit_deadline) {
-        const deadline = new Date(item.review_edit_deadline).getTime();
+    const deadline = getReviewDeadline(item);
 
-        if (!Number.isNaN(deadline)) {
-            return Date.now() <= deadline;
-        }
-    }
+    if (!deadline) return false;
 
-    return true;
+    return Date.now() <= deadline.getTime();
 }
 
 function formatDateTimeVN(value) {
-    const date = new Date(value);
+    const date = parseReviewDateTime(value);
 
-    if (Number.isNaN(date.getTime())) {
-        return "";
-    }
+    if (!date) return "";
 
     const pad = (number) => String(number).padStart(2, "0");
 
@@ -573,12 +614,7 @@ function renderStars(rating) {
     return `<span class="review-stars-static" role="img" aria-label="${value} trên 5 sao">${stars}</span>`;
 }
 
-/*
- * Khối đánh giá hiển thị dưới mỗi lịch hẹn đã khám:
- * - Chưa đánh giá: nút "Đánh giá bác sĩ"
- * - Đã đánh giá: nhãn "Đã đánh giá", số sao, nhận xét,
- *   hạn chỉnh sửa và nút "Chỉnh sửa đánh giá" (nếu còn hạn)
- */
+
 function renderReviewBlock(item) {
     if (normalizedStatus(item) !== "COMPLETED") {
         return "";
@@ -586,6 +622,7 @@ function renderReviewBlock(item) {
 
     const id = Number(item.id);
 
+    // Trường hợp chưa đánh giá
     if (!hasReview(item)) {
         return `
             <div class="appointment-actions">
@@ -601,19 +638,17 @@ function renderReviewBlock(item) {
         `;
     }
 
+    // Trường hợp đã đánh giá
     const editable = canEditReview(item);
+    const deadline = getReviewDeadline(item);
 
-    const deadlineText = item.review_edit_deadline
-        ? formatDateTimeVN(item.review_edit_deadline)
+    const deadlineText = deadline
+        ? formatDateTimeVN(deadline)
         : "";
 
     const note = editable
-        ? (
-            deadlineText
-                ? `Bạn có thể chỉnh sửa đánh giá đến ${deadlineText}.`
-                : "Bạn có thể chỉnh sửa đánh giá."
-        )
-        : `Đã quá ${REVIEW_EDIT_DAYS} ngày kể từ ngày khám nên không thể chỉnh sửa.`;
+        ? `Bạn có thể chỉnh sửa đánh giá đến ${deadlineText}.`
+        : `Đã hết thời hạn ${REVIEW_EDIT_DAYS} ngày chỉnh sửa đánh giá.`;
 
     const reviewedAt = item.review_created_at
         ? formatDateTimeVN(item.review_created_at)
@@ -623,15 +658,20 @@ function renderReviewBlock(item) {
 
     return `
         <div class="review-summary">
+
             <div class="review-summary-head">
                 <span class="review-completed">
                     <i class="fa-solid fa-circle-check"></i>
                     Đã đánh giá
                 </span>
+
                 ${renderStars(item.review_rating)}
+
                 ${
                     reviewedAt
-                        ? `<span class="review-summary-time">${escapeHtml(reviewedAt)}</span>`
+                        ? `<span class="review-summary-time">
+                            ${escapeHtml(reviewedAt)}
+                           </span>`
                         : ""
                 }
             </div>
@@ -664,6 +704,7 @@ function renderReviewBlock(item) {
                         : ""
                 }
             </div>
+
         </div>
     `;
 }

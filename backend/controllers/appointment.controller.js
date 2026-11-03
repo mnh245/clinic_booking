@@ -736,6 +736,7 @@ async function createAppointment(req, res) {
 
 async function getPatientAppointments(req, res) {
     try {
+    
         const user = getCurrentUser(req);
         if (!user) {
             return res.status(401).json({
@@ -778,10 +779,12 @@ async function getPatientAppointments(req, res) {
                 a.actual_arrival_time,
                 a.late_minutes,
                 a.note,
-                (dr.id IS NOT NULL) AS has_review,
-                dr.rating AS review_rating,
-                dr.comment AS review_comment,
-                dr.created_at AS review_created_at,
+                (r.id IS NOT NULL) AS has_review,
+                r.id AS review_id,
+                r.rating AS review_rating,
+                r.comment AS review_comment,
+                r.created_at AS review_created_at,
+                r.updated_at AS review_updated_at,
                 s.schedule_date,
                 s.shift_type,
                 s.start_time,
@@ -797,8 +800,8 @@ async function getPatientAppointments(req, res) {
                 ON d.user_id = u.id
             LEFT JOIN specialties sp
                 ON d.specialty_id = sp.id
-            LEFT JOIN doctor_reviews dr
-                ON dr.appointment_id = a.id
+            LEFT JOIN reviews r
+                ON r.appointment_id = a.id
             WHERE a.patient_id = ?
             ORDER BY
                 s.schedule_date DESC,
@@ -806,6 +809,7 @@ async function getPatientAppointments(req, res) {
             `,
             [patientId]
         );
+        
 
         // Bổ sung hạn chỉnh sửa đánh giá cho từng lịch đã có đánh giá
         const nowMs = Date.now();
@@ -2044,7 +2048,7 @@ async function createAppointmentReview(req, res) {
         const [existingReviews] = await pool.query(
             `
             SELECT id
-            FROM doctor_reviews
+            FROM reviews
             WHERE appointment_id = ?
             LIMIT 1
             `,
@@ -2061,7 +2065,7 @@ async function createAppointmentReview(req, res) {
         // 8. Lưu đánh giá
         await pool.query(
             `
-            INSERT INTO doctor_reviews (
+            INSERT INTO reviews  (
                 appointment_id,
                 patient_id,
                 doctor_id,
@@ -2164,12 +2168,12 @@ async function updateAppointmentReview(req, res) {
                 a.status,
                 a.appointment_time,
                 s.schedule_date,
-                dr.id AS review_id
+                r.id AS review_id
             FROM appointments a
             INNER JOIN schedules s
                 ON s.id = a.schedule_id
-            LEFT JOIN doctor_reviews dr
-                ON dr.appointment_id = a.id
+            LEFT JOIN reviews r
+                ON r.appointment_id = a.id
             WHERE a.id = ?
               AND a.patient_id = ?
             LIMIT 1
@@ -2216,12 +2220,13 @@ async function updateAppointmentReview(req, res) {
 
         await pool.query(
             `
-            UPDATE doctor_reviews
+            UPDATE reviews
             SET
                 rating = ?,
-                comment = ?
+                comment = ?,
+                updated_at = CURRENT_TIMESTAMP
             WHERE id = ?
-              AND appointment_id = ?
+                AND appointment_id = ?
             `,
             [
                 rating,
