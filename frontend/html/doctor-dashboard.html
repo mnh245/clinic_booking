@@ -2,186 +2,173 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard bác sĩ | Clinic Booking</title>
-    <link
-        rel="stylesheet"
-        href="../css/overall.css"
-    >
-    <link
-        rel="stylesheet"
-        href="../css/doctor-pages.css"
-    >
-    <!-- Font Awesome -->
-    <link
-        rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-    >
+
+    <link rel="stylesheet" href="../css/overall.css">
+    <link rel="stylesheet" href="../css/doctor-pages.css">
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
     <style>
-        /* =====================================================
-           HEADER DÀNH CHO DOCTOR DASHBOARD
-        ===================================================== */
-        .doctor-site-header-user {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+        /* ================= HEADER ================= */
         .doctor-site-user {
             display: flex;
             align-items: center;
             gap: 9px;
-            padding: 6px 10px;
-            border: 1px solid var(--border, #e2e8f0);
-            border-radius: 12px;
-            background: #ffffff;
         }
-        .doctor-site-user-avatar {
-            width: 34px;
-            height: 34px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 10px;
-            background: var(--primary-light, #ccfbf1);
-            color: var(--primary-deep, #0b5f59);
-            font-size: 15px;
-        }
-        .doctor-site-user-text {
-            display: flex;
-            flex-direction: column;
-            min-width: 0;
-        }
-        .doctor-site-user-text strong {
-            font-size: 13px;
-            color: var(--text, #0f172a);
-            white-space: nowrap;
-        }
-        .doctor-site-user-text span {
-            font-size: 11px;
-            color: var(--muted, #64748b);
-        }
-        .doctor-logout-button {
-            border: 0;
-            cursor: pointer;
-        }
-        /* =====================================================
-           CHỌN CA LÀM VIỆC
-        ===================================================== */
+
+        /* ================= CA LÀM VIỆC ================= */
         .shift-options {
             display: grid;
-            grid-template-columns:
-                repeat(4, minmax(0, 1fr));
+            grid-template-columns: repeat(4, minmax(0, 1fr));
             gap: 12px;
         }
+
         .shift-option {
             position: relative;
         }
+
         .shift-option input {
             position: absolute;
             opacity: 0;
-            pointer-events: none;
         }
+
         .shift-option label {
             display: flex;
             flex-direction: column;
-            gap: 5px;
+            gap: 7px;
+            min-height: 95px;
             padding: 15px;
-            min-height: 96px;
-            border: 1px solid
-                var(--border, #e2e8f0);
+            border: 1px solid var(--border, #e2e8f0);
             border-radius: 14px;
-            background: #ffffff;
+            background: #fff;
             cursor: pointer;
-            transition:
-                border-color .2s ease,
-                background .2s ease,
-                transform .2s ease,
-                box-shadow .2s ease;
+            transition: .2s;
         }
+
         .shift-option label:hover {
-            transform: translateY(-1px);
-            box-shadow:
-                0 8px 20px
-                rgba(15, 23, 42, .06);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(15, 23, 42, .07);
         }
+
         .shift-option input:checked + label {
-            border-color:
-                var(--primary, #0ea5a4);
-            background:
-                var(--primary-light, #ccfbf1);
-            box-shadow:
-                0 0 0 2px
-                rgba(14, 165, 164, .10);
+            border-color: var(--primary, #0b8178);
+            background: var(--primary-light, #ccfbf1);
         }
+
         .shift-option-title {
             display: flex;
             align-items: center;
             gap: 8px;
             font-weight: 700;
-            color: var(--text, #0f172a);
-            font-size: 14px;
         }
+
         .shift-option-title i {
-            color:
-                var(--primary-deep, #0b5f59);
+            color: var(--primary-deep, #0b5f59);
         }
-        .shift-option-time {
-            font-size: 13px;
-            color:
-                var(--muted, #64748b);
+
+        .shift-option-time,
+        .shift-option-note,
+        .shift-select-help {
+            font-size: 12px;
+            color: var(--muted, #64748b);
         }
-        .shift-option-note {
-            margin-top: auto;
-            font-size: 11px;
-            color:
-                var(--muted, #64748b);
-        }
+
         .shift-select-help {
             margin-top: 8px;
-            font-size: 12px;
-            color:
-                var(--muted, #64748b);
         }
-        /* =====================================================
-           RESPONSIVE
-        ===================================================== */
-        @media (max-width: 900px) {
-            .shift-options {
-                grid-template-columns:
-                    repeat(2, minmax(0, 1fr));
-            }
+
+        /* ================= THỐNG KÊ TUẦN ================= */
+        .weekly-dashboard {
+            margin: 18px 0;
         }
-        @media (max-width: 700px) {
-            .doctor-site-header-user {
-                width: 100%;
-                justify-content: flex-end;
-            }
-            .doctor-site-user-text {
-                display: none;
-            }
+
+        .weekly-stat-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+            margin-bottom: 16px;
         }
-        @media (max-width: 520px) {
-            .shift-options {
-                grid-template-columns: 1fr;
-            }
+
+        .weekly-stat-card {
+            padding: 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 13px;
+            background: #fff;
         }
-        /* =====================================================
-           BỘ LỌC LỊCH HẸN
-        ===================================================== */
+
+        .weekly-stat-card span {
+            display: block;
+            margin-bottom: 8px;
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        .weekly-stat-card strong {
+            display: block;
+            color: #0b5f59;
+            font-size: 25px;
+            font-weight: 700;
+        }
+
+        .weekly-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            padding: 14px;
+            margin-bottom: 14px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            background: #f8fbfb;
+        }
+
+        .weekly-navigation,
+        .weekly-filter-group {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .weekly-navigation strong {
+            min-width: 190px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .weekly-filter-group select {
+            min-width: 145px;
+            height: 39px;
+            padding: 0 10px;
+            border: 1px solid #dbe3e8;
+            border-radius: 8px;
+            background: #fff;
+            color: #334155;
+        }
+
+        .weekly-summary {
+            margin: 10px 0 14px;
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        /* ================= LỌC LỊCH HẸN ================= */
         .appt-filter {
             display: flex;
             flex-direction: column;
             gap: 12px;
             margin-bottom: 14px;
         }
+
         .appt-filter-chips {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
         }
+
         .appt-chip {
             display: inline-flex;
             align-items: center;
@@ -189,76 +176,88 @@
             padding: 7px 13px;
             border: 1px solid var(--border, #e2e8f0);
             border-radius: 999px;
-            background: #ffffff;
+            background: #fff;
             color: var(--text, #0f172a);
             font: inherit;
             font-size: 13px;
             font-weight: 600;
             cursor: pointer;
-            transition: background .2s ease, border-color .2s ease;
         }
-        .appt-chip:hover {
-            border-color: var(--primary, #0ea5a4);
-        }
+
         .appt-chip.active {
-            border-color: var(--primary, #0ea5a4);
+            border-color: var(--primary, #0b8178);
             background: var(--primary-light, #ccfbf1);
             color: var(--primary-deep, #0b5f59);
         }
-        .appt-chip .filter-count {
+
+        .filter-count {
             min-width: 20px;
             padding: 1px 7px;
             border-radius: 999px;
             background: rgba(15, 23, 42, .07);
-            font-size: 12px;
             text-align: center;
+            font-size: 12px;
         }
-        .appt-chip.active .filter-count {
-            background: rgba(11, 95, 89, .15);
-        }
+
         .appt-filter-row {
             display: flex;
             flex-wrap: wrap;
             align-items: center;
             gap: 10px;
         }
+
         .appt-filter-field input {
+            height: 39px;
             padding: 9px 11px;
             border: 1px solid var(--border, #e2e8f0);
-            border-radius: 10px;
+            border-radius: 9px;
             font: inherit;
             font-size: 14px;
         }
-        .appt-filter-field input:focus {
-            outline: none;
-            border-color: var(--primary, #0ea5a4);
-            box-shadow: 0 0 0 3px rgba(14, 165, 164, .12);
-        }
+
         .appt-filter-search {
             position: relative;
             flex: 1 1 260px;
         }
+
         .appt-filter-search i {
             position: absolute;
-            left: 12px;
             top: 50%;
+            left: 12px;
             transform: translateY(-50%);
-            color: var(--muted, #64748b);
-            font-size: 13px;
+            color: #64748b;
             pointer-events: none;
         }
+
         .appt-filter-search input {
-            width: 100%;
             box-sizing: border-box;
-            padding-left: 34px;
+            width: 100%;
+            padding-left: 35px;
         }
+
         .appt-filter-summary {
+            color: #64748b;
             font-size: 12px;
-            color: var(--muted, #64748b);
         }
-        /* =====================================================
-           MODAL KÊ ĐƠN THUỐC
-        ===================================================== */
+
+        /* ================= BẢNG ================= */
+        .dashboard-table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        .dashboard-table {
+            width: 100%;
+            min-width: 760px;
+        }
+
+        .dashboard-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        /* ================= MODAL KÊ ĐƠN ================= */
         .rx-modal {
             position: fixed;
             inset: 0;
@@ -270,599 +269,631 @@
             overflow-y: auto;
             background: rgba(15, 23, 42, .55);
         }
+
         .rx-modal.open {
             display: flex;
         }
+
         .rx-dialog {
             width: 100%;
             max-width: 820px;
-            background: #ffffff;
             border-radius: 16px;
+            background: #fff;
             box-shadow: 0 24px 60px rgba(15, 23, 42, .25);
         }
+
         .rx-header {
             display: flex;
-            align-items: flex-start;
             justify-content: space-between;
             gap: 12px;
             padding: 20px 24px 14px;
-            border-bottom: 1px solid var(--border, #e2e8f0);
+            border-bottom: 1px solid #e2e8f0;
         }
+
         .rx-header h3 {
             margin: 0 0 4px;
-            font-size: 20px;
-            color: var(--text, #0f172a);
         }
+
         .rx-header p {
             margin: 0;
+            color: #64748b;
             font-size: 13px;
-            color: var(--muted, #64748b);
         }
+
         .rx-close {
             border: 0;
             background: transparent;
             font-size: 20px;
             cursor: pointer;
-            color: var(--muted, #64748b);
         }
+
         .rx-body {
-            padding: 20px 24px;
             display: flex;
             flex-direction: column;
             gap: 14px;
+            padding: 20px 24px;
         }
+
         .rx-section-title {
-            margin: 6px 0 0;
+            margin-top: 6px;
+            color: #0b5f59;
             font-size: 14px;
             font-weight: 700;
-            color: var(--primary-deep, #0b5f59);
-            text-transform: uppercase;
-            letter-spacing: .04em;
         }
+
         .rx-field label {
             display: block;
             margin-bottom: 5px;
             font-size: 13px;
             font-weight: 600;
-            color: var(--text, #0f172a);
         }
+
         .rx-field input,
         .rx-field textarea {
-            width: 100%;
             box-sizing: border-box;
+            width: 100%;
             padding: 9px 11px;
-            border: 1px solid var(--border, #e2e8f0);
-            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 9px;
             font: inherit;
-            font-size: 14px;
         }
+
         .rx-field textarea {
-            resize: vertical;
             min-height: 64px;
+            resize: vertical;
         }
-        .rx-field input:focus,
-        .rx-field textarea:focus {
-            outline: none;
-            border-color: var(--primary, #0ea5a4);
-            box-shadow: 0 0 0 3px rgba(14, 165, 164, .12);
-        }
+
         .rx-items {
             display: flex;
             flex-direction: column;
             gap: 12px;
         }
+
         .rx-item {
             display: flex;
             align-items: flex-start;
             gap: 10px;
             padding: 14px;
-            border: 1px solid var(--border, #e2e8f0);
+            border: 1px solid #e2e8f0;
             border-radius: 12px;
             background: #f8fafc;
         }
+
         .rx-item-grid {
-            flex: 1;
             display: grid;
+            flex: 1;
             grid-template-columns: repeat(4, minmax(0, 1fr));
             gap: 10px;
         }
+
         .rx-field-wide {
             grid-column: span 2;
         }
+
         .rx-remove {
             margin-top: 22px;
-            padding: 8px 11px;
         }
+
         .rx-footer {
             display: flex;
             justify-content: flex-end;
             gap: 10px;
             padding: 14px 24px 20px;
-            border-top: 1px solid var(--border, #e2e8f0);
+            border-top: 1px solid #e2e8f0;
         }
+
         .rx-message {
             font-size: 13px;
-            min-height: 0;
         }
+
         .rx-message.error {
             color: #b91c1c;
         }
-        @media (max-width: 700px) {
+
+        .rx-message.success {
+            color: #15803d;
+        }
+
+        @media (max-width: 900px) {
+            .weekly-stat-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .shift-options {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 600px) {
+            .weekly-toolbar {
+                align-items: stretch;
+            }
+
+            .weekly-navigation {
+                justify-content: space-between;
+            }
+
+            .weekly-navigation strong {
+                min-width: 0;
+            }
+
+            .weekly-filter-group select {
+                flex: 1;
+                min-width: 120px;
+            }
+
+            .shift-options {
+                grid-template-columns: 1fr;
+            }
+
             .rx-item-grid {
                 grid-template-columns: 1fr 1fr;
             }
         }
-        @media (max-width: 480px) {
+
+        @media (max-width: 420px) {
+            .weekly-stat-grid {
+                gap: 8px;
+            }
+
+            .weekly-stat-card {
+                padding: 11px;
+            }
+
+            .weekly-stat-card strong {
+                font-size: 21px;
+            }
+
             .rx-item-grid {
                 grid-template-columns: 1fr;
             }
+
             .rx-field-wide {
                 grid-column: auto;
             }
         }
     </style>
 </head>
+
 <body data-role="DOCTOR">
-<!-- =========================================================
-     HEADER
-========================================================= -->
-<body>
- <header class="site-header">
-  <div class="container header-inner">
-    <a href="home.html" class="brand" aria-label="Clinic Booking - Trang chủ">
-      <div class="logo"><i class="fa-solid fa-stethoscope"></i></div>
-      <div>
-        <h1>Clinic Booking</h1>
-        <p>Đặt lịch khám trực tuyến</p>
-      </div>
-    </a>
-   <nav class="nav" aria-label="Điều hướng chính">
-    <a href="home.html" class="active">Trang chủ</a>
-    <a href="#schedule-section">Đăng ký ca</a>
-    <a href="#refreshSchedules">Ca làm</a>
-    <a href="#appointment-section">Lịch hẹn</a>
-    <a href="doctor-profile.html"
-       id="myProfileLink">
-        Hồ sơ của tôi
-    </a>
-</nav>
-    <div class="header-actions" id="headerActions">
-      <a href="login.html" class="btn btn-outline" id="loginLink">Đăng nhập</a>
-      <a href="register.html" class="btn btn-primary" id="registerLink">Đăng ký</a>
-      <div id="userInfo" style="display:none;align-items:center;gap:10px;">
-        <span id="welcomeUser" style="font-size:14px;color:var(--text);font-weight:500;"></span>
-        <button type="button" class="btn btn-outline" id="logoutButton">Đăng xuất</button>
-      </div>
+
+<header class="site-header">
+    <div class="container header-inner">
+        <a href="home.html" class="brand">
+            <div class="logo">
+                <i class="fa-solid fa-stethoscope"></i>
+            </div>
+            <div>
+                <h1>Clinic Booking</h1>
+                <p>Đặt lịch khám trực tuyến</p>
+            </div>
+        </a>
+
+        <nav class="nav" aria-label="Điều hướng chính">
+            <a href="home.html">Trang chủ</a>
+            <a href="#schedule-section">Đăng ký ca</a>
+            <a href="#my-schedules-section">Ca làm</a>
+            <a href="#appointment-section">Lịch hẹn</a>
+            <a href="doctor-profile.html" id="myProfileLink">
+                Hồ sơ của tôi
+            </a>
+        </nav>
+
+        <div class="header-actions">
+            <span id="welcomeUser"></span>
+            <button type="button"
+                    class="btn btn-outline"
+                    id="logoutButton">
+                Đăng xuất
+            </button>
+        </div>
     </div>
-  </div>
 </header>
-<!-- =========================================================
-     MAIN
-========================================================= -->
+
 <main class="doctor-dashboard">
     <div class="container">
-        <!-- =================================================
-             DASHBOARD HEADER
-        ================================================== -->
+
+        <!-- HEADER DASHBOARD -->
         <section class="dashboard-header">
             <div>
-                <span class="dashboard-eyebrow">
-                    BẢNG ĐIỀU KHIỂN
-                </span>
-                <h2>
-                    Dashboard bác sĩ
-                </h2>
-                <p>
-                    Quản lý lịch làm việc,
-                    lịch hẹn và hoạt động khám bệnh.
-                </p>
+                <span class="dashboard-eyebrow">BẢNG ĐIỀU KHIỂN</span>
+                <h2>Dashboard bác sĩ</h2>
+                <p>Quản lý lịch làm việc, lịch hẹn và hoạt động khám bệnh.</p>
             </div>
+
             <div class="doctor-dashboard-user">
                 <div class="doctor-dashboard-avatar">
                     <i class="fa-solid fa-user-doctor"></i>
                 </div>
                 <div>
-                    <strong id="doctorName">
-                        Đang tải...
-                    </strong>
-                    <span id="doctorSpecialty">
-                        Bác sĩ
-                    </span>
+                    <strong id="doctorName">Đang tải...</strong>
+                    <span id="doctorSpecialty">Bác sĩ</span>
                 </div>
             </div>
         </section>
-        <!-- =================================================
-             THỐNG KÊ
-        ================================================== -->
+
+        <!-- THỐNG KÊ TỔNG QUAN -->
         <section class="dashboard-stats">
             <div class="dashboard-stat">
                 <div class="dashboard-stat-icon">
                     <i class="fa-solid fa-calendar-day"></i>
                 </div>
                 <div>
-                    <span>
-                        Lịch hôm nay
-                    </span>
-                    <strong id="todayScheduleCount">
-                        0
-                    </strong>
+                    <span>Lịch hôm nay</span>
+                    <strong id="todayScheduleCount">0</strong>
                 </div>
             </div>
+
             <div class="dashboard-stat">
                 <div class="dashboard-stat-icon">
                     <i class="fa-solid fa-calendar-check"></i>
                 </div>
                 <div>
-                    <span>
-                        Lịch hẹn
-                    </span>
-                    <strong id="appointmentCount">
-                        0
-                    </strong>
+                    <span>Lịch hẹn</span>
+                    <strong id="appointmentCount">0</strong>
                 </div>
             </div>
+
             <div class="dashboard-stat">
                 <div class="dashboard-stat-icon">
                     <i class="fa-solid fa-clock"></i>
                 </div>
                 <div>
-                    <span>
-                        Chờ xác nhận
-                    </span>
-                    <strong id="pendingCount">
-                        0
-                    </strong>
+                    <span>Chờ xác nhận</span>
+                    <strong id="pendingCount">0</strong>
                 </div>
             </div>
+
             <div class="dashboard-stat">
                 <div class="dashboard-stat-icon">
                     <i class="fa-solid fa-circle-check"></i>
                 </div>
                 <div>
-                    <span>
-                        Đã hoàn thành
-                    </span>
-                    <strong id="completedCount">
-                        0
-                    </strong>
+                    <span>Đã hoàn thành</span>
+                    <strong id="completedCount">0</strong>
                 </div>
             </div>
         </section>
-        <!-- =================================================
-             TẠO LỊCH LÀM VIỆC
-        ================================================== -->
-        <section
-            class="dashboard-panel"
-            id="schedule-section"
-        >
+
+        <!-- TẠO LỊCH LÀM VIỆC -->
+        <section class="dashboard-panel" id="schedule-section">
             <div class="dashboard-panel-header">
                 <div>
-                    <span class="panel-eyebrow">
-                        LỊCH LÀM VIỆC
-                    </span>
-                    <h3>
-                        Tạo lịch làm việc
-                    </h3>
-                    <p>
-                        Chọn ngày và ca làm việc
-                        bạn có thể tiếp nhận bệnh nhân.
-                    </p>
+                    <span class="panel-eyebrow">LỊCH LÀM VIỆC</span>
+                    <h3>Tạo lịch làm việc</h3>
+                    <p>Chọn ngày và ca làm việc bạn có thể tiếp nhận bệnh nhân.</p>
                 </div>
             </div>
-            <form
-                id="createScheduleForm"
-                class="dashboard-schedule-form"
-            >
-                <!-- NGÀY -->
+
+            <form id="createScheduleForm" class="dashboard-schedule-form">
                 <div class="dashboard-field">
-                    <label for="scheduleDate">
-                        Ngày làm việc
-                    </label>
-                    <input
-                        type="date"
-                        id="scheduleDate"
-                        required
-                    >
+                    <label for="scheduleDate">Ngày làm việc</label>
+                    <input type="date" id="scheduleDate" required>
                 </div>
-                <!-- CA -->
-                <div
-                    class="dashboard-field"
-                    style="grid-column: 1 / -1;"
-                >
-                    <label>
-                        Ca làm việc
-                    </label>
+
+                <div class="dashboard-field" style="grid-column:1/-1">
+                    <label>Ca làm việc</label>
+
                     <div class="shift-options">
-                        <!-- CA ĐÊM -->
                         <div class="shift-option">
-                            <input
-                                type="radio"
-                                name="shift_type"
-                                id="shiftNight"
-                                value="NIGHT"
-                                required
-                            >
+                            <input type="radio" name="shift_type"
+                                   id="shiftNight" value="NIGHT" required>
                             <label for="shiftNight">
                                 <span class="shift-option-title">
-                                    <i class="fa-solid fa-moon"></i>
-                                    Ca đêm
+                                    <i class="fa-solid fa-moon"></i> Ca đêm
                                 </span>
-                                <span class="shift-option-time">
-                                    00:00 – 06:00
-                                </span>
-                                <span class="shift-option-note">
-                                    Trực đêm
-                                </span>
+                                <span class="shift-option-time">00:00 – 06:00</span>
+                                <span class="shift-option-note">Trực đêm</span>
                             </label>
                         </div>
-                        <!-- CA SÁNG -->
+
                         <div class="shift-option">
-                            <input
-                                type="radio"
-                                name="shift_type"
-                                id="shiftMorning"
-                                value="MORNING"
-                            >
+                            <input type="radio" name="shift_type"
+                                   id="shiftMorning" value="MORNING">
                             <label for="shiftMorning">
                                 <span class="shift-option-title">
-                                    <i class="fa-solid fa-sun"></i>
-                                    Ca sáng
+                                    <i class="fa-solid fa-sun"></i> Ca sáng
                                 </span>
-                                <span class="shift-option-time">
-                                    06:00 – 12:00
-                                </span>
-                                <span class="shift-option-note">
-                                    Buổi sáng
-                                </span>
+                                <span class="shift-option-time">06:00 – 12:00</span>
+                                <span class="shift-option-note">Buổi sáng</span>
                             </label>
                         </div>
-                        <!-- CA CHIỀU -->
+
                         <div class="shift-option">
-                            <input
-                                type="radio"
-                                name="shift_type"
-                                id="shiftAfternoon"
-                                value="AFTERNOON"
-                            >
+                            <input type="radio" name="shift_type"
+                                   id="shiftAfternoon" value="AFTERNOON">
                             <label for="shiftAfternoon">
                                 <span class="shift-option-title">
-                                    <i class="fa-solid fa-cloud-sun"></i>
-                                    Ca chiều
+                                    <i class="fa-solid fa-cloud-sun"></i> Ca chiều
                                 </span>
-                                <span class="shift-option-time">
-                                    12:00 – 18:00
-                                </span>
-                                <span class="shift-option-note">
-                                    Buổi chiều
-                                </span>
+                                <span class="shift-option-time">12:00 – 18:00</span>
+                                <span class="shift-option-note">Buổi chiều</span>
                             </label>
                         </div>
-                        <!-- CA TỐI -->
+
                         <div class="shift-option">
-                            <input
-                                type="radio"
-                                name="shift_type"
-                                id="shiftEvening"
-                                value="EVENING"
-                            >
+                            <input type="radio" name="shift_type"
+                                   id="shiftEvening" value="EVENING">
                             <label for="shiftEvening">
                                 <span class="shift-option-title">
-                                    <i class="fa-solid fa-cloud-moon"></i>
-                                    Ca tối
+                                    <i class="fa-solid fa-cloud-moon"></i> Ca tối
                                 </span>
-                                <span class="shift-option-time">
-                                    18:00 – 00:00
-                                </span>
-                                <span class="shift-option-note">
-                                    Buổi tối
-                                </span>
+                                <span class="shift-option-time">18:00 – 00:00</span>
+                                <span class="shift-option-note">Buổi tối</span>
                             </label>
                         </div>
                     </div>
+
                     <div class="shift-select-help">
-                        Mỗi ngày có thể đăng ký nhiều ca.
-                        Ngày nghỉ không cần tạo lịch.
+                        Mỗi ngày có thể đăng ký nhiều ca. Lịch đăng ký có thể cần Admin duyệt trước khi được mở.
                     </div>
                 </div>
-                <!-- NÚT -->
-                <div
-                    style="
-                        display:flex;
-                        justify-content:flex-end;
-                        grid-column:1 / -1;
-                        margin-top:4px;
-                    "
-                >
-                    <button
-                        type="submit"
-                        class="btn btn-primary"
-                    >
-                        <i class="fa-solid fa-plus"></i>
-                        Tạo lịch
+
+                <div style="display:flex;justify-content:flex-end;grid-column:1/-1">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa-solid fa-plus"></i> Tạo lịch
                     </button>
                 </div>
             </form>
-            <!-- MESSAGE -->
-            <div
-                id="scheduleMessage"
-                class="dashboard-message"
-            ></div>
+
+            <div id="scheduleMessage" class="dashboard-message"></div>
         </section>
-        <!-- =================================================
-             DANH SÁCH LỊCH
-        ================================================== -->
-        <section class="dashboard-panel">
-            <div
-                class="dashboard-panel-header panel-row"
-            >
+
+        <!-- LỊCH LÀM VIỆC -->
+        <section class="dashboard-panel" id="my-schedules-section">
+            <div class="dashboard-panel-header panel-row">
                 <div>
-                    <span class="panel-eyebrow">
-                        QUẢN LÝ LỊCH
-                    </span>
-                    <h3>
-                        Lịch làm việc của tôi
-                    </h3>
-                    <p>
-                        Quản lý các ca làm việc
-                        đang mở cho bệnh nhân đặt lịch.
-                    </p>
+                    <span class="panel-eyebrow">QUẢN LÝ LỊCH</span>
+                    <h3>Lịch làm việc của tôi</h3>
+                    <p>Thống kê và quản lý các ca làm việc theo tuần.</p>
                 </div>
-                <button
-                    type="button"
-                    id="refreshSchedules"
-                    class="btn btn-outline"
-                >
-                    <i class="fa-solid fa-rotate"></i>
-                    Làm mới
+
+                <button type="button" id="refreshSchedules"
+                        class="btn btn-outline">
+                    <i class="fa-solid fa-rotate"></i> Làm mới
                 </button>
             </div>
+
+            <!-- THỐNG KÊ LỊCH LÀM VIỆC -->
+            <div class="weekly-dashboard">
+                <div class="weekly-stat-grid">
+                    <div class="weekly-stat-card">
+                        <span>Tổng số ca trong tuần</span>
+                        <strong id="scheduleWeekTotal">0</strong>
+                    </div>
+                    <div class="weekly-stat-card">
+                        <span>Ca đang mở</span>
+                        <strong id="scheduleWeekAvailable">0</strong>
+                    </div>
+                    <div class="weekly-stat-card">
+                        <span>Ca đã đóng</span>
+                        <strong id="scheduleWeekClosed">0</strong>
+                    </div>
+                    <div class="weekly-stat-card">
+                        <span>Số ngày có lịch</span>
+                        <strong id="scheduleWeekDays">0</strong>
+                    </div>
+                </div>
+
+                <div class="weekly-toolbar">
+                    <div class="weekly-navigation">
+                        <button type="button" class="btn btn-outline"
+                                id="schedulePreviousWeek">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </button>
+
+                        <strong id="scheduleWeekLabel">Tuần hiện tại</strong>
+
+                        <button type="button" class="btn btn-outline"
+                                id="scheduleNextWeek">
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </button>
+
+                        <button type="button" class="btn btn-outline"
+                                id="scheduleCurrentWeek">
+                            Tuần này
+                        </button>
+                    </div>
+
+                    <div class="weekly-filter-group">
+                        <select id="scheduleStatusFilter">
+                            <option value="ALL">Tất cả trạng thái</option>
+                            <option value="AVAILABLE">Đang mở</option>
+                            <option value="CLOSED">Đã đóng</option>
+                        </select>
+
+                        <select id="scheduleShiftFilter">
+                            <option value="ALL">Tất cả ca</option>
+                            <option value="NIGHT">Ca đêm</option>
+                            <option value="MORNING">Ca sáng</option>
+                            <option value="AFTERNOON">Ca chiều</option>
+                            <option value="EVENING">Ca tối</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="weekly-summary" id="scheduleWeekSummary"></div>
+            </div>
+
             <div class="dashboard-table-wrapper">
                 <table class="dashboard-table">
                     <thead>
                         <tr>
-                            <th>
-                                Ngày
-                            </th>
-                            <th>
-                                Ca
-                            </th>
-                            <th>
-                                Thời gian
-                            </th>
-                            <th>
-                                Trạng thái
-                            </th>
-                            <th>
-                                Thao tác
-                            </th>
+                            <th>Ngày</th>
+                            <th>Ca</th>
+                            <th>Thời gian</th>
+                            <th>Trạng thái</th>
+                            <th>Thao tác</th>
                         </tr>
                     </thead>
                     <tbody id="scheduleTableBody">
                         <tr>
-                            <td
-                                colspan="5"
-                                class="dashboard-loading"
-                            >
-                                Đang tải lịch...
+                            <td colspan="5" class="dashboard-loading">
+                                Đang tải lịch làm việc...
                             </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </section>
-        <!-- =================================================
-             LỊCH HẸN
-        ================================================== -->
-        <section
-            class="dashboard-panel"
-            id="appointment-section"
-        >
-            <div
-                class="dashboard-panel-header panel-row"
-            >
+
+        <!-- LỊCH HẸN BỆNH NHÂN -->
+        <section class="dashboard-panel" id="appointment-section">
+            <div class="dashboard-panel-header panel-row">
                 <div>
-                    <span class="panel-eyebrow">
-                        BỆNH NHÂN
-                    </span>
-                    <h3>
-                        Lịch hẹn bệnh nhân
-                    </h3>
-                    <p>
-                        Theo dõi và xử lý các lịch hẹn
-                        của bệnh nhân.
-                    </p>
+                    <span class="panel-eyebrow">BỆNH NHÂN</span>
+                    <h3>Lịch hẹn bệnh nhân</h3>
+                    <p>Theo dõi và xử lý các lịch hẹn của bệnh nhân.</p>
                 </div>
-                <button
-                    type="button"
-                    id="refreshAppointments"
-                    class="btn btn-outline"
-                >
-                    <i class="fa-solid fa-rotate"></i>
-                    Làm mới
+
+                <button type="button" id="refreshAppointments"
+                        class="btn btn-outline">
+                    <i class="fa-solid fa-rotate"></i> Làm mới
                 </button>
             </div>
-            <!-- BỘ LỌC LỊCH HẸN -->
+
+            <!-- THỐNG KÊ LỊCH HẸN -->
+            <div class="weekly-dashboard">
+                <div class="weekly-stat-grid">
+                    <div class="weekly-stat-card">
+                        <span>Tổng lịch hẹn</span>
+                        <strong id="appointmentWeekTotal">0</strong>
+                    </div>
+                    <div class="weekly-stat-card">
+                        <span>Chờ xác nhận</span>
+                        <strong id="appointmentWeekPending">0</strong>
+                    </div>
+                    <div class="weekly-stat-card">
+                        <span>Đã xác nhận</span>
+                        <strong id="appointmentWeekConfirmed">0</strong>
+                    </div>
+                    <div class="weekly-stat-card">
+                        <span>Đã hoàn thành</span>
+                        <strong id="appointmentWeekCompleted">0</strong>
+                    </div>
+                    <div class="weekly-stat-card">
+                        <span>Đã hủy</span>
+                        <strong id="appointmentWeekCancelled">0</strong>
+                    </div>
+                    <div class="weekly-stat-card">
+                        <span>Không đến</span>
+                        <strong id="appointmentWeekNoShow">0</strong>
+                    </div>
+                </div>
+
+                <div class="weekly-toolbar">
+                    <div class="weekly-navigation">
+                        <button type="button" class="btn btn-outline"
+                                id="appointmentPreviousWeek">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </button>
+
+                        <strong id="appointmentWeekLabel">Tuần hiện tại</strong>
+
+                        <button type="button" class="btn btn-outline"
+                                id="appointmentNextWeek">
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </button>
+
+                        <button type="button" class="btn btn-outline"
+                                id="appointmentCurrentWeek">
+                            Tuần này
+                        </button>
+                    </div>
+
+                    <div class="weekly-filter-group">
+                        <select id="appointmentShiftFilter">
+                            <option value="ALL">Tất cả ca</option>
+                            <option value="NIGHT">Ca đêm</option>
+                            <option value="MORNING">Ca sáng</option>
+                            <option value="AFTERNOON">Ca chiều</option>
+                            <option value="EVENING">Ca tối</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BỘ LỌC -->
             <div class="appt-filter">
                 <div class="appt-filter-chips" id="appointmentStatusChips">
                     <button type="button" class="appt-chip active"
                             data-status-filter="ALL">
                         Tất cả <span class="filter-count">0</span>
                     </button>
+
                     <button type="button" class="appt-chip"
                             data-status-filter="PENDING">
                         Chờ xác nhận <span class="filter-count">0</span>
                     </button>
+
                     <button type="button" class="appt-chip"
                             data-status-filter="CONFIRMED">
                         Đã xác nhận <span class="filter-count">0</span>
                     </button>
+
                     <button type="button" class="appt-chip"
                             data-status-filter="COMPLETED">
                         Đã hoàn thành <span class="filter-count">0</span>
                     </button>
+
                     <button type="button" class="appt-chip"
                             data-status-filter="CANCELLED">
                         Đã hủy <span class="filter-count">0</span>
                     </button>
+
                     <button type="button" class="appt-chip"
                             data-status-filter="NO_SHOW">
                         Không đến <span class="filter-count">0</span>
                     </button>
                 </div>
+
                 <div class="appt-filter-row">
                     <div class="appt-filter-field appt-filter-search">
                         <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="search" id="filterAppointmentSearch"
+                        <input type="search"
+                               id="filterAppointmentSearch"
                                placeholder="Tìm theo tên, số điện thoại, lý do khám..."
                                autocomplete="off">
                     </div>
+
                     <div class="appt-filter-field">
-                        <input type="date" id="filterAppointmentDate"
+                        <input type="date"
+                               id="filterAppointmentDate"
                                aria-label="Lọc theo ngày khám">
                     </div>
+
                     <button type="button" class="btn btn-outline"
                             id="filterAppointmentToday">
                         Hôm nay
                     </button>
+
                     <button type="button" class="btn btn-outline"
                             id="filterAppointmentReset">
                         <i class="fa-solid fa-filter-circle-xmark"></i>
                         Xóa lọc
                     </button>
                 </div>
+
                 <div class="appt-filter-summary"
                      id="appointmentFilterSummary"></div>
             </div>
+
             <div class="dashboard-table-wrapper">
                 <table class="dashboard-table">
                     <thead>
                         <tr>
-                            <th>
-                                Bệnh nhân
-                            </th>
-                            <th>
-                                Ngày
-                            </th>
-                            <th>
-                                Giờ
-                            </th>
-                            <th>
-                                Lý do
-                            </th>
-                            <th>
-                                Trạng thái
-                            </th>
-                            <th>
-                                Thao tác
-                            </th>
+                            <th>Bệnh nhân</th>
+                            <th>Ngày</th>
+                            <th>Giờ</th>
+                            <th>Lý do</th>
+                            <th>Trạng thái</th>
+                            <th>Thao tác</th>
                         </tr>
                     </thead>
+
                     <tbody id="appointmentTableBody">
                         <tr>
-                            <td
-                                colspan="6"
-                                class="dashboard-loading"
-                            >
+                            <td colspan="6" class="dashboard-loading">
                                 Đang tải lịch hẹn...
                             </td>
                         </tr>
@@ -872,195 +903,122 @@
         </section>
     </div>
 </main>
-<!-- =========================================================
-     MODAL KÊ ĐƠN THUỐC
-========================================================= -->
-<div class="rx-modal" id="prescriptionModal" role="dialog"
-     aria-modal="true" aria-labelledby="rxModalTitle">
+
+<!-- MODAL KÊ ĐƠN THUỐC -->
+<div class="rx-modal" id="prescriptionModal"
+     role="dialog" aria-modal="true"
+     aria-labelledby="rxModalTitle">
+
     <form class="rx-dialog" id="prescriptionForm" novalidate>
         <div class="rx-header">
             <div>
                 <h3 id="rxModalTitle">Kê đơn thuốc</h3>
                 <p id="rxPatientInfo"></p>
             </div>
+
             <button type="button" class="rx-close" data-rx-close
                     aria-label="Đóng">
                 <i class="fa-solid fa-xmark"></i>
             </button>
         </div>
+
         <div class="rx-body">
             <div class="rx-section-title">Thông tin khám</div>
+
             <div class="rx-field">
                 <label for="rxDiagnosis">Chẩn đoán *</label>
-                <input type="text" id="rxDiagnosis" maxlength="500"
+                <input type="text" id="rxDiagnosis"
+                       maxlength="500"
                        placeholder="VD: Viêm họng cấp">
             </div>
+
             <div class="rx-field">
                 <label for="rxSymptoms">Triệu chứng</label>
                 <textarea id="rxSymptoms" maxlength="5000"></textarea>
             </div>
+
             <div class="rx-field">
                 <label for="rxExamNotes">Ghi chú khám</label>
                 <textarea id="rxExamNotes" maxlength="5000"></textarea>
             </div>
+
             <div class="rx-field">
                 <label for="rxTreatmentPlan">Hướng điều trị</label>
                 <textarea id="rxTreatmentPlan" maxlength="5000"></textarea>
             </div>
+
             <div class="rx-section-title">Danh sách thuốc</div>
+
             <div class="rx-items" id="rxItems"></div>
+
             <div>
                 <button type="button" class="btn btn-outline"
                         id="rxAddItem">
                     <i class="fa-solid fa-plus"></i> Thêm thuốc
                 </button>
             </div>
+
             <div class="rx-field">
                 <label for="rxNote">Lời dặn chung</label>
                 <textarea id="rxNote" maxlength="2000"
                           placeholder="VD: Tái khám sau 5 ngày nếu chưa đỡ"></textarea>
             </div>
+
             <div class="rx-message" id="rxMessage"></div>
         </div>
+
         <div class="rx-footer">
             <button type="button" class="btn btn-outline" data-rx-close>
                 Hủy
             </button>
+
             <button type="submit" class="btn btn-primary" id="rxSubmit">
                 <i class="fa-solid fa-floppy-disk"></i> Lưu đơn thuốc
             </button>
         </div>
     </form>
 </div>
-<!-- =========================================================
-     SCRIPT
-========================================================= -->
+
 <script src="../js/api.js"></script>
 <script src="../js/role-guard.js"></script>
 <script src="../js/doctor-dashboard.js"></script>
 <script src="../js/home.js"></script>
+
 <script>
-    /*
-    =====================================================
-    HEADER + SESSION + LOGOUT
-    =====================================================
-    */
-    document.addEventListener(
-        "DOMContentLoaded",
-        async function () {
-            const headerDoctorName =
-                document.getElementById(
-                    "headerDoctorName"
-                );
-            const doctorName =
-                document.getElementById(
-                    "doctorName"
-                );
-            const logoutButton =
-                document.getElementById(
-                    "logoutButton"
-                );
-            // ==========================================
-            // LẤY SESSION
-            // ==========================================
-            try {
-                const response =
-                    await fetch(
-                        "/api/session",
-                        {
-                            method: "GET",
-                            credentials: "include"
-                        }
-                    );
-                const result =
-                    await response.json();
-                if (
-                    !result.success ||
-                    !result.user
-                ) {
-                    window.location.href =
-                        "login.html";
-                    return;
-                }
-                // ======================================
-                // KIỂM TRA ROLE
-                // ======================================
-                if (
-                    result.user.role !== "DOCTOR"
-                ) {
-                    // Thông báo đã được doctor-dashboard.js hiển thị
-                    // bằng toast; chờ một chút để kịp đọc rồi chuyển trang.
-                    setTimeout(function () {
-                        window.location.href =
-                            "home.html";
-                    }, 1500);
-                    return;
-                }
-                // ======================================
-                // HIỂN THỊ TÊN
-                // ======================================
-                const fullName =
-                    result.user.full_name ||
-                    "Bác sĩ";
-                if (headerDoctorName) {
-                    headerDoctorName.textContent =
-                        `BS. ${fullName}`;
-                }
-                if (doctorName) {
-                    doctorName.textContent =
-                        `BS. ${fullName}`;
-                }
-            } catch (error) {
-                window.location.href =
-                    "login.html";
-                return;
+document.addEventListener("DOMContentLoaded", function () {
+    const logoutButton = document.getElementById("logoutButton");
+
+    if (!logoutButton) return;
+
+    logoutButton.addEventListener("click", async function () {
+        const confirmed = await window.confirmDialog(
+            "Bạn có chắc chắn muốn đăng xuất?",
+            {
+                title: "Đăng xuất",
+                confirmText: "Đăng xuất"
             }
-            // ==========================================
-            // ĐĂNG XUẤT
-            // ==========================================
-            if (logoutButton) {
-                logoutButton.addEventListener(
-                    "click",
-                    async function () {
-                        const confirmed =
-                            await window.confirmDialog(
-                                "Bạn có chắc chắn muốn đăng xuất?",
-                                {
-                                    title: "Đăng xuất",
-                                    confirmText: "Đăng xuất"
-                                }
-                            );
-                        if (!confirmed) {
-                            return;
-                        }
-                        try {
-                            await fetch(
-                                "/api/logout",
-                                {
-                                    method: "POST",
-                                    credentials: "include",
-                                    headers: {
-                                        "Content-Type":
-                                            "application/json"
-                                    }
-                                }
-                            );
-                        } catch (error) {
-                            // Lỗi mạng khi đăng xuất: vẫn xóa dữ liệu
-                            // phía trình duyệt rồi quay về trang đăng nhập.
-                        }
-                        // Xóa dữ liệu frontend nếu có
-                        localStorage.removeItem(
-                            "user"
-                        );
-                        sessionStorage.clear();
-                        window.location.href =
-                            "login.html";
-                    }
-                );
-            }
+        );
+
+        if (!confirmed) return;
+
+        try {
+            await fetch("/api/logout", {
+                method: "POST",
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            });
+        } catch (error) {
+            console.error("Logout request error:", error);
         }
-    );
+
+        localStorage.removeItem("user");
+        sessionStorage.clear();
+        window.location.href = "login.html";
+    });
+});
 </script>
+
 </body>
 </html>

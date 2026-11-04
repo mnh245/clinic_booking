@@ -4,394 +4,23 @@ DOCTOR DASHBOARD - CLINIC BOOKING
 =====================================================
 Chức năng:
 1. Kiểm tra session bác sĩ
-2. Hiển thị thông tin và thống kê
+2. Hiển thị thông tin và thống kê dashboard
 3. Tạo lịch làm việc theo 4 ca
-4. Hiển thị, đóng/mở và xóa lịch
-5. Hiển thị lịch hẹn bệnh nhân
-6. Xác nhận hoặc hủy lịch hẹn
-7. Ghi nhận bệnh nhân đến khám
-8. Hoàn thành khám sau khi ghi nhận đến
-9. Đánh dấu bệnh nhân không đến
+4. Thống kê lịch làm việc theo tuần
+5. Lọc lịch làm việc theo trạng thái và ca
+6. Đóng/mở và xóa lịch làm việc
+7. Thống kê lịch hẹn theo tuần
+8. Lọc lịch hẹn theo tuần, trạng thái, ngày, ca
+9. Tìm kiếm lịch hẹn theo thông tin bệnh nhân
+10. Xác nhận/hủy lịch hẹn
+11. Ghi nhận bệnh nhân đến hoặc không đến
+12. Hoàn thành khám
+13. Kê đơn thuốc
 =====================================================
 */
-
-document.addEventListener("DOMContentLoaded", async function () {
-    document
-        .getElementById("createScheduleForm")
-        ?.addEventListener("submit", createDoctorSchedule);
-    document
-        .getElementById("refreshSchedules")
-        ?.addEventListener("click", loadDoctorSchedules);
-    document
-        .getElementById("refreshAppointments")
-        ?.addEventListener("click", loadDoctorAppointments);
-    const scheduleDate = document.getElementById("scheduleDate");
-    if (scheduleDate) {
-        const now = new Date();
-        const localToday = [
-            now.getFullYear(),
-            String(now.getMonth() + 1).padStart(2, "0"),
-            String(now.getDate()).padStart(2, "0")
-        ].join("-");
-        scheduleDate.min = localToday;
-    }
-    const sessionValid = await checkDoctorSession();
-    if (!sessionValid) return;
-    await loadDoctorDashboard();
-    await loadDoctorSchedules();
-    await loadDoctorAppointments();
-});
-/*
-=====================================================
-0. THÔNG BÁO (TOAST) VÀ HỘP XÁC NHẬN
-Thay cho alert() / confirm() của trình duyệt.
-- showToast(message, type = "info" | "success" | "error" | "warning")
-- await confirmDialog(message, { title, confirmText, cancelText, danger })
-  -> trả về true nếu bấm xác nhận, false nếu hủy.
-=====================================================
-*/
-(function injectDashboardUiStyles() {
-    if (document.getElementById("dashboardUiStyles")) return;
-    const style = document.createElement("style");
-    style.id = "dashboardUiStyles";
-    style.textContent = `
-        .dash-toast-host {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 3000;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            width: min(380px, calc(100vw - 32px));
-            pointer-events: none;
-        }
-        .dash-toast {
-            pointer-events: auto;
-            display: flex;
-            align-items: flex-start;
-            gap: 11px;
-            padding: 13px 14px;
-            border-radius: 12px;
-            border: 1px solid var(--border, #e2e8f0);
-            border-left-width: 4px;
-            background: #ffffff;
-            box-shadow: 0 12px 30px rgba(15, 23, 42, .16);
-            font-size: 14px;
-            line-height: 1.45;
-            color: var(--text, #0f172a);
-            animation: dashToastIn .22s ease;
-        }
-        .dash-toast.leaving {
-            opacity: 0;
-            transform: translateX(16px);
-            transition: opacity .2s ease, transform .2s ease;
-        }
-        .dash-toast-icon {
-            flex: none;
-            margin-top: 1px;
-            font-size: 16px;
-        }
-        .dash-toast-text {
-            flex: 1;
-            min-width: 0;
-            word-break: break-word;
-        }
-        .dash-toast-close {
-            flex: none;
-            border: 0;
-            background: transparent;
-            color: var(--muted, #64748b);
-            font-size: 14px;
-            cursor: pointer;
-            padding: 0 2px;
-        }
-        .dash-toast.success { border-left-color: #16a34a; }
-        .dash-toast.success .dash-toast-icon { color: #16a34a; }
-        .dash-toast.error { border-left-color: #dc2626; }
-        .dash-toast.error .dash-toast-icon { color: #dc2626; }
-        .dash-toast.warning { border-left-color: #d97706; }
-        .dash-toast.warning .dash-toast-icon { color: #d97706; }
-        .dash-toast.info { border-left-color: var(--primary, #0ea5a4); }
-        .dash-toast.info .dash-toast-icon { color: var(--primary, #0ea5a4); }
-        @keyframes dashToastIn {
-            from { opacity: 0; transform: translateX(16px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-        .dash-confirm-overlay {
-            position: fixed;
-            inset: 0;
-            z-index: 2000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 16px;
-            background: rgba(15, 23, 42, .55);
-            animation: dashFadeIn .15s ease;
-        }
-        .dash-confirm {
-            width: 100%;
-            max-width: 400px;
-            padding: 22px 22px 18px;
-            border-radius: 16px;
-            background: #ffffff;
-            box-shadow: 0 24px 60px rgba(15, 23, 42, .28);
-        }
-        .dash-confirm h4 {
-            margin: 0 0 8px;
-            font-size: 17px;
-            color: var(--text, #0f172a);
-        }
-        .dash-confirm p {
-            margin: 0 0 18px;
-            font-size: 14px;
-            line-height: 1.5;
-            color: var(--muted, #64748b);
-            white-space: pre-line;
-        }
-        .dash-confirm-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-        }
-        .dash-confirm-danger {
-            background: #dc2626 !important;
-            border-color: #dc2626 !important;
-            color: #ffffff !important;
-        }
-        @keyframes dashFadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-    `;
-    document.head.appendChild(style);
-})();
-
-function showToast(message, type = "info", duration) {
-    const icons = {
-        success: "fa-circle-check",
-        error: "fa-circle-exclamation",
-        warning: "fa-triangle-exclamation",
-        info: "fa-circle-info"
-    };
-    const kind = icons[type] ? type : "info";
-    let host = document.getElementById("dashToastHost");
-    if (!host) {
-        host = document.createElement("div");
-        host.id = "dashToastHost";
-        host.className = "dash-toast-host";
-        host.setAttribute("aria-live", "polite");
-        document.body.appendChild(host);
-    }
-    const toast = document.createElement("div");
-    toast.className = `dash-toast ${kind}`;
-    toast.setAttribute("role", kind === "error" ? "alert" : "status");
-    const icon = document.createElement("i");
-    icon.className = `fa-solid ${icons[kind]} dash-toast-icon`;
-    const text = document.createElement("div");
-    text.className = "dash-toast-text";
-    text.textContent = String(message ?? "");
-    const close = document.createElement("button");
-    close.type = "button";
-    close.className = "dash-toast-close";
-    close.setAttribute("aria-label", "Đóng thông báo");
-    close.innerHTML = '<i class="fa-solid fa-xmark"></i>';
-    toast.append(icon, text, close);
-    host.appendChild(toast);
-    let removed = false;
-    let timer = null;
-    function removeToast() {
-        if (removed) return;
-        removed = true;
-        clearTimeout(timer);
-        toast.classList.add("leaving");
-        setTimeout(function () {
-            toast.remove();
-        }, 220);
-    }
-    close.addEventListener("click", removeToast);
-    // Lỗi hiển thị lâu hơn để kịp đọc
-    timer = setTimeout(
-        removeToast,
-        duration ?? (kind === "error" ? 6000 : 3500)
-    );
-    return removeToast;
-}
-
-function confirmDialog(message, options = {}) {
-    const {
-        title = "Xác nhận",
-        confirmText = "Đồng ý",
-        cancelText = "Hủy bỏ",
-        danger = false
-    } = options;
-    return new Promise(function (resolve) {
-        const previousFocus = document.activeElement;
-        const overlay = document.createElement("div");
-        overlay.className = "dash-confirm-overlay";
-        const box = document.createElement("div");
-        box.className = "dash-confirm";
-        box.setAttribute("role", "alertdialog");
-        box.setAttribute("aria-modal", "true");
-        const heading = document.createElement("h4");
-        heading.textContent = title;
-        const body = document.createElement("p");
-        body.textContent = String(message ?? "");
-        const actions = document.createElement("div");
-        actions.className = "dash-confirm-actions";
-        const cancelButton = document.createElement("button");
-        cancelButton.type = "button";
-        cancelButton.className = "btn btn-outline";
-        cancelButton.textContent = cancelText;
-        const confirmButton = document.createElement("button");
-        confirmButton.type = "button";
-        confirmButton.className =
-            "btn btn-primary" + (danger ? " dash-confirm-danger" : "");
-        confirmButton.textContent = confirmText;
-        actions.append(cancelButton, confirmButton);
-        box.append(heading, body, actions);
-        overlay.appendChild(box);
-        document.body.appendChild(overlay);
-        function finish(result) {
-            document.removeEventListener("keydown", onKeyDown, true);
-            overlay.remove();
-            if (previousFocus && previousFocus.focus) {
-                previousFocus.focus();
-            }
-            resolve(result);
-        }
-        function onKeyDown(event) {
-            if (event.key === "Escape") {
-                event.preventDefault();
-                event.stopPropagation();
-                finish(false);
-            }
-        }
-        document.addEventListener("keydown", onKeyDown, true);
-        cancelButton.addEventListener("click", function () {
-            finish(false);
-        });
-        confirmButton.addEventListener("click", function () {
-            finish(true);
-        });
-        overlay.addEventListener("click", function (event) {
-            if (event.target === overlay) finish(false);
-        });
-        // Với thao tác nguy hiểm, focus vào nút Hủy để tránh bấm nhầm
-        (danger ? cancelButton : confirmButton).focus();
-    });
-}
-/*
-=====================================================
-1. API HELPER
-=====================================================
-*/
-
-async function dashboardFetch(url, options = {}) {
-    const config = {
-        credentials: "include",
-        ...options,
-        headers: {
-            ...(options.headers || {})
-        }
-    };
-    if (options.body && !config.headers["Content-Type"]) {
-        config.headers["Content-Type"] = "application/json";
-    }
-    const response = await fetch(url, config);
-    let result = null;
-    try {
-        result = await response.json();
-    } catch {
-        result = null;
-    }
-    if (!response.ok || result?.success === false) {
-        throw new Error(
-            result?.message || `API lỗi HTTP ${response.status}`
-        );
-    }
-    return result;
-}
-/*
-=====================================================
-2. KIỂM TRA SESSION BÁC SĨ
-=====================================================
-*/
-
-async function checkDoctorSession() {
-    try {
-        const result = await dashboardFetch("/api/session");
-        if (!result.success || !result.user) {
-            window.location.href = "login.html";
-            return false;
-        }
-        if (result.user.role !== "DOCTOR") {
-            showToast("Bạn không có quyền truy cập trang bác sĩ.", "error");
-            // Chờ một chút để người dùng kịp đọc thông báo
-            setTimeout(function () {
-                window.location.href = "home.html";
-            }, 1500);
-            return false;
-        }
-        const name = result.user.full_name || "Bác sĩ";
-        const doctorNameElement = document.getElementById("doctorName");
-        const headerDoctorName = document.getElementById("headerDoctorName");
-        if (doctorNameElement) {
-            doctorNameElement.textContent = `BS. ${name}`;
-        }
-        if (headerDoctorName) {
-            headerDoctorName.textContent = `BS. ${name}`;
-        }
-        return true;
-    } catch (error) {
-        window.location.href = "login.html";
-        return false;
-    }
-}
-/*
-=====================================================
-3. DASHBOARD VÀ THỐNG KÊ
-=====================================================
-*/
-
-async function loadDoctorDashboard() {
-    try {
-        const result = await dashboardFetch("/api/doctors/me/dashboard");
-        const data = result.data || result;
-        const doctor = data.doctor || {};
-        const statistics = data.statistics || {};
-        const doctorName = document.getElementById("doctorName");
-        const doctorSpecialty = document.getElementById("doctorSpecialty");
-        if (doctorName && doctor.full_name) {
-            doctorName.textContent = `BS. ${doctor.full_name}`;
-        }
-        if (doctorSpecialty) {
-            doctorSpecialty.textContent =
-                doctor.specialty_name || "Bác sĩ";
-        }
-        setText("todayScheduleCount", statistics.todaySchedules ?? 0);
-        setText("appointmentCount", statistics.appointments ?? 0);
-        setText("pendingCount", statistics.pending ?? 0);
-        setText("completedCount", statistics.completed ?? 0);
-    } catch (error) {
-        showToast(
-            error.message || "Không tải được thống kê dashboard.",
-            "error"
-        );
-    }
-}
-
-function setText(id, value) {
-    const element = document.getElementById(id);
-    if (element) {
-        element.textContent = value;
-    }
-}
-/*
-=====================================================
-4. CẤU HÌNH CA LÀM VIỆC
-=====================================================
-*/
+/* =====================================================
+   1. CẤU HÌNH VÀ BIẾN TOÀN CỤC
+===================================================== */
 
 const SHIFT_CONFIG = {
     NIGHT: {
@@ -419,32 +48,489 @@ const SHIFT_CONFIG = {
         end: "00:00"
     }
 };
-/*
-=====================================================
-5. TẠO LỊCH LÀM VIỆC
-=====================================================
-*/
+
+const APPOINTMENT_STATUSES = [
+    "PENDING",
+    "CONFIRMED",
+    "COMPLETED",
+    "CANCELLED",
+    "NO_SHOW"
+];
+
+let doctorSchedulesCache = [];
+let doctorAppointmentsCache = [];
+
+let scheduleWeekOffset = 0;
+let appointmentWeekOffset = 0;
+
+let scheduleStatusFilter = "ALL";
+let scheduleShiftFilter = "ALL";
+
+let appointmentStatusFilter = "ALL";
+let appointmentShiftFilter = "ALL";
+
+let currentPrescriptionAppointmentId = null;
+let currentPrescriptionExists = false;
+let currentPrescriptionAppointmentStatus = null;
+/* =====================================================
+   2. KHỞI TẠO DASHBOARD
+===================================================== */
+
+document.addEventListener("DOMContentLoaded", async function () {
+    bindDashboardEvents();
+    initializeDateInput();
+    initializeWeeklyFilters();
+    const sessionValid = await checkDoctorSession();
+    if (!sessionValid) return;
+    await loadDoctorDashboard();
+    await Promise.all([
+        loadDoctorSchedules(),
+        loadDoctorAppointments()
+    ]);
+});
+/* =====================================================
+   3. GẮN SỰ KIỆN
+===================================================== */
+
+function bindDashboardEvents() {
+    document
+        .getElementById("createScheduleForm")
+        ?.addEventListener("submit", createDoctorSchedule);
+    document
+        .getElementById("refreshSchedules")
+        ?.addEventListener("click", loadDoctorSchedules);
+    document
+        .getElementById("refreshAppointments")
+        ?.addEventListener("click", loadDoctorAppointments);
+    document
+        .getElementById("prescriptionForm")
+        ?.addEventListener("submit", submitPrescription);
+    document
+        .getElementById("rxAddItem")
+        ?.addEventListener("click", function () {
+            addMedicineRow();
+        });
+    document
+        .querySelectorAll("[data-rx-close]")
+        .forEach(function (button) {
+            button.addEventListener("click", closePrescriptionModal);
+        });
+    document
+        .querySelectorAll("[data-status-filter]")
+        .forEach(function (button) {
+            button.addEventListener("click", function () {
+                appointmentStatusFilter = button.dataset.statusFilter;
+                applyAppointmentFilters();
+            });
+        });
+    document
+        .getElementById("filterAppointmentDate")
+        ?.addEventListener("change", applyAppointmentFilters);
+    document
+        .getElementById("filterAppointmentSearch")
+        ?.addEventListener("input", applyAppointmentFilters);
+    document
+        .getElementById("filterAppointmentToday")
+        ?.addEventListener("click", filterAppointmentsToday);
+    document
+        .getElementById("filterAppointmentReset")
+        ?.addEventListener("click", resetAppointmentFilters);
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") {
+            closePrescriptionModal();
+        }
+    });
+    document
+        .getElementById("schedulePreviousWeek")
+        ?.addEventListener("click", function () {
+            scheduleWeekOffset--;
+            applyScheduleFilters();
+        });
+    document
+        .getElementById("scheduleNextWeek")
+        ?.addEventListener("click", function () {
+            scheduleWeekOffset++;
+            applyScheduleFilters();
+        });
+    document
+        .getElementById("scheduleCurrentWeek")
+        ?.addEventListener("click", function () {
+            scheduleWeekOffset = 0;
+            applyScheduleFilters();
+        });
+    document
+        .getElementById("scheduleStatusFilter")
+        ?.addEventListener("change", function () {
+            scheduleStatusFilter = this.value;
+            applyScheduleFilters();
+        });
+    document
+        .getElementById("scheduleShiftFilter")
+        ?.addEventListener("change", function () {
+            scheduleShiftFilter = this.value;
+            applyScheduleFilters();
+        });
+    document
+        .getElementById("appointmentPreviousWeek")
+        ?.addEventListener("click", function () {
+            appointmentWeekOffset--;
+            applyAppointmentFilters();
+        });
+    document
+        .getElementById("appointmentNextWeek")
+        ?.addEventListener("click", function () {
+            appointmentWeekOffset++;
+            applyAppointmentFilters();
+        });
+    document
+        .getElementById("appointmentCurrentWeek")
+        ?.addEventListener("click", function () {
+            appointmentWeekOffset = 0;
+            applyAppointmentFilters();
+        });
+    document
+        .getElementById("appointmentShiftFilter")
+        ?.addEventListener("change", function () {
+            appointmentShiftFilter = this.value;
+            applyAppointmentFilters();
+        });
+    document
+        .getElementById("prescriptionModal")
+        ?.addEventListener("click", function (event) {
+            if (event.target === this) {
+                closePrescriptionModal();
+            }
+        });
+}
+
+function initializeDateInput() {
+    const input = document.getElementById("scheduleDate");
+    if (input) {
+        input.min = getLocalDateString(new Date());
+    }
+}
+
+function initializeWeeklyFilters() {
+    const scheduleStatus = document.getElementById(
+        "scheduleStatusFilter"
+    );
+    const scheduleShift = document.getElementById(
+        "scheduleShiftFilter"
+    );
+    const appointmentShift = document.getElementById(
+        "appointmentShiftFilter"
+    );
+    if (scheduleStatus) {
+        scheduleStatus.value = scheduleStatusFilter;
+    }
+    if (scheduleShift) {
+        scheduleShift.value = scheduleShiftFilter;
+    }
+    if (appointmentShift) {
+        appointmentShift.value = appointmentShiftFilter;
+    }
+}
+/* =====================================================
+   4. TOAST VÀ HỘP XÁC NHẬN
+===================================================== */
+
+function showToast(message, type = "info", duration) {
+    const icons = {
+        success: "fa-circle-check",
+        error: "fa-circle-exclamation",
+        warning: "fa-triangle-exclamation",
+        info: "fa-circle-info"
+    };
+    const kind = icons[type] ? type : "info";
+    let host = document.getElementById("dashToastHost");
+    if (!host) {
+        host = document.createElement("div");
+        host.id = "dashToastHost";
+        host.className = "dash-toast-host";
+        host.setAttribute("aria-live", "polite");
+        Object.assign(host.style, {
+            position: "fixed",
+            top: "20px",
+            right: "20px",
+            zIndex: "3000",
+            display: "flex",
+            flexDirection: "column",
+            gap: "10px",
+            width: "min(380px, calc(100vw - 32px))"
+        });
+        document.body.appendChild(host);
+    }
+    const toast = document.createElement("div");
+    toast.className = `dash-toast ${kind}`;
+    Object.assign(toast.style, {
+        display: "flex",
+        alignItems: "flex-start",
+        gap: "10px",
+        padding: "13px",
+        border: "1px solid #e2e8f0",
+        borderLeft: `4px solid ${
+            kind === "success" ? "#16a34a" :
+            kind === "error" ? "#dc2626" :
+            kind === "warning" ? "#d97706" : "#0b8178"
+        }`,
+        borderRadius: "12px",
+        background: "#fff",
+        color: "#0f172a",
+        boxShadow: "0 12px 30px rgba(15,23,42,.16)",
+        fontSize: "14px"
+    });
+    const icon = document.createElement("i");
+    icon.className = `fa-solid ${icons[kind]}`;
+    const text = document.createElement("div");
+    text.textContent = String(message ?? "");
+    text.style.flex = "1";
+    const close = document.createElement("button");
+    close.type = "button";
+    close.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+    close.style.border = "0";
+    close.style.background = "transparent";
+    close.style.cursor = "pointer";
+    toast.append(icon, text, close);
+    host.appendChild(toast);
+    let removed = false;
+    function removeToast() {
+        if (removed) return;
+        removed = true;
+        toast.remove();
+    }
+    close.addEventListener("click", removeToast);
+    setTimeout(
+        removeToast,
+        duration ?? (kind === "error" ? 6000 : 3500)
+    );
+    return removeToast;
+}
+
+function confirmDialog(message, options = {}) {
+    const {
+        title = "Xác nhận",
+        confirmText = "Đồng ý",
+        cancelText = "Hủy bỏ",
+        danger = false
+    } = options;
+    return new Promise(function (resolve) {
+        const overlay = document.createElement("div");
+        Object.assign(overlay.style, {
+            position: "fixed",
+            inset: "0",
+            zIndex: "4000",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "16px",
+            background: "rgba(15,23,42,.55)"
+        });
+        const box = document.createElement("div");
+        Object.assign(box.style, {
+            width: "100%",
+            maxWidth: "400px",
+            padding: "22px",
+            borderRadius: "16px",
+            background: "#fff",
+            boxShadow: "0 24px 60px rgba(15,23,42,.28)"
+        });
+        const heading = document.createElement("h4");
+        heading.textContent = title;
+        const body = document.createElement("p");
+        body.textContent = String(message ?? "");
+        const actions = document.createElement("div");
+        Object.assign(actions.style, {
+            display: "flex",
+            justifyContent: "flex-end",
+            gap: "10px",
+            marginTop: "20px"
+        });
+        const cancel = document.createElement("button");
+        cancel.type = "button";
+        cancel.className = "btn btn-outline";
+        cancel.textContent = cancelText;
+        const confirm = document.createElement("button");
+        confirm.type = "button";
+        confirm.className = "btn btn-primary";
+        confirm.textContent = confirmText;
+        if (danger) {
+            confirm.style.background = "#dc2626";
+            confirm.style.borderColor = "#dc2626";
+            confirm.style.color = "#fff";
+        }
+        actions.append(cancel, confirm);
+        box.append(heading, body, actions);
+        overlay.appendChild(box);
+        document.body.appendChild(overlay);
+        function finish(result) {
+            overlay.remove();
+            resolve(result);
+        }
+        cancel.addEventListener("click", function () {
+            finish(false);
+        });
+        confirm.addEventListener("click", function () {
+            finish(true);
+        });
+        overlay.addEventListener("click", function (event) {
+            if (event.target === overlay) {
+                finish(false);
+            }
+        });
+        const onKeyDown = function (event) {
+            if (event.key === "Escape") {
+                document.removeEventListener("keydown", onKeyDown);
+                finish(false);
+            }
+        };
+        document.addEventListener("keydown", onKeyDown);
+        (danger ? cancel : confirm).focus();
+    });
+}
+/* =====================================================
+   5. API HELPER
+===================================================== */
+
+async function dashboardFetch(url, options = {}) {
+    const config = {
+        credentials: "include",
+        ...options,
+        headers: {
+            ...(options.headers || {})
+        }
+    };
+    if (options.body && !config.headers["Content-Type"]) {
+        config.headers["Content-Type"] = "application/json";
+    }
+    const response = await fetch(url, config);
+    let result = null;
+    try {
+        result = await response.json();
+    } catch {
+        result = null;
+    }
+    if (!response.ok || result?.success === false) {
+        throw new Error(
+            result?.message || `API lỗi HTTP ${response.status}`
+        );
+    }
+    return result;
+}
+/* =====================================================
+   6. KIỂM TRA SESSION
+===================================================== */
+
+async function checkDoctorSession() {
+    try {
+        const result = await dashboardFetch("/api/session");
+        if (!result.success || !result.user) {
+            window.location.href = "login.html";
+            return false;
+        }
+        if (result.user.role !== "DOCTOR") {
+            showToast(
+                "Bạn không có quyền truy cập trang bác sĩ.",
+                "error"
+            );
+            setTimeout(function () {
+                window.location.href = "home.html";
+            }, 1500);
+            return false;
+        }
+        const name = result.user.full_name || "Bác sĩ";
+        setText("doctorName", `BS. ${name}`);
+        setText("welcomeUser", `BS. ${name}`);
+        return true;
+    } catch (error) {
+        window.location.href = "login.html";
+        return false;
+    }
+}
+/* =====================================================
+   7. DASHBOARD THỐNG KÊ TỔNG QUAN
+===================================================== */
+
+async function loadDoctorDashboard() {
+    try {
+        const result = await dashboardFetch(
+            "/api/doctors/me/dashboard"
+        );
+        const data = result.data || result;
+        const doctor = data.doctor || {};
+        const statistics = data.statistics || {};
+        if (doctor.full_name) {
+            setText("doctorName", `BS. ${doctor.full_name}`);
+            setText("welcomeUser", `BS. ${doctor.full_name}`);
+        }
+        setText(
+            "doctorSpecialty",
+            doctor.specialty_name || "Bác sĩ"
+        );
+        setText(
+            "todayScheduleCount",
+            statistics.todaySchedules ?? 0
+        );
+        setText(
+            "appointmentCount",
+            statistics.appointments ?? 0
+        );
+        setText(
+            "pendingCount",
+            statistics.pending ?? 0
+        );
+        setText(
+            "completedCount",
+            statistics.completed ?? 0
+        );
+    } catch (error) {
+        showToast(
+            error.message || "Không tải được thống kê dashboard.",
+            "error"
+        );
+    }
+}
+/* =====================================================
+   8. TẠO LỊCH LÀM VIỆC
+POST /api/schedules
+===================================================== */
 
 async function createDoctorSchedule(event) {
     event.preventDefault();
     const form = document.getElementById("createScheduleForm");
-    const dateInput = document.getElementById("scheduleDate");
     const message = document.getElementById("scheduleMessage");
-    const submitButton = form?.querySelector('button[type="submit"]');
-    const date = dateInput?.value || "";
+    const submitButton = form?.querySelector(
+        'button[type="submit"]'
+    );
+    const date = document.getElementById("scheduleDate")?.value || "";
     const selectedShift = document.querySelector(
         'input[name="shift_type"]:checked'
     );
     const shiftType = selectedShift?.value || "";
     if (!date) {
-        showDashboardMessage(message, "Vui lòng chọn ngày làm việc.", "error");
+        showDashboardMessage(
+            message,
+            "Vui lòng chọn ngày làm việc.",
+            "error"
+        );
         return;
     }
     if (!shiftType || !SHIFT_CONFIG[shiftType]) {
-        showDashboardMessage(message, "Vui lòng chọn ca làm việc hợp lệ.", "error");
+        showDashboardMessage(
+            message,
+            "Vui lòng chọn ca làm việc hợp lệ.",
+            "error"
+        );
         return;
     }
-    const oldButtonHTML = submitButton?.innerHTML;
+    if (date < getLocalDateString(new Date())) {
+        showDashboardMessage(
+            message,
+            "Không thể đăng ký lịch trong quá khứ.",
+            "error"
+        );
+        return;
+    }
+    const oldHTML = submitButton?.innerHTML;
     if (submitButton) {
         submitButton.disabled = true;
         submitButton.innerHTML =
@@ -477,16 +563,14 @@ async function createDoctorSchedule(event) {
     } finally {
         if (submitButton) {
             submitButton.disabled = false;
-            submitButton.innerHTML = oldButtonHTML;
+            submitButton.innerHTML = oldHTML;
         }
     }
 }
-/*
-=====================================================
-6. TẢI LỊCH LÀM VIỆC
+/* =====================================================
+   9. TẢI VÀ CHUẨN HÓA LỊCH LÀM VIỆC
 GET /api/schedules/my
-=====================================================
-*/
+===================================================== */
 
 async function loadDoctorSchedules() {
     const tbody = document.getElementById("scheduleTableBody");
@@ -501,18 +585,8 @@ async function loadDoctorSchedules() {
     `;
     try {
         const result = await dashboardFetch("/api/schedules/my");
-        const schedules = normalizeSchedules(result);
-        if (!schedules.length) {
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="5" class="dashboard-loading">
-                        Chưa có lịch làm việc.
-                    </td>
-                </tr>
-            `;
-            return;
-        }
-        tbody.innerHTML = schedules.map(renderScheduleRow).join("");
+        doctorSchedulesCache = normalizeSchedules(result);
+        applyScheduleFilters();
     } catch (error) {
         tbody.innerHTML = `
             <tr>
@@ -521,39 +595,64 @@ async function loadDoctorSchedules() {
                 </td>
             </tr>
         `;
+        showToast(
+            error.message || "Không thể tải lịch làm việc.",
+            "error"
+        );
     }
 }
 
 function normalizeSchedules(result) {
     if (Array.isArray(result)) return result;
-    if (Array.isArray(result?.data)) return result.data;
-    if (Array.isArray(result?.schedules)) return result.schedules;
-    if (Array.isArray(result?.data?.schedules)) return result.data.schedules;
+    if (Array.isArray(result?.data)) {
+        return result.data;
+    }
+    if (Array.isArray(result?.schedules)) {
+        return result.schedules;
+    }
+    if (Array.isArray(result?.data?.schedules)) {
+        return result.data.schedules;
+    }
     return [];
 }
-/*
-=====================================================
-7. HIỂN THỊ LỊCH LÀM VIỆC
-=====================================================
-*/
+/* =====================================================
+   10. HIỂN THỊ MỘT DÒNG LỊCH LÀM VIỆC
+===================================================== */
 
 function renderScheduleRow(schedule) {
     const status = schedule.status || "AVAILABLE";
     const isAvailable = status === "AVAILABLE";
     const shiftType = schedule.shift_type || "";
     const shift = SHIFT_CONFIG[shiftType] || {};
+    const shiftName =
+        schedule.shift_name ||
+        shift.name ||
+        shiftType ||
+        "Chưa xác định";
+    const start =
+        schedule.display_start ||
+        (schedule.start_time
+            ? formatTime(schedule.start_time)
+            : shift.start || "");
+    const end =
+        schedule.display_end ||
+        (schedule.end_time
+            ? formatTime(schedule.end_time)
+            : shift.end || "");
     const statusText = isAvailable ? "Đang mở" : "Đã đóng";
     const statusClass = isAvailable ? "available" : "closed";
-    const shiftName =
-        schedule.shift_name || shift.name || shiftType || "Chưa xác định";
-    const start = schedule.display_start ||
-        (schedule.start_time ? formatTime(schedule.start_time) : shift.start || "");
-    const end = schedule.display_end ||
-        (schedule.end_time ? formatTime(schedule.end_time) : shift.end || "");
-    const timeText = `${start} - ${end}`;
+    const approvalStatus = schedule.approval_status || "";
+    let approvalText = "";
+    if (approvalStatus === "PENDING") {
+        approvalText = " · Chờ duyệt";
+    } else if (approvalStatus === "REJECTED") {
+        approvalText = " · Bị từ chối";
+    }
+    const id = Number(schedule.id);
+    const date = String(schedule.schedule_date || "").slice(0, 10);
     return `
         <tr>
-            <td>${escapeHTML(formatDate(schedule.schedule_date))}</td>
+            <td>${escapeHTML(formatDate(date))}</td>
             <td>
                 <span style="display:inline-flex;align-items:center;gap:7px;font-weight:600">
                     <i class="fa-solid ${escapeHTML(shift.icon || "fa-clock")}"
@@ -561,10 +660,10 @@ function renderScheduleRow(schedule) {
                     ${escapeHTML(shiftName)}
                 </span>
             </td>
-            <td>${escapeHTML(timeText)}</td>
+            <td>${escapeHTML(`${start} - ${end}`)}</td>
             <td>
                 <span class="dashboard-status ${statusClass}">
-                    ${statusText}
+                    ${statusText}${escapeHTML(approvalText)}
                 </span>
             </td>
             <td>
@@ -573,9 +672,9 @@ function renderScheduleRow(schedule) {
                         type="button"
                         class="btn btn-outline"
                         onclick="toggleDoctorSchedule(
-                            ${Number(schedule.id)},
+                            ${id},
                             '${isAvailable ? "AVAILABLE" : "CLOSED"}',
-                            '${escapeHTML(String(schedule.schedule_date || "").slice(0, 10))}',
+                            '${escapeHTML(date)}',
                             '${escapeHTML(shiftType)}'
                         )"
                     >
@@ -584,7 +683,7 @@ function renderScheduleRow(schedule) {
                     <button
                         type="button"
                         class="btn btn-outline"
-                        onclick="deleteDoctorSchedule(${Number(schedule.id)})"
+                        onclick="deleteDoctorSchedule(${id})"
                     >
                         <i class="fa-solid fa-trash"></i> Xóa
                     </button>
@@ -593,12 +692,10 @@ function renderScheduleRow(schedule) {
         </tr>
     `;
 }
-/*
-=====================================================
-8. ĐÓNG / MỞ LỊCH
+/* =====================================================
+   11. ĐÓNG / MỞ LỊCH
 PUT /api/schedules/:id
-=====================================================
-*/
+===================================================== */
 
 async function toggleDoctorSchedule(
     scheduleId,
@@ -606,12 +703,17 @@ async function toggleDoctorSchedule(
     scheduleDate,
     shiftType
 ) {
+    const id = Number(scheduleId);
+    if (!Number.isInteger(id) || id <= 0) {
+        showToast("ID lịch làm việc không hợp lệ.", "error");
+        return;
+    }
     const newStatus = currentStatus === "AVAILABLE"
         ? "CLOSED"
         : "AVAILABLE";
     try {
         const result = await dashboardFetch(
-            `/api/schedules/${Number(scheduleId)}`,
+            `/api/schedules/${id}`,
             {
                 method: "PUT",
                 body: JSON.stringify({
@@ -621,51 +723,135 @@ async function toggleDoctorSchedule(
                 })
             }
         );
-        showToast(result.message || "Đã cập nhật lịch làm việc.", "success");
+        showToast(
+            result.message || "Đã cập nhật lịch làm việc.",
+            "success"
+        );
         await Promise.all([
             loadDoctorSchedules(),
             loadDoctorDashboard()
         ]);
     } catch (error) {
-        showToast(error.message || "Không thể cập nhật lịch.", "error");
+        showToast(
+            error.message || "Không thể cập nhật lịch.",
+            "error"
+        );
     }
 }
-/*
-=====================================================
-9. XÓA LỊCH
+/* =====================================================
+   12. XÓA LỊCH
 DELETE /api/schedules/:id
-=====================================================
-*/
+===================================================== */
 
 async function deleteDoctorSchedule(scheduleId) {
-    if (
-        !(await confirmDialog(
-            "Bạn có chắc chắn muốn xóa lịch làm việc này?",
-            { title: "Xóa lịch làm việc", confirmText: "Xóa", danger: true }
-        ))
-    ) {
+    const id = Number(scheduleId);
+    if (!Number.isInteger(id) || id <= 0) {
+        showToast("ID lịch làm việc không hợp lệ.", "error");
         return;
     }
+    const confirmed = await confirmDialog(
+        "Bạn có chắc chắn muốn xóa lịch làm việc này?",
+        {
+            title: "Xóa lịch làm việc",
+            confirmText: "Xóa",
+            danger: true
+        }
+    );
+    if (!confirmed) return;
     try {
         const result = await dashboardFetch(
-            `/api/schedules/${Number(scheduleId)}`,
+            `/api/schedules/${id}`,
             { method: "DELETE" }
         );
-        showToast(result.message || "Đã xóa lịch làm việc.", "success");
+        showToast(
+            result.message || "Đã xóa lịch làm việc.",
+            "success"
+        );
         await Promise.all([
             loadDoctorSchedules(),
             loadDoctorDashboard()
         ]);
     } catch (error) {
-        showToast(error.message || "Không thể xóa lịch làm việc.", "error");
+        showToast(
+            error.message || "Không thể xóa lịch làm việc.",
+            "error"
+        );
     }
 }
-/*
-=====================================================
-10. TẢI LỊCH HẸN BỆNH NHÂN
+/* =====================================================
+   13. LỌC LỊCH LÀM VIỆC THEO TUẦN
+===================================================== */
+
+function applyScheduleFilters() {
+    const tbody = document.getElementById("scheduleTableBody");
+    if (!tbody) return;
+    const range = getWeekRange(scheduleWeekOffset);
+    const weeklySchedules = doctorSchedulesCache.filter(
+        schedule => isDateInWeek(schedule.schedule_date, range)
+    );
+    const availableCount = weeklySchedules.filter(
+        schedule => schedule.status === "AVAILABLE"
+    ).length;
+    const closedCount = weeklySchedules.filter(
+        schedule => schedule.status === "CLOSED"
+    ).length;
+    const days = new Set(
+        weeklySchedules.map(schedule =>
+            String(schedule.schedule_date || "").slice(0, 10)
+        )
+    );
+    setText("scheduleWeekTotal", weeklySchedules.length);
+    setText("scheduleWeekAvailable", availableCount);
+    setText("scheduleWeekClosed", closedCount);
+    setText("scheduleWeekDays", days.size);
+    setText(
+        "scheduleWeekLabel",
+        getWeekLabel(scheduleWeekOffset)
+    );
+    const filtered = weeklySchedules.filter(function (schedule) {
+        const status = schedule.status || "AVAILABLE";
+        const shift = schedule.shift_type || "";
+        const matchStatus =
+            scheduleStatusFilter === "ALL" ||
+            status === scheduleStatusFilter;
+        const matchShift =
+            scheduleShiftFilter === "ALL" ||
+            shift === scheduleShiftFilter;
+        return matchStatus && matchShift;
+    });
+    setText(
+        "scheduleWeekSummary",
+        `Hiển thị ${filtered.length} / ${weeklySchedules.length} ca trong tuần`
+    );
+    if (!filtered.length) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5" class="dashboard-loading">
+                    ${
+                        weeklySchedules.length
+                            ? "Không có lịch làm việc phù hợp với bộ lọc."
+                            : "Không có lịch làm việc trong tuần này."
+                    }
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    filtered.sort(function (a, b) {
+        const dateCompare = String(a.schedule_date || "").localeCompare(
+            String(b.schedule_date || "")
+        );
+        if (dateCompare !== 0) return dateCompare;
+        return String(a.shift_type || "").localeCompare(
+            String(b.shift_type || "")
+        );
+    });
+    tbody.innerHTML = filtered.map(renderScheduleRow).join("");
+}
+/* =====================================================
+   14. TẢI LỊCH HẸN BỆNH NHÂN
 GET /api/doctors/me/appointments
-=====================================================
-*/
+===================================================== */
 
 async function loadDoctorAppointments() {
     const tbody = document.getElementById("appointmentTableBody");
@@ -679,9 +865,10 @@ async function loadDoctorAppointments() {
         </tr>
     `;
     try {
-        const result = await dashboardFetch("/api/doctors/me/appointments");
+        const result = await dashboardFetch(
+            "/api/doctors/me/appointments"
+        );
         doctorAppointmentsCache = normalizeAppointments(result);
-        // Hiển thị theo bộ lọc đang chọn (giữ nguyên bộ lọc khi làm mới)
         applyAppointmentFilters();
     } catch (error) {
         tbody.innerHTML = `
@@ -691,38 +878,60 @@ async function loadDoctorAppointments() {
                 </td>
             </tr>
         `;
+        showToast(
+            error.message || "Không thể tải lịch hẹn.",
+            "error"
+        );
     }
 }
 
 function normalizeAppointments(result) {
     if (Array.isArray(result)) return result;
-    if (Array.isArray(result?.data)) return result.data;
-    if (Array.isArray(result?.appointments)) return result.appointments;
-    if (Array.isArray(result?.data?.appointments)) return result.data.appointments;
+    if (Array.isArray(result?.data)) {
+        return result.data;
+    }
+    if (Array.isArray(result?.appointments)) {
+        return result.appointments;
+    }
+    if (Array.isArray(result?.data?.appointments)) {
+        return result.data.appointments;
+    }
     return [];
 }
-/*
-=====================================================
-11. HIỂN THỊ LỊCH HẸN
-=====================================================
-*/
+/* =====================================================
+   15. HIỂN THỊ MỘT DÒNG LỊCH HẸN
+===================================================== */
 
 function renderAppointmentRow(appointment) {
     const status = appointment.status || "PENDING";
-    const statusClass = status.toLowerCase().replace(/_/g, "-");
+    const statusClass = status
+        .toLowerCase()
+        .replace(/_/g, "-");
     return `
         <tr>
             <td>
-                <strong>${escapeHTML(appointment.patient_name || "Chưa cập nhật")}</strong>
+                <strong>
+                    ${escapeHTML(
+                        appointment.patient_name || "Chưa cập nhật"
+                    )}
+                </strong>
                 ${
                     appointment.patient_phone
-                        ? `<br><small>${escapeHTML(appointment.patient_phone)}</small>`
+                        ? `<br><small>${escapeHTML(
+                            appointment.patient_phone
+                        )}</small>`
                         : ""
                 }
             </td>
-            <td>${escapeHTML(formatDate(appointment.schedule_date))}</td>
-            <td>${escapeHTML(formatTime(appointment.appointment_time))}</td>
-            <td>${escapeHTML(appointment.reason || "Không có")}</td>
+            <td>
+                ${escapeHTML(formatDate(appointment.schedule_date))}
+            </td>
+            <td>
+                ${escapeHTML(formatTime(appointment.appointment_time))}
+            </td>
+            <td>
+                ${escapeHTML(appointment.reason || "Không có")}
+            </td>
             <td>
                 <span class="dashboard-status ${statusClass}">
                     ${escapeHTML(translateAppointmentStatus(status))}
@@ -734,11 +943,9 @@ function renderAppointmentRow(appointment) {
         </tr>
     `;
 }
-/*
-=====================================================
-12. CÁC NÚT XỬ LÝ LỊCH HẸN
-=====================================================
-*/
+/* =====================================================
+   16. CÁC NÚT XỬ LÝ LỊCH HẸN
+===================================================== */
 
 function renderAppointmentActions(appointment) {
     const id = Number(appointment.id);
@@ -826,20 +1033,16 @@ function renderAppointmentActions(appointment) {
         `;
     }
     if (status === "CANCELLED") {
-        return '<span>Đã hủy</span>';
+        return "<span>Đã hủy</span>";
     }
     if (status === "NO_SHOW") {
-        return '<span>Không đến</span>';
+        return "<span>Không đến</span>";
     }
     return "-";
 }
-/*
-=====================================================
-13. XÁC NHẬN / HỦY / KHÔNG ĐẾN
-=====================================================
-Dùng API chuyên biệt của Backend.
-=====================================================
-*/
+/* =====================================================
+   17. XÁC NHẬN / HỦY / KHÔNG ĐẾN
+===================================================== */
 
 async function updateAppointment(appointmentId, status) {
     const id = Number(appointmentId);
@@ -857,39 +1060,52 @@ async function updateAppointment(appointmentId, status) {
         showToast("Trạng thái lịch hẹn không hợp lệ.", "error");
         return;
     }
-    if (status === "CANCELLED" &&
-        !(await confirmDialog(
+    if (status === "CANCELLED") {
+        const confirmed = await confirmDialog(
             "Bạn có chắc chắn muốn hủy lịch hẹn này?",
-            { title: "Hủy lịch hẹn", confirmText: "Hủy lịch", cancelText: "Không", danger: true }
-        ))) {
-        return;
+            {
+                title: "Hủy lịch hẹn",
+                confirmText: "Hủy lịch",
+                cancelText: "Không",
+                danger: true
+            }
+        );
+        if (!confirmed) return;
     }
-    if (status === "NO_SHOW" &&
-        !(await confirmDialog(
+    if (status === "NO_SHOW") {
+        const confirmed = await confirmDialog(
             "Xác nhận bệnh nhân không đến khám?",
-            { title: "Bệnh nhân không đến", confirmText: "Xác nhận", danger: true }
-        ))) {
-        return;
+            {
+                title: "Bệnh nhân không đến",
+                confirmText: "Xác nhận",
+                danger: true
+            }
+        );
+        if (!confirmed) return;
     }
     try {
         const result = await dashboardFetch(endpoint, {
             method: "POST"
         });
-        showToast(result.message || "Cập nhật lịch hẹn thành công.", "success");
+        showToast(
+            result.message || "Cập nhật lịch hẹn thành công.",
+            "success"
+        );
         await Promise.all([
             loadDoctorAppointments(),
             loadDoctorDashboard()
         ]);
     } catch (error) {
-        showToast(error.message || "Không thể cập nhật lịch hẹn.", "error");
+        showToast(
+            error.message || "Không thể cập nhật lịch hẹn.",
+            "error"
+        );
     }
 }
-/*
-=====================================================
-14. GHI NHẬN BỆNH NHÂN ĐẾN KHÁM
+/* =====================================================
+   18. GHI NHẬN BỆNH NHÂN ĐẾN KHÁM
 POST /api/appointments/:id/arrival
-=====================================================
-*/
+===================================================== */
 
 async function recordPatientArrival(appointmentId) {
     const id = Number(appointmentId);
@@ -897,31 +1113,34 @@ async function recordPatientArrival(appointmentId) {
         showToast("ID lịch hẹn không hợp lệ.", "error");
         return;
     }
-    if (!(await confirmDialog("Xác nhận bệnh nhân đã đến khám?"))) {
-        return;
-    }
+    const confirmed = await confirmDialog(
+        "Xác nhận bệnh nhân đã đến khám?"
+    );
+    if (!confirmed) return;
     try {
         const result = await dashboardFetch(
             `/api/appointments/${id}/arrival`,
-            {
-                method: "POST"
-            }
+            { method: "POST" }
         );
-        showToast(result.message || "Đã ghi nhận bệnh nhân đến khám.", "success");
+        showToast(
+            result.message || "Đã ghi nhận bệnh nhân đến khám.",
+            "success"
+        );
         await Promise.all([
             loadDoctorAppointments(),
             loadDoctorDashboard()
         ]);
     } catch (error) {
-        showToast(error.message || "Không thể ghi nhận bệnh nhân đến khám.", "error");
+        showToast(
+            error.message || "Không thể ghi nhận bệnh nhân đến khám.",
+            "error"
+        );
     }
 }
-/*
-=====================================================
-15. HOÀN THÀNH KHÁM
+/* =====================================================
+   19. HOÀN THÀNH KHÁM
 POST /api/appointments/:id/complete
-=====================================================
-*/
+===================================================== */
 
 async function completeAppointment(appointmentId) {
     const id = Number(appointmentId);
@@ -929,37 +1148,33 @@ async function completeAppointment(appointmentId) {
         showToast("ID lịch hẹn không hợp lệ.", "error");
         return;
     }
-    if (!(await confirmDialog("Xác nhận hoàn thành cuộc khám này?"))) {
-        return;
-    }
+    const confirmed = await confirmDialog(
+        "Xác nhận hoàn thành cuộc khám này?"
+    );
+    if (!confirmed) return;
     try {
         const result = await dashboardFetch(
             `/api/appointments/${id}/complete`,
-            {
-                method: "POST"
-            }
+            { method: "POST" }
         );
-        showToast(result.message || "Cuộc hẹn đã được đánh dấu hoàn thành.", "success");
+        showToast(
+            result.message || "Cuộc hẹn đã được đánh dấu hoàn thành.",
+            "success"
+        );
         await Promise.all([
             loadDoctorAppointments(),
             loadDoctorDashboard()
         ]);
     } catch (error) {
-        showToast(error.message || "Không thể hoàn thành cuộc khám.", "error");
+        showToast(
+            error.message || "Không thể hoàn thành cuộc khám.",
+            "error"
+        );
     }
 }
-/*
-=====================================================
-15B. KÊ ĐƠN THUỐC
-GET  /api/appointments/:id/prescription  (nạp dữ liệu cũ)
-POST /api/appointments/:id/prescription  (tạo mới)
-PUT  /api/appointments/:id/prescription  (cập nhật)
-=====================================================
-*/
-
-let currentPrescriptionAppointmentId = null;
-let currentPrescriptionExists = false;
-let currentPrescriptionAppointmentStatus = null;
+/* =====================================================
+   20. KÊ ĐƠN THUỐC
+===================================================== */
 
 function emptyMedicineItem() {
     return {
@@ -979,54 +1194,73 @@ function renderMedicineRow(item = emptyMedicineItem()) {
         <div class="rx-item-grid">
             <div class="rx-field rx-field-wide">
                 <label>Tên thuốc *</label>
-                <input type="text" data-field="medicine_name"
-                       maxlength="255" placeholder="VD: Paracetamol 500mg"
+                <input type="text"
+                       data-field="medicine_name"
+                       maxlength="255"
+                       placeholder="VD: Paracetamol 500mg"
                        value="${escapeHTML(item.medicine_name)}">
             </div>
             <div class="rx-field">
                 <label>Liều dùng</label>
-                <input type="text" data-field="dosage"
-                       maxlength="150" placeholder="VD: 1 viên"
+                <input type="text"
+                       data-field="dosage"
+                       maxlength="150"
+                       placeholder="VD: 1 viên"
                        value="${escapeHTML(item.dosage)}">
             </div>
             <div class="rx-field">
                 <label>Tần suất</label>
-                <input type="text" data-field="frequency"
-                       maxlength="150" placeholder="VD: 3 lần/ngày"
+                <input type="text"
+                       data-field="frequency"
+                       maxlength="150"
+                       placeholder="VD: 3 lần/ngày"
                        value="${escapeHTML(item.frequency)}">
             </div>
             <div class="rx-field">
                 <label>Thời gian dùng</label>
-                <input type="text" data-field="duration"
-                       maxlength="100" placeholder="VD: 5 ngày"
+                <input type="text"
+                       data-field="duration"
+                       maxlength="100"
+                       placeholder="VD: 5 ngày"
                        value="${escapeHTML(item.duration)}">
             </div>
             <div class="rx-field">
                 <label>Số lượng</label>
-                <input type="text" data-field="quantity"
-                       maxlength="100" placeholder="VD: 15 viên"
+                <input type="text"
+                       data-field="quantity"
+                       maxlength="100"
+                       placeholder="VD: 15 viên"
                        value="${escapeHTML(item.quantity)}">
             </div>
             <div class="rx-field rx-field-wide">
                 <label>Hướng dẫn</label>
-                <input type="text" data-field="instructions"
-                       maxlength="1000" placeholder="VD: Uống sau ăn"
+                <input type="text"
+                       data-field="instructions"
+                       maxlength="1000"
+                       placeholder="VD: Uống sau ăn"
                        value="${escapeHTML(item.instructions)}">
             </div>
         </div>
-        <button type="button" class="btn btn-outline rx-remove"
+        <button type="button"
+                class="btn btn-outline rx-remove"
                 title="Xóa thuốc này">
             <i class="fa-solid fa-trash"></i>
         </button>
     `;
-    row.querySelector(".rx-remove").addEventListener("click", function () {
-        const list = document.getElementById("rxItems");
-        if (list.children.length <= 1) {
-            showToast("Đơn thuốc phải có ít nhất một loại thuốc.", "error");
-            return;
+    row.querySelector(".rx-remove").addEventListener(
+        "click",
+        function () {
+            const list = document.getElementById("rxItems");
+            if (list.children.length <= 1) {
+                showToast(
+                    "Đơn thuốc phải có ít nhất một loại thuốc.",
+                    "error"
+                );
+                return;
+            }
+            row.remove();
         }
-        row.remove();
-    });
+    );
     return row;
 }
 
@@ -1034,23 +1268,32 @@ function addMedicineRow(item) {
     const list = document.getElementById("rxItems");
     if (!list) return;
     if (list.children.length >= 30) {
-        showToast("Một đơn thuốc tối đa 30 loại thuốc.", "error");
+        showToast(
+            "Một đơn thuốc tối đa 30 loại thuốc.",
+            "error"
+        );
         return;
     }
     list.appendChild(renderMedicineRow(item));
 }
 
-function setPrescriptionMessage(text, type) {
+function setPrescriptionMessage(message, type) {
     const element = document.getElementById("rxMessage");
     if (!element) return;
-    element.textContent = text || "";
-    element.className = text ? `rx-message ${type || ""}` : "rx-message";
+    element.textContent = message || "";
+    element.className = message
+        ? `rx-message ${type || ""}`
+        : "rx-message";
 }
 
 function closePrescriptionModal() {
-    document.getElementById("prescriptionModal")?.classList.remove("open");
+    document
+        .getElementById("prescriptionModal")
+        ?.classList.remove("open");
     document.body.style.overflow = "";
     currentPrescriptionAppointmentId = null;
+    currentPrescriptionExists = false;
+    currentPrescriptionAppointmentStatus = null;
 }
 
 async function openPrescriptionModal(appointmentId) {
@@ -1103,7 +1346,9 @@ async function openPrescriptionModal(appointmentId) {
             addMedicineRow();
         }
         document.getElementById("rxModalTitle").textContent =
-            currentPrescriptionExists ? "Sửa đơn thuốc" : "Kê đơn thuốc";
+            currentPrescriptionExists
+                ? "Sửa đơn thuốc"
+                : "Kê đơn thuốc";
     } catch (error) {
         document.getElementById("rxPatientInfo").textContent = "";
         addMedicineRow();
@@ -1119,9 +1364,11 @@ function collectPrescriptionItems() {
         document.querySelectorAll("#rxItems .rx-item")
     ).map(function (row) {
         const item = {};
-        row.querySelectorAll("[data-field]").forEach(function (input) {
-            item[input.dataset.field] = input.value.trim();
-        });
+        row.querySelectorAll("[data-field]").forEach(
+            function (input) {
+                item[input.dataset.field] = input.value.trim();
+            }
+        );
         return item;
     });
 }
@@ -1130,10 +1377,14 @@ async function submitPrescription(event) {
     event.preventDefault();
     const id = currentPrescriptionAppointmentId;
     if (!id) return;
-    const diagnosis =
-        document.getElementById("rxDiagnosis").value.trim();
+    const diagnosis = document
+        .getElementById("rxDiagnosis")
+        .value.trim();
     if (!diagnosis) {
-        setPrescriptionMessage("Vui lòng nhập chẩn đoán.", "error");
+        setPrescriptionMessage(
+            "Vui lòng nhập chẩn đoán.",
+            "error"
+        );
         return;
     }
     const items = collectPrescriptionItems();
@@ -1167,13 +1418,13 @@ async function submitPrescription(event) {
                 body: JSON.stringify(payload)
             }
         );
-        // Lấy trạng thái trước khi đóng modal (đóng modal sẽ xóa state)
         const canComplete =
             currentPrescriptionAppointmentStatus === "CONFIRMED";
         closePrescriptionModal();
-        showToast(result.message || "Đã lưu đơn thuốc.", "success");
-        // Lịch còn CONFIRMED (đã đến khám nhưng chưa hoàn thành):
-        // hỏi bác sĩ có muốn hoàn thành cuộc khám luôn không.
+        showToast(
+            result.message || "Đã lưu đơn thuốc.",
+            "success"
+        );
         if (
             canComplete &&
             await confirmDialog(
@@ -1203,7 +1454,6 @@ async function submitPrescription(event) {
                 );
             }
         }
-        // Làm mới danh sách lịch hẹn và thống kê
         await Promise.all([
             loadDoctorAppointments(),
             loadDoctorDashboard()
@@ -1218,61 +1468,50 @@ async function submitPrescription(event) {
         submitButton.innerHTML = oldHTML;
     }
 }
+/* =====================================================
+   21. THỐNG KÊ VÀ LỌC LỊCH HẸN THEO TUẦN
+===================================================== */
 
-document.addEventListener("DOMContentLoaded", function () {
-    document
-        .getElementById("prescriptionForm")
-        ?.addEventListener("submit", submitPrescription);
-    document
-        .getElementById("rxAddItem")
-        ?.addEventListener("click", function () {
-            addMedicineRow();
-        });
-    document
-        .querySelectorAll("[data-rx-close]")
-        .forEach(function (button) {
-            button.addEventListener("click", closePrescriptionModal);
-        });
-    document.addEventListener("keydown", function (event) {
-        if (event.key === "Escape") closePrescriptionModal();
+function updateAppointmentWeeklyStatistics(appointments) {
+    const counts = {
+        PENDING: 0,
+        CONFIRMED: 0,
+        COMPLETED: 0,
+        CANCELLED: 0,
+        NO_SHOW: 0
+    };
+    appointments.forEach(function (appointment) {
+        const status = appointment.status || "PENDING";
+        if (counts[status] !== undefined) {
+            counts[status]++;
+        }
     });
-});
-/*
-=====================================================
-15C. BỘ LỌC LỊCH HẸN (lọc phía trình duyệt)
-- Trạng thái (chip, có số lượng)
-- Ngày khám
-- Từ khóa: tên, số điện thoại, lý do (không phân biệt dấu)
-=====================================================
-*/
-
-let doctorAppointmentsCache = [];
-let appointmentStatusFilter = "ALL";
-
-function removeDiacritics(value) {
-    return String(value ?? "")
-        .normalize("NFD")
-        .replace(/[̀-ͯ]/g, "")
-        .replace(/đ/g, "d")
-        .replace(/Đ/g, "D")
-        .toLowerCase();
+    setText("appointmentWeekTotal", appointments.length);
+    setText("appointmentWeekPending", counts.PENDING);
+    setText("appointmentWeekConfirmed", counts.CONFIRMED);
+    setText("appointmentWeekCompleted", counts.COMPLETED);
+    setText("appointmentWeekCancelled", counts.CANCELLED);
+    setText("appointmentWeekNoShow", counts.NO_SHOW);
+    setText(
+        "appointmentWeekLabel",
+        getWeekLabel(appointmentWeekOffset)
+    );
 }
 
 function getAppointmentFilters() {
     return {
-        status: appointmentStatusFilter,
-        date:
-            document.getElementById("filterAppointmentDate")?.value || "",
+        date: document.getElementById(
+            "filterAppointmentDate"
+        )?.value || "",
         keyword: removeDiacritics(
-            (
-                document.getElementById("filterAppointmentSearch")?.value ||
-                ""
-            ).trim()
+            document.getElementById(
+                "filterAppointmentSearch"
+            )?.value.trim() || ""
         )
     };
 }
-// Kiểm tra ngày + từ khóa (trạng thái xử lý riêng để đếm số lượng chip)
-function matchesDateAndKeyword(appointment, filters) {
+
+function matchesAppointmentSearch(appointment, filters) {
     if (
         filters.date &&
         String(appointment.schedule_date || "").slice(0, 10) !==
@@ -1281,13 +1520,11 @@ function matchesDateAndKeyword(appointment, filters) {
         return false;
     }
     if (filters.keyword) {
-        const haystack = removeDiacritics(
-            [
-                appointment.patient_name,
-                appointment.patient_phone,
-                appointment.reason
-            ].join(" ")
-        );
+        const haystack = removeDiacritics([
+            appointment.patient_name,
+            appointment.patient_phone,
+            appointment.reason
+        ].join(" "));
         if (!haystack.includes(filters.keyword)) {
             return false;
         }
@@ -1298,11 +1535,17 @@ function matchesDateAndKeyword(appointment, filters) {
 function applyAppointmentFilters() {
     const tbody = document.getElementById("appointmentTableBody");
     if (!tbody) return;
+    const range = getWeekRange(appointmentWeekOffset);
+    const weeklyAppointments = doctorAppointmentsCache.filter(
+        appointment =>
+            isDateInWeek(appointment.schedule_date, range)
+    );
+    updateAppointmentWeeklyStatistics(weeklyAppointments);
     const filters = getAppointmentFilters();
-    const base = doctorAppointmentsCache.filter(function (appointment) {
-        return matchesDateAndKeyword(appointment, filters);
-    });
-    // Số lượng trên từng chip (tính theo ngày + từ khóa đang lọc)
+    const base = weeklyAppointments.filter(
+        appointment =>
+            matchesAppointmentSearch(appointment, filters)
+    );
     const counts = {
         ALL: base.length,
         PENDING: 0,
@@ -1312,32 +1555,54 @@ function applyAppointmentFilters() {
         NO_SHOW: 0
     };
     base.forEach(function (appointment) {
-        const key = appointment.status || "PENDING";
-        if (counts[key] !== undefined) counts[key]++;
+        const status = appointment.status || "PENDING";
+        if (counts[status] !== undefined) {
+            counts[status]++;
+        }
     });
     document
         .querySelectorAll("[data-status-filter]")
         .forEach(function (button) {
             const key = button.dataset.statusFilter;
             const badge = button.querySelector(".filter-count");
-            button.classList.toggle("active", key === filters.status);
-            if (badge) badge.textContent = counts[key] ?? 0;
+            button.classList.toggle(
+                "active",
+                key === appointmentStatusFilter
+            );
+            if (badge) {
+                badge.textContent = counts[key] ?? 0;
+            }
         });
-    const filtered =
-        filters.status === "ALL"
-            ? base
-            : base.filter(function (appointment) {
-                  return (
-                      (appointment.status || "PENDING") === filters.status
-                  );
-              });
+    const filtered = base.filter(function (appointment) {
+        const status = appointment.status || "PENDING";
+        const matchStatus =
+            appointmentStatusFilter === "ALL" ||
+            status === appointmentStatusFilter;
+        const shift = getShiftFromTime(
+            appointment.appointment_time
+        );
+        const matchShift =
+            appointmentShiftFilter === "ALL" ||
+            shift === appointmentShiftFilter;
+        return matchStatus && matchShift;
+    });
+    filtered.sort(function (a, b) {
+        const dateCompare = String(a.schedule_date || "").localeCompare(
+            String(b.schedule_date || "")
+        );
+        if (dateCompare !== 0) return dateCompare;
+        return String(a.appointment_time || "").localeCompare(
+            String(b.appointment_time || "")
+        );
+    });
     setText(
         "appointmentFilterSummary",
-        `Hiển thị ${filtered.length} / ${doctorAppointmentsCache.length} lịch hẹn`
+        `Hiển thị ${filtered.length} / ${weeklyAppointments.length} lịch hẹn trong tuần`
     );
     if (!filtered.length) {
         const hasFilter =
-            filters.status !== "ALL" ||
+            appointmentStatusFilter !== "ALL" ||
+            appointmentShiftFilter !== "ALL" ||
             filters.date ||
             filters.keyword;
         tbody.innerHTML = `
@@ -1345,72 +1610,141 @@ function applyAppointmentFilters() {
                 <td colspan="6" class="dashboard-loading">
                     ${
                         hasFilter
-                            ? "Không có lịch hẹn nào khớp với bộ lọc."
-                            : "Chưa có lịch hẹn."
+                            ? "Không có lịch hẹn phù hợp với bộ lọc."
+                            : "Không có lịch hẹn trong tuần này."
                     }
                 </td>
             </tr>
         `;
         return;
     }
-    tbody.innerHTML = filtered.map(renderAppointmentRow).join("");
+    tbody.innerHTML = filtered
+        .map(renderAppointmentRow)
+        .join("");
+}
+
+function filterAppointmentsToday() {
+    const input = document.getElementById(
+        "filterAppointmentDate"
+    );
+    if (!input) return;
+    const today = new Date();
+    input.value = getLocalDateString(today);
+    /*
+       Nếu ngày hôm nay nằm ngoài tuần đang xem,
+       tự động chuyển về tuần hiện tại.
+    */
+    appointmentWeekOffset = 0;
+    applyAppointmentFilters();
 }
 
 function resetAppointmentFilters() {
     appointmentStatusFilter = "ALL";
-    const dateInput = document.getElementById("filterAppointmentDate");
-    const searchInput = document.getElementById("filterAppointmentSearch");
+    appointmentShiftFilter = "ALL";
+    appointmentWeekOffset = 0;
+    const dateInput = document.getElementById(
+        "filterAppointmentDate"
+    );
+    const searchInput = document.getElementById(
+        "filterAppointmentSearch"
+    );
+    const shiftInput = document.getElementById(
+        "appointmentShiftFilter"
+    );
     if (dateInput) dateInput.value = "";
     if (searchInput) searchInput.value = "";
+    if (shiftInput) shiftInput.value = "ALL";
     applyAppointmentFilters();
 }
+/* =====================================================
+   22. HÀM XỬ LÝ NGÀY VÀ TUẦN
+===================================================== */
 
-document.addEventListener("DOMContentLoaded", function () {
-    document
-        .querySelectorAll("[data-status-filter]")
-        .forEach(function (button) {
-            button.addEventListener("click", function () {
-                appointmentStatusFilter = button.dataset.statusFilter;
-                applyAppointmentFilters();
-            });
-        });
-    document
-        .getElementById("filterAppointmentDate")
-        ?.addEventListener("change", applyAppointmentFilters);
-    // Gõ tìm kiếm: đợi 200ms sau lần gõ cuối rồi mới lọc
-    let searchTimer = null;
-    document
-        .getElementById("filterAppointmentSearch")
-        ?.addEventListener("input", function () {
-            clearTimeout(searchTimer);
-            searchTimer = setTimeout(applyAppointmentFilters, 200);
-        });
-    document
-        .getElementById("filterAppointmentToday")
-        ?.addEventListener("click", function () {
-            const now = new Date();
-            document.getElementById("filterAppointmentDate").value = [
-                now.getFullYear(),
-                String(now.getMonth() + 1).padStart(2, "0"),
-                String(now.getDate()).padStart(2, "0")
-            ].join("-");
-            applyAppointmentFilters();
-        });
-    document
-        .getElementById("filterAppointmentReset")
-        ?.addEventListener("click", resetAppointmentFilters);
-});
-/*
-=====================================================
-16. FORMAT NGÀY / GIỜ
-=====================================================
-*/
+function getLocalDateString(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1)
+        .padStart(2, "0");
+    const day = String(date.getDate())
+        .padStart(2, "0");
+    return `${year}-${month}-${day}`;
+}
+
+function parseLocalDate(value) {
+    if (!value) return null;
+    const parts = String(value)
+        .slice(0, 10)
+        .split("-");
+    if (parts.length !== 3) return null;
+    const date = new Date(
+        Number(parts[0]),
+        Number(parts[1]) - 1,
+        Number(parts[2])
+    );
+    if (Number.isNaN(date.getTime())) return null;
+    return date;
+}
+
+function getWeekRange(offset = 0) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const monday = new Date(today);
+    const day = monday.getDay();
+    monday.setDate(
+        monday.getDate() - (day === 0 ? 6 : day - 1)
+    );
+    monday.setDate(
+        monday.getDate() + offset * 7
+    );
+    const sunday = new Date(monday);
+    sunday.setDate(
+        sunday.getDate() + 6
+    );
+    return {
+        start: getLocalDateString(monday),
+        end: getLocalDateString(sunday)
+    };
+}
+
+function isDateInWeek(dateValue, range) {
+    const date = String(dateValue || "").slice(0, 10);
+    return date >= range.start && date <= range.end;
+}
+
+function getWeekLabel(offset) {
+    const range = getWeekRange(offset);
+    return `${formatDate(range.start)} - ${formatDate(range.end)}`;
+}
+/* =====================================================
+   23. XÁC ĐỊNH CA LÀM VIỆC TỪ GIỜ HẸN
+===================================================== */
+
+function getShiftFromTime(timeValue) {
+    const time = String(timeValue || "").slice(0, 5);
+    const hour = Number(time.split(":")[0]);
+    if (!Number.isFinite(hour)) return "";
+    if (hour >= 0 && hour < 6) return "NIGHT";
+    if (hour >= 6 && hour < 12) return "MORNING";
+    if (hour >= 12 && hour < 18) return "AFTERNOON";
+    return "EVENING";
+}
+/* =====================================================
+   24. HÀM TIỆN ÍCH
+===================================================== */
+
+function setText(id, value) {
+    const element = document.getElementById(id);
+    if (element) {
+        element.textContent = value ?? "";
+    }
+}
 
 function formatDate(value) {
     if (!value) return "";
     const text = String(value).slice(0, 10);
     const parts = text.split("-");
-    if (parts.length !== 3) return String(value);
+    if (parts.length !== 3) {
+        return String(value);
+    }
     return `${parts[2]}/${parts[1]}/${parts[0]}`;
 }
 
@@ -1418,11 +1752,6 @@ function formatTime(value) {
     if (!value) return "";
     return String(value).slice(0, 5);
 }
-/*
-=====================================================
-17. DỊCH TRẠNG THÁI
-=====================================================
-*/
 
 function translateAppointmentStatus(status) {
     const map = {
@@ -1434,11 +1763,15 @@ function translateAppointmentStatus(status) {
     };
     return map[status] || status || "Chưa xác định";
 }
-/*
-=====================================================
-18. ESCAPE HTML
-=====================================================
-*/
+
+function removeDiacritics(value) {
+    return String(value ?? "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/đ/g, "d")
+        .replace(/Đ/g, "D")
+        .toLowerCase();
+}
 
 function escapeHTML(value) {
     return String(value ?? "").replace(/[&<>"']/g, function (char) {
@@ -1452,32 +1785,28 @@ function escapeHTML(value) {
         return entities[char];
     });
 }
-/*
-=====================================================
-19. HIỂN THỊ THÔNG BÁO
-=====================================================
-*/
 
 function showDashboardMessage(element, message, type) {
     if (!element) return;
-    element.className = `dashboard-message ${type}`;
+    element.className = `dashboard-message ${type || ""}`;
     element.textContent = message;
     setTimeout(function () {
         element.textContent = "";
         element.className = "dashboard-message";
     }, 4000);
 }
-/*
-=====================================================
-20. EXPORT HÀM CHO CÁC NÚT ONCLICK
-=====================================================
-*/
+/* =====================================================
+   25. EXPORT CÁC HÀM CHO HTML
+===================================================== */
 
 window.toggleDoctorSchedule = toggleDoctorSchedule;
 window.deleteDoctorSchedule = deleteDoctorSchedule;
+
 window.updateAppointment = updateAppointment;
 window.recordPatientArrival = recordPatientArrival;
 window.completeAppointment = completeAppointment;
+
 window.openPrescriptionModal = openPrescriptionModal;
+
 window.showToast = showToast;
 window.confirmDialog = confirmDialog;
